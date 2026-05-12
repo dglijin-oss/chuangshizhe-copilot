@@ -1,0 +1,1357 @@
+/* List Marker Styles */
+.pem-list-marker {
+    cursor: text;
+}
+
+/* Source-aware unordered list marker styles */
+.HyperMD-list-line:not(.cm-active).pem-unordered-list-marker-plus .cm-formatting-list-ul:not(:has(.list-bullet)),
+.HyperMD-list-line:not(.cm-active).pem-unordered-list-marker-star .cm-formatting-list-ul:not(:has(.list-bullet)) {
+    color: transparent;
+    font-size: 0;
+}
+
+.HyperMD-list-line.pem-unordered-list-marker-plus .cm-formatting-list-ul .list-bullet,
+.HyperMD-list-line.pem-unordered-list-marker-star .cm-formatting-list-ul .list-bullet {
+    color: transparent !important;
+}
+
+.HyperMD-list-line:not(.cm-active).pem-unordered-list-marker-plus .cm-formatting-list-ul:not(:has(.list-bullet))::before,
+.HyperMD-list-line:not(.cm-active).pem-unordered-list-marker-star .cm-formatting-list-ul:not(:has(.list-bullet))::before {
+    content: "";
+    display: inline-block;
+    font-size: var(--font-text-size, 16px);
+    width: var(--list-bullet-size);
+    min-width: 6px;
+    height: var(--list-bullet-size);
+    min-height: 6px;
+    margin-inline-end: var(--list-bullet-end-padding);
+    vertical-align: middle;
+}
+
+.HyperMD-list-line:not(.cm-active).pem-unordered-list-marker-plus .cm-formatting-list-ul:not(:has(.list-bullet))::before,
+.HyperMD-list-line.pem-unordered-list-marker-plus .cm-formatting-list-ul .list-bullet::after {
+    content: "";
+    display: inline-block;
+    background-color: var(--list-marker-color, var(--text-muted, #8a8a8a));
+    border-radius: 1px;
+}
+
+.HyperMD-list-line:not(.cm-active).pem-unordered-list-marker-star .cm-formatting-list-ul:not(:has(.list-bullet))::before,
+.HyperMD-list-line.pem-unordered-list-marker-star .cm-formatting-list-ul .list-bullet::after {
+    content: "";
+    display: inline-block;
+    background-color: transparent;
+    border: 1px solid var(--list-marker-color, var(--text-muted, #8a8a8a));
+    border-radius: 50%;
+    box-sizing: border-box;
+}
+
+.markdown-preview-view li.pem-unordered-list-marker-dash {
+    list-style-type: disc;
+}
+
+.markdown-preview-view li.pem-unordered-list-marker-plus {
+    list-style-type: square;
+}
+
+.markdown-preview-view li.pem-unordered-list-marker-star {
+    list-style-type: circle;
+}
+
+/* Custom Label Placeholder Styles */
+.pem-custom-label-placeholder {
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-decoration-color: var(--text-muted);
+}
+
+/* Inline placeholder number styles */
+.pem-inline-placeholder-number {
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-decoration-color: var(--text-muted);
+    cursor: text;
+}
+
+/* Fancy Lists Styles */
+.pem-list-upper-alpha {
+    list-style-type: upper-alpha;
+}
+
+.pem-list-lower-alpha {
+    list-style-type: lower-alpha;
+}
+
+.pem-list-upper-roman {
+    list-style-type: upper-roman;
+}
+
+.pem-list-lower-roman {
+    list-style-type: lower-roman;
+}
+
+.pem-list-paren {
+    counter-reset: pem-list;
+}
+
+.pem-list-paren > li {
+    counter-increment: pem-list;
+    list-style: none;
+    position: relative;
+}
+
+.pem-list-paren > li::before {
+    content: counter(pem-list) ") ";
+    position: absolute;
+    left: -2em;
+}
+
+/* Definition Lists Styles */
+:where(.pem-definition-list, .cm-pem-definition-term, .cm-pem-definition-paragraph) {
+    --pem-definition-list-bg: transparent;
+    --pem-definition-list-border-color: transparent;
+    --pem-definition-list-border-radius: 0;
+    --pem-definition-list-border-style: solid;
+    --pem-definition-list-border-width: 0;
+    --pem-definition-list-padding: 0;
+    --pem-definition-term-align: inherit;
+    --pem-definition-term-color: inherit;
+    --pem-definition-term-font-size: inherit;
+    --pem-definition-term-font-style: normal;
+    --pem-definition-term-font-weight: bold;
+    --pem-definition-term-text-decoration: underline;
+    --pem-definition-desc-align: inherit;
+    --pem-definition-desc-color: inherit;
+    --pem-definition-desc-font-size: inherit;
+    --pem-definition-desc-font-style: normal;
+    --pem-definition-desc-font-weight: inherit;
+    --pem-definition-desc-marker-color: var(--list-marker-color, var(--text-muted));
+    --pem-definition-desc-marker-content: "•";
+    --pem-definition-desc-text-decoration: none;
+}
+
+.markdown-preview-view .pem-definition-list {
+    background: var(--pem-definition-list-bg);
+    border: var(--pem-definition-list-border-width) var(--pem-definition-list-border-style) var(--pem-definition-list-border-color);
+    border-radius: var(--pem-definition-list-border-radius);
+    margin: 1em 0;
+    padding: var(--pem-definition-list-padding);
+}
+
+.markdown-preview-view .pem-definition-term {
+    color: var(--pem-definition-term-color);
+    font-size: var(--pem-definition-term-font-size);
+    font-style: var(--pem-definition-term-font-style);
+    font-weight: var(--pem-definition-term-font-weight);
+    margin-top: 0.5em;
+    margin-bottom: 0.25em;
+    text-align: var(--pem-definition-term-align);
+    text-decoration: var(--pem-definition-term-text-decoration);
+}
+
+.markdown-preview-view .pem-list-definition-desc {
+    color: var(--pem-definition-desc-color);
+    font-size: var(--pem-definition-desc-font-size);
+    font-style: var(--pem-definition-desc-font-style);
+    font-weight: var(--pem-definition-desc-font-weight);
+    margin-bottom: 0.25em;
+    margin-inline-start: 0;
+    text-align: var(--pem-definition-desc-align);
+    text-decoration: var(--pem-definition-desc-text-decoration);
+}
+
+.markdown-preview-view .pem-definition-desc-list {
+    list-style-position: outside;
+    list-style-type: disc;
+    margin: 0;
+    padding-inline-start: 0;
+}
+
+.markdown-preview-view .pem-definition-desc-item {
+    margin-block: var(--list-spacing, 0.075em);
+}
+
+.markdown-preview-view .pem-definition-desc-item::marker {
+    color: var(--pem-definition-desc-marker-color);
+    content: var(--pem-definition-desc-marker-content) " ";
+}
+
+.cm-pem-definition-paragraph .pem-list-marker {
+    color: var(--pem-definition-desc-marker-color);
+}
+
+.pem-definition-items {
+    margin-left: 2em;
+    margin-top: 0.25em;
+    list-style-type: disc;
+}
+
+.pem-definition-items li {
+    margin: 0.25em 0;
+}
+
+/* Definition content paragraphs - override Obsidian's indented text styling */
+.cm-pem-definition-paragraph {
+    /* No extra padding - indentation handled by spaces/tabs */
+    background: var(--pem-definition-list-bg);
+    border-color: var(--pem-definition-list-border-color);
+    border-radius: var(--pem-definition-list-border-radius);
+    border-style: var(--pem-definition-list-border-style);
+    border-width: var(--pem-definition-list-border-width);
+    color: var(--pem-definition-desc-color);
+    font-size: var(--pem-definition-desc-font-size);
+    font-style: var(--pem-definition-desc-font-style);
+    font-weight: var(--pem-definition-desc-font-weight);
+    text-align: var(--pem-definition-desc-align);
+    text-decoration: var(--pem-definition-desc-text-decoration);
+    text-indent: 0 !important;
+}
+
+/* Override code block styling for definition content */
+.cm-pem-definition-paragraph .cm-hmd-indented-code,
+.cm-pem-definition-paragraph .cm-inline-code,
+.pem-definition-content-text {
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    color: inherit !important;
+    font-family: inherit !important;
+    font-size: inherit !important;
+}
+
+/* Ensure the indent is visible for proper cursor positioning */
+.cm-pem-definition-paragraph .cm-indent {
+    opacity: 1;
+}
+
+/* In live preview mode */
+.cm-line .pem-definition-term {
+    color: var(--pem-definition-term-color);
+    font-size: var(--pem-definition-term-font-size);
+    font-style: var(--pem-definition-term-font-style);
+    font-weight: var(--pem-definition-term-font-weight);
+    text-decoration: var(--pem-definition-term-text-decoration);
+}
+
+:where(.pem-fenced-div),
+:where(.cm-pem-fenced-div-line),
+:where(.cm-content > .cm-pem-fenced-div-line + .math.math-block.cm-embed-block:has(+ .cm-pem-fenced-div-line)) {
+    --pem-fenced-div-accent: var(--interactive-accent);
+    --pem-fenced-div-bg: var(--background-secondary);
+    --pem-fenced-div-inner-bg: var(--background-primary-alt, var(--background-primary));
+    --pem-fenced-div-nest-indent: 1.5em;
+    --pem-fenced-div-rail-width: 3px;
+    --pem-fenced-div-border-color: transparent;
+    --pem-fenced-div-border-style: solid;
+    --pem-fenced-div-border-width: 0;
+    --pem-fenced-div-border-radius: 0;
+}
+
+.pem-fenced-div {
+    background: var(--pem-fenced-div-bg);
+    border: var(--pem-fenced-div-border-width) var(--pem-fenced-div-border-style) var(--pem-fenced-div-border-color);
+    border-radius: var(--pem-fenced-div-border-radius);
+    box-shadow: inset var(--pem-fenced-div-rail-width) 0 0 var(--pem-fenced-div-accent);
+    margin: 1em 0;
+    padding: 0.55em 1em 0.7em 1.35em;
+}
+
+.pem-fenced-div .pem-fenced-div {
+    background: var(--pem-fenced-div-inner-bg);
+    margin-bottom: 0.4em;
+    margin-top: 0.5em;
+}
+
+.pem-fenced-div-inner {
+    margin-inline-start: var(--pem-fenced-div-nest-indent);
+}
+
+.pem-fenced-div > .pem-fenced-div-title {
+    display: block;
+    margin-bottom: 0.35em;
+}
+
+.pem-fenced-div-content > :first-child {
+    margin-top: 0;
+}
+
+.pem-fenced-div-content > :last-child {
+    margin-bottom: 0;
+}
+
+/* CodeMirror-specific definition term styling */
+.cm-pem-definition-term {
+    background: var(--pem-definition-list-bg);
+    border-color: var(--pem-definition-list-border-color);
+    border-radius: var(--pem-definition-list-border-radius);
+    border-style: var(--pem-definition-list-border-style);
+    border-width: var(--pem-definition-list-border-width);
+    color: var(--pem-definition-term-color);
+    font-size: var(--pem-definition-term-font-size);
+    font-style: var(--pem-definition-term-font-style);
+    font-weight: var(--pem-definition-term-font-weight);
+    text-align: var(--pem-definition-term-align);
+    text-decoration: var(--pem-definition-term-text-decoration);
+}
+
+.cm-pem-fenced-div-line,
+.cm-content > .cm-pem-fenced-div-line + .math.math-block.cm-embed-block:has(+ .cm-pem-fenced-div-line) {
+    --pem-fenced-div-current-indent: 0px;
+    --pem-fenced-div-rail-1: linear-gradient(
+            to right,
+            transparent 0,
+            transparent var(--pem-fenced-div-nest-indent),
+            var(--pem-fenced-div-accent) var(--pem-fenced-div-nest-indent),
+            var(--pem-fenced-div-accent) calc(var(--pem-fenced-div-nest-indent) + var(--pem-fenced-div-rail-width)),
+            var(--pem-fenced-div-inner-bg) calc(var(--pem-fenced-div-nest-indent) + var(--pem-fenced-div-rail-width)),
+            var(--pem-fenced-div-inner-bg) 100%
+        );
+    --pem-fenced-div-rail-2: linear-gradient(
+            to right,
+            transparent 0,
+            transparent calc(var(--pem-fenced-div-nest-indent) * 2),
+            var(--pem-fenced-div-accent) calc(var(--pem-fenced-div-nest-indent) * 2),
+            var(--pem-fenced-div-accent) calc(var(--pem-fenced-div-nest-indent) * 2 + var(--pem-fenced-div-rail-width)),
+            var(--pem-fenced-div-inner-bg) calc(var(--pem-fenced-div-nest-indent) * 2 + var(--pem-fenced-div-rail-width)),
+            var(--pem-fenced-div-inner-bg) 100%
+        );
+    --pem-fenced-div-rail-3: linear-gradient(
+            to right,
+            transparent 0,
+            transparent calc(var(--pem-fenced-div-nest-indent) * 3),
+            var(--pem-fenced-div-accent) calc(var(--pem-fenced-div-nest-indent) * 3),
+            var(--pem-fenced-div-accent) calc(var(--pem-fenced-div-nest-indent) * 3 + var(--pem-fenced-div-rail-width)),
+            var(--pem-fenced-div-inner-bg) calc(var(--pem-fenced-div-nest-indent) * 3 + var(--pem-fenced-div-rail-width)),
+            var(--pem-fenced-div-inner-bg) 100%
+        );
+    --pem-fenced-div-rail-4: linear-gradient(
+            to right,
+            transparent 0,
+            transparent calc(var(--pem-fenced-div-nest-indent) * 4),
+            var(--pem-fenced-div-accent) calc(var(--pem-fenced-div-nest-indent) * 4),
+            var(--pem-fenced-div-accent) calc(var(--pem-fenced-div-nest-indent) * 4 + var(--pem-fenced-div-rail-width)),
+            var(--pem-fenced-div-inner-bg) calc(var(--pem-fenced-div-nest-indent) * 4 + var(--pem-fenced-div-rail-width)),
+            var(--pem-fenced-div-inner-bg) 100%
+        );
+    --pem-fenced-div-rail-5: linear-gradient(
+            to right,
+            transparent 0,
+            transparent calc(var(--pem-fenced-div-nest-indent) * 5),
+            var(--pem-fenced-div-accent) calc(var(--pem-fenced-div-nest-indent) * 5),
+            var(--pem-fenced-div-accent) calc(var(--pem-fenced-div-nest-indent) * 5 + var(--pem-fenced-div-rail-width)),
+            var(--pem-fenced-div-inner-bg) calc(var(--pem-fenced-div-nest-indent) * 5 + var(--pem-fenced-div-rail-width)),
+            var(--pem-fenced-div-inner-bg) 100%
+        );
+    --pem-fenced-div-surface: var(--pem-fenced-div-bg);
+    border-inline-end: var(--pem-fenced-div-border-width) var(--pem-fenced-div-border-style) var(--pem-fenced-div-border-color);
+    border-inline-start: var(--pem-fenced-div-border-width) var(--pem-fenced-div-border-style) var(--pem-fenced-div-border-color);
+    box-shadow: inset var(--pem-fenced-div-rail-width) 0 0 var(--pem-fenced-div-accent) !important;
+}
+
+.cm-pem-fenced-div-line {
+    background: var(--pem-fenced-div-surface) !important;
+    padding-inline-start: 1.35em !important;
+    padding-inline-end: 1em;
+}
+
+.cm-pem-fenced-div-inner,
+.cm-content > .cm-pem-fenced-div-inner + .math.math-block.cm-embed-block:has(+ .cm-pem-fenced-div-line) {
+    --pem-fenced-div-current-indent: var(--pem-fenced-div-nest-indent);
+    --pem-fenced-div-surface: var(--pem-fenced-div-rail-1), var(--pem-fenced-div-bg);
+}
+
+.cm-pem-fenced-div-inner {
+    padding-inline-start: calc(var(--pem-fenced-div-current-indent) + 1.35em) !important;
+}
+
+.cm-pem-fenced-div-depth-3,
+.cm-content > .cm-pem-fenced-div-depth-3 + .math.math-block.cm-embed-block:has(+ .cm-pem-fenced-div-line) {
+    --pem-fenced-div-current-indent: calc(var(--pem-fenced-div-nest-indent) * 2);
+    --pem-fenced-div-surface: var(--pem-fenced-div-rail-2), var(--pem-fenced-div-rail-1), var(--pem-fenced-div-bg);
+}
+
+.cm-pem-fenced-div-depth-4,
+.cm-content > .cm-pem-fenced-div-depth-4 + .math.math-block.cm-embed-block:has(+ .cm-pem-fenced-div-line) {
+    --pem-fenced-div-current-indent: calc(var(--pem-fenced-div-nest-indent) * 3);
+    --pem-fenced-div-surface: var(--pem-fenced-div-rail-3), var(--pem-fenced-div-rail-2), var(--pem-fenced-div-rail-1), var(--pem-fenced-div-bg);
+}
+
+.cm-pem-fenced-div-depth-5,
+.cm-content > .cm-pem-fenced-div-depth-5 + .math.math-block.cm-embed-block:has(+ .cm-pem-fenced-div-line) {
+    --pem-fenced-div-current-indent: calc(var(--pem-fenced-div-nest-indent) * 4);
+    --pem-fenced-div-surface: var(--pem-fenced-div-rail-4), var(--pem-fenced-div-rail-3), var(--pem-fenced-div-rail-2), var(--pem-fenced-div-rail-1), var(--pem-fenced-div-bg);
+}
+
+.cm-pem-fenced-div-depth-6,
+.cm-content > .cm-pem-fenced-div-depth-6 + .math.math-block.cm-embed-block:has(+ .cm-pem-fenced-div-line) {
+    --pem-fenced-div-current-indent: calc(var(--pem-fenced-div-nest-indent) * 5);
+    --pem-fenced-div-surface: var(--pem-fenced-div-rail-5), var(--pem-fenced-div-rail-4), var(--pem-fenced-div-rail-3), var(--pem-fenced-div-rail-2), var(--pem-fenced-div-rail-1), var(--pem-fenced-div-bg);
+}
+
+.cm-pem-fenced-div-open {
+    border-start-end-radius: var(--pem-fenced-div-border-radius);
+    border-start-start-radius: var(--pem-fenced-div-border-radius);
+    border-top: var(--pem-fenced-div-border-width) var(--pem-fenced-div-border-style) var(--pem-fenced-div-border-color);
+    padding-top: 0.5em;
+    padding-bottom: 0.1em;
+}
+
+.cm-pem-fenced-div-close {
+    border-bottom: var(--pem-fenced-div-border-width) var(--pem-fenced-div-border-style) var(--pem-fenced-div-border-color);
+    border-end-end-radius: var(--pem-fenced-div-border-radius);
+    border-end-start-radius: var(--pem-fenced-div-border-radius);
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.cm-line.cm-pem-fenced-div-close:not(.cm-active) {
+    cursor: text;
+    height: 0.7em !important;
+    line-height: 0.7;
+    min-height: 0.7em;
+    padding-bottom: 0 !important;
+    padding-top: 0 !important;
+}
+
+.cm-line.cm-pem-fenced-div-close.cm-active {
+    line-height: 1.4;
+    min-height: 1.4em;
+}
+
+.cm-pem-fenced-div-content {
+    padding-top: 0.1em;
+    padding-bottom: 0.2em;
+}
+
+.cm-content > .cm-pem-fenced-div-line + .math.math-block.cm-embed-block:has(+ .cm-pem-fenced-div-line) {
+    background: var(--pem-fenced-div-surface) !important;
+    margin: 0;
+    padding-bottom: 0.2em !important;
+    padding-inline-start: calc(var(--pem-fenced-div-current-indent) + 1.35em) !important;
+    padding-inline-end: 1em !important;
+    padding-top: 0.1em !important;
+}
+
+.cm-line.cm-pem-fenced-div-line :is(.cm-embed-block, .markdown-rendered, .math, .cm-math, mjx-container),
+.cm-content > .cm-pem-fenced-div-line + .math.math-block.cm-embed-block:has(+ .cm-pem-fenced-div-line) :is(.markdown-rendered, .math, .cm-math, mjx-container) {
+    background: transparent !important;
+}
+
+.cm-pem-fenced-div-content-end {
+    padding-bottom: 0.5em;
+}
+
+.pem-fenced-div-header {
+    display: inline-block;
+}
+
+.pem-fenced-div-header,
+.pem-fenced-div > .pem-fenced-div-title {
+    color: var(--text-normal);
+    font-weight: 700;
+    font-size: var(--font-ui-medium);
+    line-height: 1.35;
+    margin-inline-start: 0.1em;
+    padding-right: 0.3em;
+}
+
+.pem-fenced-div-closing {
+    display: inline-block;
+    height: 0;
+    line-height: 1;
+    width: 0;
+}
+
+.cm-line.cm-pem-fenced-div-open .cm-hashtag,
+.cm-line.cm-pem-fenced-div-open .cm-hashtag-begin,
+.cm-line.cm-pem-fenced-div-open .cm-hashtag-end,
+.cm-line.cm-pem-fenced-div-open [class*="cm-tag-"] {
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    color: inherit !important;
+    cursor: text !important;
+    font-family: inherit !important;
+    font-size: inherit !important;
+    padding: 0 !important;
+    pointer-events: none !important;
+    text-decoration: none !important;
+}
+
+.pem-fenced-div-reference {
+    color: var(--link-color);
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.pem-fenced-div-reference:hover {
+    color: var(--link-color-hover);
+    text-decoration: underline;
+}
+
+.cm-line .pem-definition-marker {
+    display: none;
+}
+
+/* Example Lists Styles */
+.markdown-preview-view ol.pem-example-list {
+    list-style-position: outside;
+    list-style-type: decimal;
+    padding-inline-start: var(--list-indent, 2em);
+}
+
+.markdown-preview-view ol.pem-example-list > li.pem-example-item {
+    display: list-item;
+    margin: var(--list-spacing, 0.075em) 0;
+}
+
+.markdown-preview-view ol.pem-example-list > li.pem-example-item::marker {
+    color: var(--list-marker-color, var(--text-muted));
+    content: "(" attr(data-example-number) ") ";
+}
+
+.markdown-preview-view p.pem-custom-label-item {
+    margin: var(--p-spacing, 1rem) 0;
+}
+
+.markdown-preview-view p.pem-custom-label-item > strong:first-child {
+    color: var(--text-normal);
+    display: inline-block;
+    margin-inline-end: 0.35em;
+    min-width: 2.5em;
+}
+
+.markdown-preview-view p.pem-custom-label-item .pem-list-marker {
+    color: var(--text-normal);
+}
+
+.pem-example-reference {
+    color: var(--text-accent);
+    cursor: pointer;
+}
+
+.pem-example-reference:hover {
+    text-decoration: underline;
+}
+
+/* Duplicate markers (for both example lists and custom label lists) */
+.pem-duplicate-markers {
+    color: var(--text-error);
+    text-decoration: underline;
+    cursor: help;
+}
+
+/* Live Preview Mode Specific */
+.cm-formatting-list-ol.pem-list-upper-alpha::before {
+    content: attr(data-marker);
+}
+
+.cm-formatting-list-ol.pem-list-lower-alpha::before {
+    content: attr(data-marker);
+}
+
+.cm-formatting-list-ol.pem-list-upper-roman::before {
+    content: attr(data-marker);
+}
+
+.cm-formatting-list-ol.pem-list-lower-roman::before {
+    content: attr(data-marker);
+}
+
+.cm-formatting-list-ol.pem-example-list::before {
+    content: attr(data-original);
+}
+
+/* Source Mode - preserve original text */
+.is-live-preview:not(.is-readable-line-width) .cm-s-obsidian {
+    .pem-list-upper-alpha,
+    .pem-list-lower-alpha,
+    .pem-list-upper-roman,
+    .pem-list-lower-roman,
+    .pem-example-list,
+    .pem-definition-term,
+    .pem-definition-marker {
+        all: initial;
+        color: inherit;
+        font-family: inherit;
+        font-size: inherit;
+    }
+}
+
+/* List Line Indentation - Matching Obsidian's default list behavior */
+/* Obsidian already handles text-indent for HyperMD-list-line */
+/* We only need to ensure proper padding for alignment */
+.HyperMD-list-line.pem-list-line {
+    /* Only padding needed - Obsidian handles text-indent internally */
+    padding-inline-start: 29px;
+}
+
+/* For nested lists */
+.HyperMD-list-line-2.pem-list-line {
+    padding-inline-start: var(--list-indent-editing, 30px);
+}
+
+.pem-list-continuation-widget {
+    display: inline-block;
+    pointer-events: none;
+    white-space: pre;
+    width: 0; /* width is set inline by widget */
+    flex-shrink: 0;
+}
+
+/* Custom Label Reference Clickable */
+.pem-custom-label-ref-clickable {
+    cursor: pointer;
+}
+
+/* Custom Label Lists */
+.pem-custom-label-item {
+    list-style: none;
+    position: relative;
+}
+
+/* Example Reference Suggestions */
+.pem-suggestion-content {
+    padding: 6px 10px;
+}
+
+.pem-suggestion-title {
+    font-weight: 600;
+    color: var(--text-normal);
+    margin-bottom: 2px;
+}
+
+.pem-suggestion-preview {
+    font-size: 0.85em;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 300px;
+}
+
+.pem-suggestion-number {
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 2px;
+    text-decoration-color: var(--text-muted);
+}
+
+.pem-suggestion-placeholder {
+    font-size: 0.8em;
+    color: var(--text-muted);
+    opacity: 0.7;
+}
+
+/* Superscript and Subscript Styles */
+.pem-superscript,
+sup.pem-superscript {
+    vertical-align: super;
+    font-size: 0.85em;
+    line-height: 0;
+}
+
+.pem-subscript,
+sub.pem-subscript {
+    vertical-align: sub;
+    font-size: 0.85em;
+    line-height: 0;
+}
+
+/* List Panel View Styles */
+.pem-list-panel-view-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 8px;
+}
+
+.pem-list-panel-icon-row {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    padding: 4px 0;
+    margin-bottom: 4px;
+}
+
+.pem-list-panel-icon-button {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background-color: var(--background-primary);
+    transition: all 0.2s ease;
+}
+
+.pem-list-panel-icon-button:hover {
+    background-color: var(--background-modifier-hover);
+    border-color: var(--text-accent);
+}
+
+.pem-list-panel-icon-button.is-active {
+    background-color: var(--interactive-accent);
+    border-color: var(--interactive-accent);
+}
+
+.pem-list-panel-icon-button.is-active svg {
+    color: var(--text-on-accent);
+}
+
+.pem-list-panel-icon-button svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Panel icon container */
+.pem-panel-icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+}
+
+/* Text-based icons for panels */
+.pem-icon-custom-label,
+.pem-icon-example-list,
+.pem-icon-definition-list,
+.pem-icon-fenced-div,
+.pem-icon-footnote {
+    font-family: var(--font-monospace);
+    font-weight: bold;
+    font-size: 10px;
+    line-height: 20px;
+    color: var(--text-muted);
+}
+
+.pem-list-panel-icon-button.is-active .pem-icon-custom-label,
+.pem-list-panel-icon-button.is-active .pem-icon-example-list,
+.pem-list-panel-icon-button.is-active .pem-icon-definition-list,
+.pem-list-panel-icon-button.is-active .pem-icon-fenced-div,
+.pem-list-panel-icon-button.is-active .pem-icon-footnote {
+    color: var(--text-on-accent);
+}
+
+.pem-list-panel-icon-button:hover .pem-icon-custom-label,
+.pem-list-panel-icon-button:hover .pem-icon-example-list,
+.pem-list-panel-icon-button:hover .pem-icon-definition-list,
+.pem-list-panel-icon-button:hover .pem-icon-fenced-div,
+.pem-list-panel-icon-button:hover .pem-icon-footnote {
+    color: var(--text-normal);
+}
+
+.pem-list-panel-separator {
+    margin: 8px 0;
+    border: none;
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.pem-list-panel-content-container {
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* Panel Order Settings Styles */
+.pem-panel-order-info {
+    flex: 0 0 auto;
+    max-width: 200px;
+}
+
+.pem-panel-order-container {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+}
+
+.pem-panel-order-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+    min-width: 300px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    padding: 8px;
+}
+
+.pem-panel-order-item {
+    padding: 6px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pem-panel-order-item.is-selected {
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+}
+
+.pem-panel-order-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.pem-panel-order-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 140px;
+}
+
+.pem-panel-order-button {
+    width: 100%;
+}
+
+.pem-ordered-list-order-container,
+.pem-unordered-list-order-container {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) minmax(120px, 150px);
+    align-items: flex-start;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.pem-ordered-list-order-list,
+.pem-unordered-list-order-list {
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.pem-ordered-list-order-container .pem-panel-order-buttons,
+.pem-unordered-list-order-container .pem-panel-order-buttons {
+    min-width: 0;
+    width: 100%;
+}
+
+.pem-ordered-list-order-item,
+.pem-unordered-list-order-item {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    align-items: start;
+    gap: 10px;
+    line-height: 1.35;
+}
+
+.pem-ordered-list-order-marker,
+.pem-unordered-list-order-marker {
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.pem-ordered-list-order-label,
+.pem-unordered-list-order-label {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    text-align: left;
+}
+
+/* Custom Label View Styles */
+table.custom-label-view-container {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: auto;
+}
+
+/* Header styles removed - no longer using header */
+
+tr.custom-label-view-row {
+    border-bottom: 1px solid var(--background-modifier-border-hover);
+    transition: background-color 0.15s ease;
+}
+
+tr.custom-label-view-row:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+td.custom-label-view-label {
+    font-family: var(--font-monospace);
+    font-size: 0.9em;
+    color: var(--text-accent);
+    cursor: pointer;
+    padding: 6px 8px;
+    border-radius: 3px;
+    transition: background-color 0.15s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 1%;
+    min-width: fit-content;
+}
+
+td.custom-label-view-label:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+td.custom-label-view-content {
+    font-size: 0.9em;
+    color: var(--text-normal);
+    cursor: pointer;
+    padding: 6px 8px;
+    border-radius: 3px;
+    transition: background-color 0.15s ease;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 4.5em;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    line-height: 1.3;
+}
+
+/* Normalize paragraph spacing in custom label panel content */
+td.custom-label-view-content p {
+    margin: 0;
+    line-height: 1.3;
+}
+
+td.custom-label-view-content p:not(:last-child) {
+    margin-bottom: 0.3em;
+}
+
+/* Also normalize lists in custom label panel */
+td.custom-label-view-content ul,
+td.custom-label-view-content ol {
+    margin: 0;
+    padding-left: 1.2em;
+    line-height: 1.3;
+}
+
+td.custom-label-view-content ul:not(:last-child),
+td.custom-label-view-content ol:not(:last-child) {
+    margin-bottom: 0.3em;
+}
+
+td.custom-label-view-content li {
+    margin: 0;
+    line-height: 1.3;
+}
+
+td.custom-label-view-content:hover {
+    background-color: var(--background-modifier-hover);
+    color: var(--text-accent);
+}
+
+.custom-label-view-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Example List View Styles */
+table.pem-example-list-view-container {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: auto;
+}
+
+tr.pem-example-list-view-row {
+    border-bottom: 1px solid var(--background-modifier-border-hover);
+    transition: background-color 0.15s ease;
+}
+
+tr.pem-example-list-view-row:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+td.pem-example-list-view-number {
+    font-family: var(--font-monospace);
+    font-size: 0.9em;
+    color: var(--text-muted);
+    cursor: default;
+    padding: 6px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 1%;
+    min-width: fit-content;
+}
+
+td.pem-example-list-view-label {
+    font-family: var(--font-monospace);
+    font-size: 0.9em;
+    color: var(--text-accent);
+    cursor: pointer;
+    padding: 6px 8px;
+    border-radius: 3px;
+    transition: background-color 0.15s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 1%;
+    min-width: fit-content;
+}
+
+td.pem-example-list-view-label:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+td.pem-example-list-view-content {
+    font-size: 0.9em;
+    color: var(--text-normal);
+    cursor: pointer;
+    padding: 6px 8px;
+    border-radius: 3px;
+    transition: background-color 0.15s ease;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 4.5em;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    line-height: 1.3;
+}
+
+/* Normalize paragraph spacing in example list panel content */
+td.pem-example-list-view-content p {
+    margin: 0;
+    line-height: 1.3;
+}
+
+td.pem-example-list-view-content p:not(:last-child) {
+    margin-bottom: 0.3em;
+}
+
+/* Also normalize lists in example list panel */
+td.pem-example-list-view-content ul,
+td.pem-example-list-view-content ol {
+    margin: 0;
+    padding-left: 1.2em;
+    line-height: 1.3;
+}
+
+td.pem-example-list-view-content ul:not(:last-child),
+td.pem-example-list-view-content ol:not(:last-child) {
+    margin-bottom: 0.3em;
+}
+
+td.pem-example-list-view-content li {
+    margin: 0;
+    line-height: 1.3;
+}
+
+td.pem-example-list-view-content:hover {
+    background-color: var(--background-modifier-hover);
+    color: var(--text-accent);
+}
+
+.pem-example-list-view-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Definition List View Styles */
+table.pem-definition-list-view-container {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875em;
+    table-layout: fixed;
+}
+
+tr.pem-definition-list-view-row {
+    border-bottom: 1px solid var(--background-modifier-border);
+    transition: background-color 0.15s ease;
+}
+
+tr.pem-definition-list-view-row:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+td.pem-definition-list-view-term {
+    width: 30%;
+    padding: 8px;
+    font-weight: 600;
+    color: var(--text-normal);
+    vertical-align: top;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+td.pem-definition-list-view-definitions {
+    width: 70%;
+    padding: 8px;
+    color: var(--text-normal);
+    vertical-align: top;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+td.pem-definition-list-view-definitions ul {
+    margin: 0;
+    padding-left: 1.2em;
+    list-style-type: disc;
+}
+
+td.pem-definition-list-view-definitions li {
+    margin-bottom: 4px;
+}
+
+td.pem-definition-list-view-definitions li:last-child {
+    margin-bottom: 0;
+}
+
+td.pem-definition-list-view-definitions p {
+    margin: 0;
+    line-height: 1.4;
+}
+
+td.pem-definition-list-view-definitions:hover {
+    background-color: var(--interactive-hover);
+}
+
+.pem-definition-list-view-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Fenced Div Panel Styles */
+table.pem-fenced-div-panel-container {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: auto;
+}
+
+tr.pem-fenced-div-panel-row {
+    border-bottom: 1px solid var(--background-modifier-border-hover);
+    transition: background-color 0.15s ease;
+}
+
+tr.pem-fenced-div-panel-row:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+td.pem-fenced-div-panel-title {
+    width: 1%;
+    font-size: 0.9em;
+    font-weight: 600;
+    color: var(--text-normal);
+    cursor: default;
+    padding: 6px 8px;
+    vertical-align: top;
+    white-space: nowrap;
+    overflow: visible;
+}
+
+td.pem-fenced-div-panel-label {
+    width: 1%;
+    font-family: var(--font-monospace);
+    font-size: 0.9em;
+    color: var(--text-accent);
+    cursor: pointer;
+    padding: 6px 8px;
+    border-radius: 3px;
+    vertical-align: top;
+    white-space: nowrap;
+    overflow: visible;
+    transition: background-color 0.15s ease;
+}
+
+td.pem-fenced-div-panel-label:empty {
+    cursor: default;
+}
+
+td.pem-fenced-div-panel-label:not(:empty):hover {
+    background-color: var(--background-modifier-hover);
+}
+
+td.pem-fenced-div-panel-content {
+    width: auto;
+    font-size: 0.9em;
+    color: var(--text-normal);
+    cursor: pointer;
+    padding: 6px 8px;
+    border-radius: 3px;
+    vertical-align: top;
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.3;
+    transition: background-color 0.15s ease;
+}
+
+td.pem-fenced-div-panel-content p {
+    margin: 0;
+    line-height: 1.3;
+}
+
+td.pem-fenced-div-panel-content p:not(:last-child) {
+    margin-bottom: 0.3em;
+}
+
+td.pem-fenced-div-panel-content ul,
+td.pem-fenced-div-panel-content ol {
+    margin: 0;
+    padding-left: 1.2em;
+    line-height: 1.3;
+}
+
+td.pem-fenced-div-panel-content li {
+    margin: 0;
+    line-height: 1.3;
+}
+
+td.pem-fenced-div-panel-content:hover {
+    background-color: var(--background-modifier-hover);
+    color: var(--text-accent);
+}
+
+.pem-fenced-div-panel-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Footnote Panel Styles */
+table.pem-footnote-panel-container {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+tr.pem-footnote-panel-row {
+    border-bottom: 1px solid var(--background-modifier-border);
+    transition: background-color 0.15s ease;
+}
+
+tr.pem-footnote-panel-row:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+td.pem-footnote-panel-index {
+    font-family: var(--font-monospace);
+    font-size: 0.95em;
+    color: var(--text-accent);
+    cursor: pointer;
+    padding: 6px 8px;
+    text-align: center;
+    white-space: nowrap;
+    width: 56px;
+}
+
+td.pem-footnote-panel-content {
+    font-size: 0.9em;
+    color: var(--text-normal);
+    cursor: pointer;
+    padding: 6px 8px;
+    border-radius: 3px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.3;
+}
+
+td.pem-footnote-panel-content:hover {
+    background-color: var(--background-modifier-hover);
+    color: var(--text-accent);
+}
+
+.pem-footnote-panel-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Hover popover styles */
+.pem-hover-popover {
+    position: absolute;
+    z-index: 1000;
+    padding: 8px 12px;
+    background-color: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    font-size: 0.9em;
+}
+
+.pem-hover-popover-label {
+    font-family: var(--font-monospace);
+    white-space: nowrap;
+}
+
+.pem-hover-popover-content {
+    max-width: 400px;
+    max-height: 300px;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* Fix excessive line height in popover paragraphs */
+.pem-hover-popover p {
+    margin: 0;
+    line-height: 1.5;
+}
+
+.pem-hover-popover p:not(:last-child) {
+    margin-bottom: 0.5em;
+}
+
+/* Also normalize other block elements that might appear in popovers */
+.pem-hover-popover ul,
+.pem-hover-popover ol {
+    margin: 0;
+    padding-left: 1.5em;
+    line-height: 1.5;
+}
+
+.pem-hover-popover ul:not(:last-child),
+.pem-hover-popover ol:not(:last-child) {
+    margin-bottom: 0.5em;
+}
+
+.pem-hover-popover li {
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Highlight animation for scrolled-to lines */
+@keyframes custom-label-highlight-fade {
+    0% {
+        background-color: rgba(255, 213, 0, 0.4);
+    }
+    100% {
+        background-color: transparent;
+    }
+}
+
+.cm-line.custom-label-highlight {
+    animation: custom-label-highlight-fade 2s ease-out !important;
+    position: relative;
+}
+
+/* Custom label hover preview */
+.custom-label-hover-preview {
+    font-family: var(--font-text);
+    line-height: 1.5;
+    color: var(--text-normal);
+}
