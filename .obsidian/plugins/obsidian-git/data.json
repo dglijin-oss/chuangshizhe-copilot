@@ -1,0 +1,22 @@
+{
+  "commitMessage": "vault backup: {{date}}",
+  "autoSaveInterval": 0,
+  "autoPullInterval": 0,
+  "autoPullOnBoot": false,
+  "disablePush": false,
+  "pullBeforePush": true,
+  "disablePopups": false,
+  "disablePopupsForNoChanges": true,
+  "listChangedFilesInMessageBody": true,
+  "showStatusBar": true,
+  "lineAuthor": {
+    "show": false,
+    "followMovement": "inactive",
+    "authorDisplay": "initials",
+    "showCommitHash": false
+  },
+  "showDiff": true,
+  "diffStyle": "split",
+  "customMessageOnAutoBackup": false,
+  "autoCommitMessage": "vault backup: {{date}}"
+}
