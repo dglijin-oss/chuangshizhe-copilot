@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+:root {
+  --cream: #f5f0eb;
+  --cream-light: #faf7f4;
+  --brown: #8b5e34;
+  --brown-dark: #6b4226;
+  --brown-light: #a67c52;
+  --text: #2c1810;
+  --text-muted: #8c7b6b;
+  --white: #ffffff;
+  --border: #e0d5ca;
+  --shadow: 0 1px 3px rgba(44, 24, 16, 0.08);
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+@theme inline {
+  --color-cream: #f5f0eb;
+  --color-cream-light: #faf7f4;
+  --color-brown: #8b5e34;
+  --color-brown-dark: #6b4226;
+  --color-brown-light: #a67c52;
+  --color-text: #2c1810;
+  --color-text-muted: #8c7b6b;
+  --color-border: #e0d5ca;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--cream);
+  color: var(--text);
+  font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button, input, textarea {
+  font: inherit;
+}
+
+::selection {
+  background: rgba(139, 94, 52, 0.15);
+}

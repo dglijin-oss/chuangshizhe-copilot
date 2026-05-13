@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  passwordHash String
+  name         String?
+  role         Role     @default(USER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sessions     Session[]
+  ipProfiles   IPProfile[]
+  usageLogs    UsageLog[]
+  creditLedger CreditLedger[]
+
+  @@index([username])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model IPProfile {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name           String
+  founder        String
+  personas       String
+  personaExtra   String   @default("")
+  industry       String
+  products       String
+  customers      String
+  customerExtra  String   @default("")
+  goals          String
+  goalExtra      String   @default("")
+  forbidden      String
+  forbiddenExtra String   @default("")
+  mixTraffic     Int      @default(4)
+  mixPersona     Int      @default(2)
+  mixProduct     Int      @default(1)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  topics         Topic[]
+
+  @@index([userId])
+}
+
+model Topic {
+  id           String   @id @default(cuid())
+  profileId    String
+  profile      IPProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  type         String
+  title        String
+  description  String
+  script       String?
+  publishCopy  String?
+  shootingTips String?
+  weekKey      String
+  createdAt    DateTime @default(now())
+
+  @@index([profileId])
+  @@index([weekKey])
+}
+
+model UsageLog {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action      String
+  creditsUsed Int      @default(1)
+  profileId   String?
+  createdAt   DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model CreditLedger {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount       Int
+  reason       String
+  balanceAfter Int
+  createdAt    DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
