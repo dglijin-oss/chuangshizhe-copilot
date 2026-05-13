@@ -1,16 +1,40 @@
 version: "3.8"
 
 services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: copilot-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: copilot123
+      POSTGRES_DB: copilot
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   app:
     build: .
     container_name: copilot-app
     restart: unless-stopped
     ports:
       - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
     environment:
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=postgresql://postgres:copilot123@postgres:5432/copilot?schema=public
       - DASHSCOPE_API_KEY=${DASHSCOPE_API_KEY}
       - DASHSCOPE_BASE_URL=${DASHSCOPE_BASE_URL}
       - DASHSCOPE_MODEL=${DASHSCOPE_MODEL}
       - DAILY_AI_CREDITS=${DAILY_AI_CREDITS:-10}
       - ADMIN_USERNAME=${ADMIN_USERNAME:-管理员}
+
+volumes:
+  postgres_data:
