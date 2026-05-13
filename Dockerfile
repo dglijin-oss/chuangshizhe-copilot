@@ -26,12 +26,9 @@ COPY --from=builder /app/package.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma/schema.prisma ./prisma/schema.prisma
 COPY --from=builder /app/prisma.config.ts ./
-
-# Ensure SQLite data dir exists
-RUN mkdir -p /app/prisma
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "npx prisma migrate deploy && npx next start -p 3000"]
+CMD ["sh", "-c", "npx prisma db push --accept-data-loss && npx next start -p 3000"]
