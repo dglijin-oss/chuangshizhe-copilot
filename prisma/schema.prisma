@@ -63,8 +63,66 @@ model IPProfile {
   updatedAt      DateTime @updatedAt
 
   topics         Topic[]
+  corpusEntries  CorpusEntry[]
+  accountMemories AccountMemory[]
+  scripts        Script[]
+
+  // 知识库（PRD v2 新增）
+  knowledgeContent String?  // AI 结构化知识库内容
+  feedScripts      String?  // 投喂的历史脚本（JSON 数组文本）
 
   @@index([userId])
+}
+
+enum CorpusStatus {
+  pending
+  analyzing
+  ready
+  confirmed
+  rejected
+}
+
+model CorpusEntry {
+  id         String   @id @default(cuid())
+  profileId  String
+  profile    IPProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  fileName   String
+  fileType   String
+  fileSize   Int
+  fileContent String?
+
+  status     CorpusStatus @default(pending)
+  summary    String?
+  tags       String?
+  aiFeedback String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([profileId])
+  @@index([status])
+}
+
+enum MemoryCategory {
+  fact_correction
+  writing_preference
+  expression_forbidden
+  customer_insight
+}
+
+model AccountMemory {
+  id        String   @id @default(cuid())
+  profileId String
+  profile   IPProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  category  MemoryCategory
+  content   String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([profileId])
+  @@index([category])
 }
 
 model Topic {
@@ -106,4 +164,23 @@ model CreditLedger {
   createdAt    DateTime @default(now())
 
   @@index([userId, createdAt])
+}
+
+// 脚本表（PRD v2 新增）— 每条选题可生成 3 个差异化版本
+model Script {
+  id                 String   @id @default(cuid())
+  profileId          String
+  profile            IPProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  topicId            String?  // 关联选题（可选，允许独立生成）
+
+  content            String   // 脚本正文
+  version            Int      @default(1)  // 版本号 1/2/3
+  isSavedToKnowledge Boolean  @default(false)  // 是否已入库知识库
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([profileId])
+  @@index([topicId])
+  @@index([version])
 }

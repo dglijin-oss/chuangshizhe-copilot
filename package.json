@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 5173",
+    "dev": "next dev --turbopack --port 5173",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
@@ -11,8 +11,11 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
+    "@types/pdf-parse": "^1.1.5",
     "bcryptjs": "^3.0.3",
+    "mammoth": "^1.12.0",
     "next": "16.2.6",
+    "pdf-parse": "^2.4.5",
     "pg": "^8.13.3",
     "react": "19.2.4",
     "react-dom": "19.2.4"
