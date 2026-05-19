@@ -13,6 +13,7 @@ export default function AdminConfigPage() {
   const [loading, setLoading] = useState(true)
   const [qrDataUrl, setQrDataUrl] = useState<string>("")
   const [savingQr, setSavingQr] = useState(false)
+  const [saveError, setSaveError] = useState("")
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -41,18 +42,24 @@ export default function AdminConfigPage() {
 
   const saveQr = async () => {
     setSavingQr(true)
+    setSaveError("")
     try {
+      console.log("Saving QR, dataUrl length:", qrDataUrl?.length)
       const res = await fetch("/api/admin/payment-config", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ qrDataUrl }),
         credentials: "include",
       })
+      console.log("Response status:", res.status)
       const data = await res.json()
-      if (!res.ok) { alert(data.error); return }
+      console.log("Response data:", data)
+      if (!res.ok) { setSaveError(data.error || `请求失败 (${res.status})`); return }
       alert("支付二维码已保存")
-    } catch {
-      alert("保存失败，请稍后重试")
+      setSaveError("")
+    } catch (err) {
+      console.error("Save QR error:", err)
+      setSaveError(err instanceof Error ? err.message : "未知错误")
     } finally {
       setSavingQr(false)
     }
@@ -95,6 +102,7 @@ export default function AdminConfigPage() {
             >
               {savingQr ? "保存中..." : "保存收款码"}
             </button>
+            {saveError && <p className="text-xs text-red-500">{saveError}</p>}
             <p className="text-xs text-gray-400 mt-2">提示：截图微信支付收款码后上传即可</p>
           </div>
         </div>
