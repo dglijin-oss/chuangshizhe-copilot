@@ -159,16 +159,24 @@ ${wikiPages}
     const startTime = Date.now()
     const result = await chat([{ role: "user", content: prompt }])
     const duration = Date.now() - startTime
+
+    if (!result) {
+      await logGeneration(user.id, "publish_package", "qwen3.6-plus", "error", 0, 0, duration, "AI 返回为空")
+      return NextResponse.json({ error: "AI 未返回有效内容，请重试" }, { status: 502 })
+    }
+
     const cleaned = result.replace(/```(?:json)?\n?/g, "").replace(/```/g, "").trim()
     const jsonMatch = cleaned.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
-      return NextResponse.json({ error: "AI 返回格式异常" }, { status: 422 })
+      await logGeneration(user.id, "publish_package", "qwen3.6-plus", "error", 0, 0, duration, `AI 返回格式异常: ${result.substring(0, 200)}`)
+      return NextResponse.json({ error: "AI 返回格式异常，请重试" }, { status: 422 })
     }
 
     const parsed = JSON.parse(jsonMatch[0])
 
     if (!parsed.title || !parsed.script) {
-      return NextResponse.json({ error: "AI 返回内容不完整" }, { status: 422 })
+      await logGeneration(user.id, "publish_package", "qwen3.6-plus", "error", 0, 0, duration, "AI 返回内容不完整")
+      return NextResponse.json({ error: "AI 返回内容不完整，请重试" }, { status: 422 })
     }
 
     // Save result
@@ -180,7 +188,6 @@ ${wikiPages}
       },
     })
 
-    // Log generation
     await logGeneration(user.id, "publish_package", "qwen3.6-plus", "success", result.length / 4, 0.01, duration)
 
     return NextResponse.json({
@@ -189,9 +196,17 @@ ${wikiPages}
     })
   } catch (err: any) {
     console.error("Generate item error:", err)
+    const errorMessage = err.message || "未知错误"
     await prisma.generationLog.create({
-      data: { userId: user.id, type: "publish_package", model: "qwen3.6-plus", status: "error", duration: 0, error: err.message },
+      data: { userId: user.id, type: "publish_package", model: "qwen3.6-plus", status: "error", duration: 0, error: errorMessage },
     })
-    return NextResponse.json({ error: "生成失败，请稍后重试" }, { status: 500 })
+    // Return specific error messages for known failures
+    if (errorMessage.includes("API") || errorMessage.includes("apikey") || errorMessage.includes("key")) {
+      return NextResponse.json({ error: "AI 服务配置异常，请联系管理员" }, { status: 500 })
+    }
+    if (errorMessage.includes("积分") || errorMessage.includes("balance") || errorMessage.includes("余额")) {
+      return NextResponse.json({ error: "积分不足，请充值后重试" }, { status: 402 })
+    }
+    return NextResponse.json({ error: `生成失败：${errorMessage}` }, { status: 500 })
   }
 }
