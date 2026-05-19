@@ -301,6 +301,8 @@ export default function ItemResultPage() {
     }
   }
 
+  const hasContent = title || hook || script || description || tagsText || tipsText
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background-subtle flex items-center justify-center">
@@ -309,23 +311,29 @@ export default function ItemResultPage() {
     )
   }
 
-  if (error && !item) {
+  if (error && !hasContent) {
     return (
       <div className="min-h-screen bg-background-subtle flex items-center justify-center">
         <div className="text-center">
           <p className="text-sm text-gray-400 mb-4">{error}</p>
-          <button
-            onClick={() => router.back()}
-            className="border border-gray-200 text-muted px-4 py-2 rounded-lg text-xs font-medium hover:bg-background-subtle transition-colors"
-          >
-            返回
-          </button>
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={handleGenerate}
+              className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg text-xs font-medium transition-colors"
+            >
+              重试
+            </button>
+            <button
+              onClick={() => router.back()}
+              className="border border-gray-200 text-muted px-4 py-2 rounded-lg text-xs font-medium hover:bg-background-subtle transition-colors"
+            >
+              返回
+            </button>
+          </div>
         </div>
       </div>
     )
   }
-
-  const hasContent = title || hook || script || description || tagsText || tipsText
 
   return (
     <div className="min-h-screen bg-background-subtle">
