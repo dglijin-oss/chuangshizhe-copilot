@@ -37,8 +37,8 @@ export default function HomePage() {
     async function loadData() {
       try {
         const [userRes, statsRes] = await Promise.all([
-          fetch("/api/auth/me"),
-          fetch("/api/dashboard/stats"),
+          fetch("/api/auth/me", { credentials: "include" }),
+          fetch("/api/dashboard/stats", { credentials: "include" }),
         ])
         if (!userRes.ok) { setLoading(false); return }
         const userData = await userRes.json()
@@ -58,7 +58,7 @@ export default function HomePage() {
     }
     loadData()
     const interval = setInterval(() => {
-      fetch("/api/auth/me")
+      fetch("/api/auth/me", { credentials: "include" })
         .then(r => r.json())
         .then(d => { if (d?.user) setUser(d.user) })
         .catch(() => {})
@@ -73,7 +73,7 @@ export default function HomePage() {
   }
 
   async function handleQuestionnaireSubmit() {
-    const res = await fetch("/api/auth/me")
+    const res = await fetch("/api/auth/me", { credentials: "include" })
     const data = await res.json()
     if (data?.user) setUser(data.user)
   }
