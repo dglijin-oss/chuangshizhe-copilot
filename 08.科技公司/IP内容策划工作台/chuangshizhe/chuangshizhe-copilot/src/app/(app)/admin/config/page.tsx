@@ -18,8 +18,8 @@ export default function AdminConfigPage() {
   useEffect(() => {
     if (role !== "admin") { router.push("/") }
     Promise.all([
-      fetch("/api/admin/config").then(r => r.json()),
-      fetch("/api/admin/payment-config").then(r => r.json()).catch(() => ({})),
+      fetch("/api/admin/config", { credentials: "include" }).then(r => r.json()),
+      fetch("/api/admin/payment-config", { credentials: "include" }).then(r => r.json()).catch(() => ({})),
     ]).then(([configData, paymentData]) => {
       setPackages(configData.packages || [])
       setModels(configData.models || [])
@@ -46,6 +46,7 @@ export default function AdminConfigPage() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ qrDataUrl }),
+        credentials: "include",
       })
       const data = await res.json()
       if (!res.ok) { alert(data.error); return }
