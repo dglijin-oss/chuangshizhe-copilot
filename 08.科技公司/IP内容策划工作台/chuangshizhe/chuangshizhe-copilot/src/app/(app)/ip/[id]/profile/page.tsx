@@ -81,7 +81,7 @@ export default function IpProfilePage() {
   const loadIp = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/ip/${ipId}`)
+      const res = await fetch(`/api/ip/${ipId}`, { credentials: "include" })
       const data = await res.json()
       if (data.ip) {
         const ip = data.ip
@@ -109,7 +109,7 @@ export default function IpProfilePage() {
   const loadWeeklyPlans = useCallback(async () => {
     setPlansLoading(true)
     try {
-      const res = await fetch(`/api/ip/${ipId}/weekly-plans`)
+      const res = await fetch(`/api/ip/${ipId}/weekly-plans`, { credentials: "include" })
       const data = await res.json()
       if (data.plans) setWeeklyPlans(data.plans)
     } catch { /* ignore */ }
@@ -118,7 +118,7 @@ export default function IpProfilePage() {
 
   const loadMemories = useCallback(async () => {
     try {
-      const res = await fetch(`/api/account-memory?ipId=${ipId}`)
+      const res = await fetch(`/api/account-memory?ipId=${ipId}`, { credentials: "include" })
       const data = await res.json()
       if (data.memories) setMemories(data.memories)
     } catch { /* ignore */ }
@@ -138,6 +138,7 @@ export default function IpProfilePage() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
+        credentials: "include",
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error || "保存失败"); return }
@@ -147,6 +148,24 @@ export default function IpProfilePage() {
       setError("网络错误，请稍后重试")
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleDeleteIp = async () => {
+    if (!confirm(`确定删除 IP「${form.name}」？此 IP 的所有周策划、发布包、知识库内容将一并删除，不可恢复。`)) return
+    try {
+      const res = await fetch(`/api/ip/${ipId}`, {
+        method: "DELETE",
+        credentials: "include",
+      })
+      if (res.ok) {
+        router.push("/ip/manage")
+      } else {
+        const data = await res.json()
+        alert(data.error || "删除失败")
+      }
+    } catch {
+      alert("网络错误，请稍后重试")
     }
   }
 
@@ -178,6 +197,7 @@ export default function IpProfilePage() {
           category: "ip_subpage",
           ipId,
         }),
+        credentials: "include",
       })
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
@@ -198,6 +218,7 @@ export default function IpProfilePage() {
           category: activeMemoryCategory,
           content: memoryInput.trim(),
         }),
+        credentials: "include",
       })
       if (res.ok) {
         setMemoryInput("")
@@ -210,7 +231,7 @@ export default function IpProfilePage() {
 
   const handleDeleteMemory = async (id: string) => {
     try {
-      await fetch(`/api/account-memory?id=${id}`, { method: "DELETE" })
+      await fetch(`/api/account-memory?id=${id}`, { method: "DELETE", credentials: "include" })
       if (editingId === id) { setEditingId(null); setEditContent("") }
       loadMemories()
       showToast("已删除")
@@ -237,6 +258,7 @@ export default function IpProfilePage() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: editContent.trim(), category: editCategory }),
+        credentials: "include",
       })
       if (res.ok) {
         setEditingId(null)
@@ -266,6 +288,7 @@ export default function IpProfilePage() {
       const res = await fetch(`/api/corpus-feed/upload?ipId=${ipId}`, {
         method: "POST",
         body: formData,
+        credentials: "include",
       })
       const data = await res.json()
 
@@ -298,6 +321,7 @@ export default function IpProfilePage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: corpusContent.trim() }),
+        credentials: "include",
       })
       const data = await res.json()
       if (data.result) setAnalyzeResult(data.result)
@@ -320,6 +344,7 @@ export default function IpProfilePage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ipId, category, content }),
+        credentials: "include",
       })
       if (!res.ok) {
         const data = await res.json()
@@ -349,6 +374,7 @@ export default function IpProfilePage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ipId, category: s.category, content: s.content }),
+          credentials: "include",
         })
         if (res.ok) {
           successCount++
@@ -416,6 +442,12 @@ export default function IpProfilePage() {
               )}
             >
               {saving ? "保存中…" : saved ? "已保存" : "保存修改"}
+            </button>
+            <button
+              onClick={handleDeleteIp}
+              className="border border-red-200 text-red-400 px-3 py-2 rounded-lg text-sm hover:bg-red-50 transition-colors"
+            >
+              删除此 IP
             </button>
           </div>
         </div>

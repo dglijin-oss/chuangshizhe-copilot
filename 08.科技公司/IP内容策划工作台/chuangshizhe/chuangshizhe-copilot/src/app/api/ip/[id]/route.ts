@@ -91,3 +91,37 @@ export async function PATCH(
 
   return NextResponse.json({ ip })
 }
+
+// DELETE /api/ip/[id] - delete IP and all related content
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const user = await getSessionUser()
+  if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 })
+
+  const { id } = await params
+
+  const existing = await prisma.ip.findUnique({ where: { id } })
+  if (!existing || existing.userId !== user.id) {
+    return NextResponse.json({ error: "IP 不存在" }, { status: 404 })
+  }
+
+  try {
+    await prisma.$transaction([
+      // WeeklyPlan items cascade via onDelete: Cascade on WeeklyPlanItem → planId
+      prisma.weeklyPlan.deleteMany({ where: { ipId: id } }),
+      prisma.knowledgeSource.deleteMany({ where: { ipId: id } }),
+      prisma.wikiPage.deleteMany({ where: { ipId: id } }),
+      prisma.accountMemory.deleteMany({ where: { ipId: id } }),
+      prisma.corpusFeed.deleteMany({ where: { ipId: id } }),
+      prisma.geoArticle.deleteMany({ where: { ipId: id } }),
+      prisma.knowledgeBase.deleteMany({ where: { ipId: id } }),
+      prisma.ip.delete({ where: { id } }),
+    ])
+    return NextResponse.json({ success: true })
+  } catch (err) {
+    console.error("Delete IP error:", err)
+    return NextResponse.json({ error: "删除失败" }, { status: 500 })
+  }
+}

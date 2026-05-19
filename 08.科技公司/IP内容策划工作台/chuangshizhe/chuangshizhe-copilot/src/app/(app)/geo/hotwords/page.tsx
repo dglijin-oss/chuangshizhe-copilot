@@ -9,6 +9,7 @@ export default function HotwordsPage() {
   const [region, setRegion] = useState("广西")
   const [generating, setGenerating] = useState(false)
   const [hotwords, setHotwords] = useState<{ dimension: string; keywords: string[] }[]>([])
+  const [errorMsg, setErrorMsg] = useState("")
   const { withProgress } = useAiGeneration()
 
   const handleGenerate = async () => {
@@ -21,8 +22,10 @@ export default function HotwordsPage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ coreWord, industry, region }),
+          credentials: "include",
         }).then((r) => r.json())
       )
+      if (data.error) { setErrorMsg(data.error); return }
       if (data.hotwords) setHotwords(data.hotwords)
     } catch (e) {
       console.error("Failed to generate hotwords:", e)
@@ -38,6 +41,7 @@ export default function HotwordsPage() {
         <p className="text-xs text-muted mb-6">
           按 11 个维度生成 AI 搜索问句，选中后可加入关键词库或带入 GEO 文章。
         </p>
+        {errorMsg && <p className="text-xs text-red-500 mb-4 bg-red-50 px-3 py-2 rounded-lg">{errorMsg}</p>}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
           <div>
