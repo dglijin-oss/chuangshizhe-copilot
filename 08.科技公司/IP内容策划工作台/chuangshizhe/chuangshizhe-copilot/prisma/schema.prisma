@@ -37,6 +37,7 @@ model User {
   compileEvents   CompileEvent[]
   accountMemories AccountMemory[]
   corpusFeeds     CorpusFeed[]
+  hotwordMatrices HotwordMatrix[]
 }
 
 model Ip {
@@ -45,12 +46,12 @@ model Ip {
   user          User     @relation(fields: [userId], references: [id])
   name          String
   founderName   String?
-  founderTraits String?
+  founderTraits Json?
   industry      String?
-  products      String?
-  targetClients String?
-  accountGoals  String?
-  contentBan    String?
+  products      Json?
+  targetClients Json?
+  accountGoals  Json?
+  contentBan    Json?
   contentMixFlow    Int @default(4)
   contentMixPersona Int @default(2)
   contentMixProduct Int @default(1)
@@ -333,4 +334,19 @@ model CorpusFeed {
 
   @@index([userId])
   @@index([ipId])
+}
+
+// Hotword Matrix - saved hot keyword matrices for reuse
+model HotwordMatrix {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  coreWord  String
+  industry  String?
+  region    String?
+  data      Json     // [{dimension: string, keywords: string[]}]
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([coreWord])
 }

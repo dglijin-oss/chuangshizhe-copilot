@@ -6,7 +6,28 @@ import { deductPoints } from "@/lib/billing"
 import { logGeneration } from "@/lib/logging"
 import { parseBody, hotwordsSchema } from "@/lib/validation"
 
-// POST /api/ai/hotwords - generate hot keyword matrix
+// GET /api/ai/hotwords - list saved hotword matrices
+export async function GET(req: Request) {
+  const user = await getSessionUser()
+  if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 })
+
+  const { searchParams } = new URL(req.url)
+  const page = parseInt(searchParams.get("page") || "1")
+  const limit = parseInt(searchParams.get("limit") || "20")
+
+  const matrices = await prisma.hotwordMatrix.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: "desc" },
+    skip: (page - 1) * limit,
+    take: limit,
+  })
+
+  const total = await prisma.hotwordMatrix.count({ where: { userId: user.id } })
+
+  return NextResponse.json({ matrices, total, page, limit })
+}
+
+// POST /api/ai/hotwords - generate and save hot keyword matrix
 export async function POST(req: Request) {
   const user = await getSessionUser()
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 })
@@ -48,7 +69,19 @@ export async function POST(req: Request) {
     const jsonMatch = cleaned.match(/\[[\s\S]*\]/)
     if (jsonMatch) {
       const hotwords = JSON.parse(jsonMatch[0])
-      return NextResponse.json({ hotwords })
+
+      // Save to database
+      const matrix = await prisma.hotwordMatrix.create({
+        data: {
+          userId: user.id,
+          coreWord,
+          industry: industry || null,
+          region: region || null,
+          data: hotwords,
+        },
+      })
+
+      return NextResponse.json({ hotwords, saved: true, matrix })
     }
     console.error("Hotwords: could not extract JSON from:", result)
     return NextResponse.json({ hotwords: [], raw: result })
@@ -57,4 +90,17 @@ export async function POST(req: Request) {
     await logGeneration(user.id, "hotwords", "qwen3.6-plus", "error", 0, 0, 0, err.message)
     return NextResponse.json({ error: "生成失败，请稍后重试" }, { status: 500 })
   }
+}
+
+// DELETE /api/ai/hotwords/[id] - delete a saved hotword matrix
+export async function DELETE(req: Request) {
+  const user = await getSessionUser()
+  if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 })
+
+  const { searchParams } = new URL(req.url)
+  const id = searchParams.get("id")
+  if (!id) return NextResponse.json({ error: "ID 必填" }, { status: 400 })
+
+  await prisma.hotwordMatrix.deleteMany({ where: { id, userId: user.id } })
+  return NextResponse.json({ success: true })
 }

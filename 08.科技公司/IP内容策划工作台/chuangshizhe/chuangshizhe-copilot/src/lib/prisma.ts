@@ -1,5 +1,6 @@
 import { PrismaClient } from "@/generated/prisma"
 import { PrismaPg } from "@prisma/adapter-pg"
+import "@/lib/env" // Validates required environment variables at startup
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient }
 

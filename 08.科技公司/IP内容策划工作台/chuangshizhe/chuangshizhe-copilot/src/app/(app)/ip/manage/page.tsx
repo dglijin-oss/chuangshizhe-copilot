@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 
@@ -8,15 +8,45 @@ export default function IpManagePage() {
   const router = useRouter()
   const [ips, setIps] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  const loadIps = useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await fetch("/api/ip/list", { credentials: "include" })
+      const data = await res.json()
+      if (data.ips) setIps(data.ips)
+    } catch (e) {
+      console.error("Failed to load IPs:", e)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
-    fetch("/api/ip/list")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.ips) setIps(data.ips)
+    loadIps()
+  }, [loadIps])
+
+  const handleDelete = async (ipId: string, ipName: string) => {
+    if (!confirm(`确认删除 IP「${ipName}」？\n\n将同时删除该 IP 的所有周策划、知识库、语料、GEO文章等全部内容，此操作不可撤销。`)) return
+    setDeletingId(ipId)
+    try {
+      const res = await fetch(`/api/ip/${ipId}`, {
+        method: "DELETE",
+        credentials: "include",
       })
-      .finally(() => setLoading(false))
-  }, [])
+      if (!res.ok) {
+        const data = await res.json()
+        alert(data.error || "删除失败")
+        return
+      }
+      setIps((prev) => prev.filter((ip) => ip.id !== ipId))
+    } catch {
+      alert("网络错误，请稍后重试")
+    } finally {
+      setDeletingId(null)
+    }
+  }
 
   if (loading) {
     return (
@@ -94,6 +124,13 @@ export default function IpManagePage() {
                     className="flex-1 border border-gray-200 text-muted py-2 rounded-lg text-xs font-medium hover:bg-gray-50 transition-colors"
                   >
                     周策划
+                  </button>
+                  <button
+                    onClick={() => handleDelete(ip.id, ip.name)}
+                    disabled={deletingId === ip.id}
+                    className="border border-red-200 text-red-500 py-2 rounded-lg text-xs font-medium hover:bg-red-50 transition-colors disabled:opacity-50 w-16 flex items-center justify-center"
+                  >
+                    {deletingId === ip.id ? "删除中" : "删除"}
                   </button>
                 </div>
               </div>
