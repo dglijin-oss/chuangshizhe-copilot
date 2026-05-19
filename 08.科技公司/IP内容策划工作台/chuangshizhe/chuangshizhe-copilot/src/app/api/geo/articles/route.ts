@@ -28,7 +28,7 @@ export async function POST(req: Request) {
   const user = await getSessionUser()
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 })
 
-  const { topic, keywords, platform, tone, length, targetQuestions, articleType, ipId } = await req.json()
+  const { topic, keywords, platform, tone, length, targetQuestions, articleType, ipId, content } = await req.json()
 
   if (!topic) return NextResponse.json({ error: "文章主题必填" }, { status: 400 })
 
@@ -43,6 +43,7 @@ export async function POST(req: Request) {
       targetQuestions: targetQuestions || "",
       articleType: articleType || "品宣文章",
       ipId: ipId || null,
+      content: content || null,
     },
   })
 

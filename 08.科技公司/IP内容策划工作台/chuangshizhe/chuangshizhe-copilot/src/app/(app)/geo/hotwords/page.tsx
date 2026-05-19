@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useAiGeneration } from "@/hooks/use-ai-generation"
 
 export default function HotwordsPage() {
   const [coreWord, setCoreWord] = useState("")
@@ -8,18 +9,20 @@ export default function HotwordsPage() {
   const [region, setRegion] = useState("广西")
   const [generating, setGenerating] = useState(false)
   const [hotwords, setHotwords] = useState<{ dimension: string; keywords: string[] }[]>([])
+  const { withProgress } = useAiGeneration()
 
   const handleGenerate = async () => {
     if (!coreWord) return
     setGenerating(true)
     setHotwords([])
     try {
-      const res = await fetch("/api/ai/hotwords", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ coreWord, industry, region }),
-      })
-      const data = await res.json()
+      const data = await withProgress(
+        fetch("/api/ai/hotwords", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ coreWord, industry, region }),
+        }).then((r) => r.json())
+      )
       if (data.hotwords) setHotwords(data.hotwords)
     } catch (e) {
       console.error("Failed to generate hotwords:", e)
@@ -60,7 +63,7 @@ export default function HotwordsPage() {
             disabled={generating || !coreWord}
             className="bg-primary hover:bg-primary-hover disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
           >
-            {generating ? "生成中..." : "生成矩阵"}
+            生成矩阵
           </button>
         </div>
       </div>

@@ -446,6 +446,7 @@ export default function IpProfilePage() {
               <label className="text-xs text-muted">流量型</label>
               <input
                 type="number"
+                min="0"
                 value={form.contentMixFlow}
                 onChange={(e) => setForm({ ...form, contentMixFlow: e.target.value })}
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:border-primary"
@@ -455,6 +456,7 @@ export default function IpProfilePage() {
               <label className="text-xs text-muted">人设型</label>
               <input
                 type="number"
+                min="0"
                 value={form.contentMixPersona}
                 onChange={(e) => setForm({ ...form, contentMixPersona: e.target.value })}
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:border-primary"
@@ -464,6 +466,7 @@ export default function IpProfilePage() {
               <label className="text-xs text-muted">产品型</label>
               <input
                 type="number"
+                min="0"
                 value={form.contentMixProduct}
                 onChange={(e) => setForm({ ...form, contentMixProduct: e.target.value })}
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:border-primary"

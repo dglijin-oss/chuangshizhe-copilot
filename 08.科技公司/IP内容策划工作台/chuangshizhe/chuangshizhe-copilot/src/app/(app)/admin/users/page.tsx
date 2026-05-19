@@ -45,6 +45,7 @@ export default function AdminUsersPage() {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(editForm),
+      credentials: "include",
     })
     const data = await res.json()
     if (!res.ok) { setError(data.error); return }
@@ -54,7 +55,7 @@ export default function AdminUsersPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm("确定删除此用户？此操作不可恢复。")) return
-    const res = await fetch(`/api/admin/users?id=${id}`, { method: "DELETE" })
+    const res = await fetch(`/api/admin/users?id=${id}`, { method: "DELETE", credentials: "include" })
     if (res.ok) setUsers(users.filter(u => u.id !== id))
   }
 

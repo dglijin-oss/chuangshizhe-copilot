@@ -32,7 +32,7 @@ export async function GET() {
   return NextResponse.json({ users })
 }
 
-// PATCH /api/admin/users/[id] - edit user
+// PATCH /api/admin/users - edit user
 export async function PATCH(req: Request) {
   const admin = await getSessionUser()
   if (!admin || admin.role !== "admin") {
@@ -40,7 +40,7 @@ export async function PATCH(req: Request) {
   }
 
   const url = new URL(req.url)
-  const id = url.pathname.split("/").pop()
+  const id = url.searchParams.get("id")
   if (!id) return NextResponse.json({ error: "参数错误" }, { status: 400 })
 
   const body = await req.json()
@@ -63,7 +63,7 @@ export async function PATCH(req: Request) {
   }
 }
 
-// DELETE /api/admin/users/[id] - delete user
+// DELETE /api/admin/users - delete user with all related data
 export async function DELETE(req: Request) {
   const admin = await getSessionUser()
   if (!admin || admin.role !== "admin") {
@@ -71,13 +71,40 @@ export async function DELETE(req: Request) {
   }
 
   const url = new URL(req.url)
-  const id = url.pathname.split("/").pop()
+  const id = url.searchParams.get("id")
   if (!id) return NextResponse.json({ error: "参数错误" }, { status: 400 })
 
   try {
-    await prisma.user.delete({ where: { id } })
+    // Cascade delete: child records → Ip → direct children → User
+    await prisma.$transaction([
+      // 1. Child records that might reference Ip
+      prisma.publishRecord.deleteMany({ where: { userId: id } }),
+      prisma.keyword.deleteMany({ where: { userId: id } }),
+      prisma.wikiPage.deleteMany({ where: { userId: id } }),
+      prisma.knowledgeBase.deleteMany({ where: { userId: id } }),
+      prisma.knowledgeSource.deleteMany({ where: { userId: id } }),
+      prisma.accountMemory.deleteMany({ where: { userId: id } }),
+      prisma.corpusFeed.deleteMany({ where: { userId: id } }),
+      prisma.geoArticle.deleteMany({ where: { userId: id } }),
+      prisma.weeklyPlan.deleteMany({ where: { userId: id } }),
+      // 2. Ip (no children left at this point)
+      prisma.ip.deleteMany({ where: { userId: id } }),
+      // 3. Remaining direct children of User
+      prisma.keywordGroup.deleteMany({ where: { userId: id } }),
+      prisma.generationLog.deleteMany({ where: { userId: id } }),
+      prisma.pointsRecharge.deleteMany({ where: { userId: id } }),
+      prisma.questionnaire.deleteMany({ where: { userId: id } }),
+      prisma.generationRule.deleteMany({ where: { userId: id } }),
+      prisma.integrationConfig.deleteMany({ where: { userId: id } }),
+      prisma.session.deleteMany({ where: { userId: id } }),
+      prisma.compileEvent.deleteMany({ where: { userId: id } }),
+      // 4. Finally the user
+      prisma.user.delete({ where: { id } }),
+    ])
+
     return NextResponse.json({ success: true })
-  } catch {
+  } catch (err) {
+    console.error("Delete user error:", err)
     return NextResponse.json({ error: "删除失败" }, { status: 500 })
   }
 }

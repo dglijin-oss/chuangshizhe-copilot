@@ -21,9 +21,9 @@ export async function POST(req: Request) {
         targetClients: Array.isArray(targetClients) ? targetClients.join(",") : targetClients || null,
         accountGoals: Array.isArray(accountGoals) ? accountGoals.join(",") : accountGoals || null,
         contentBan: Array.isArray(contentBan) ? contentBan.join(",") : contentBan || null,
-        contentMixFlow: contentMixFlow ? (typeof contentMixFlow === "number" ? contentMixFlow : parseInt(contentMixFlow) || 4) : 4,
-        contentMixPersona: contentMixPersona ? (typeof contentMixPersona === "number" ? contentMixPersona : parseInt(contentMixPersona) || 2) : 2,
-        contentMixProduct: contentMixProduct ? (typeof contentMixProduct === "number" ? contentMixProduct : parseInt(contentMixProduct) || 1) : 1,
+        contentMixFlow: Math.max(0, contentMixFlow ? (typeof contentMixFlow === "number" ? contentMixFlow : parseInt(contentMixFlow) || 4) : 4),
+        contentMixPersona: Math.max(0, contentMixPersona ? (typeof contentMixPersona === "number" ? contentMixPersona : parseInt(contentMixPersona) || 2) : 2),
+        contentMixProduct: Math.max(0, contentMixProduct ? (typeof contentMixProduct === "number" ? contentMixProduct : parseInt(contentMixProduct) || 1) : 1),
       },
     })
 

@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Sidebar } from "@/components/layout/sidebar"
 import { QuestionnaireModal } from "@/components/layout/questionnaire-modal"
+import { AiGenerationProvider } from "@/hooks/use-ai-generation"
+import { AiGenerationModal } from "@/components/ai-generation-modal"
 import { UserContext } from "@/lib/user-context"
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -68,29 +70,32 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <UserContext.Provider value={{ ...user, refresh: refreshUser }}>
-      <div className="flex h-screen bg-background-subtle">
-        <Sidebar user={{ name: user.name, points: user.points, role: user.role }} onLogout={handleLogout} />
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6 flex-shrink-0">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-title">工作区</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="text-xs text-body">
-                {user.name} · <span className="text-primary font-medium">{user.points}</span> 积分
-              </span>
-            </div>
-          </header>
-          <main className="flex-1 overflow-auto">{children}</main>
-        </div>
+    <AiGenerationProvider>
+      <UserContext.Provider value={{ ...user, refresh: refreshUser }}>
+        <div className="flex h-screen bg-background-subtle">
+          <Sidebar user={{ name: user.name, points: user.points, role: user.role }} onLogout={handleLogout} />
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6 flex-shrink-0">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-title">工作区</span>
+              </div>
+              <div className="flex items-center gap-4">
+                <span className="text-xs text-body">
+                  {user.name} · <span className="text-primary font-medium">{user.points}</span> 积分
+                </span>
+              </div>
+            </header>
+            <main className="flex-1 overflow-auto">{children}</main>
+          </div>
 
-        <QuestionnaireModal
-          open={showQuestionnaire}
-          onClose={() => setShowQuestionnaire(false)}
-          onSubmit={handleQuestionnaireSubmit}
-        />
-      </div>
-    </UserContext.Provider>
+          <QuestionnaireModal
+            open={showQuestionnaire}
+            onClose={() => setShowQuestionnaire(false)}
+            onSubmit={handleQuestionnaireSubmit}
+          />
+        </div>
+      </UserContext.Provider>
+      <AiGenerationModal />
+    </AiGenerationProvider>
   )
 }

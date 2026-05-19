@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react"
 import { RefreshCw, Save, Copy, Trash2, Search, Upload, Clock, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useAiGeneration } from "@/hooks/use-ai-generation"
 
 export default function KnowledgeBasePage() {
   const [activeTab, setActiveTab] = useState("wiki")
@@ -18,6 +19,7 @@ export default function KnowledgeBasePage() {
   const [copyStatus, setCopyStatus] = useState("")
   const [updatingOverview, setUpdatingOverview] = useState(false)
   const [userName, setUserName] = useState("")
+  const { withProgress } = useAiGeneration()
 
   // Wiki tab state
   const [pageType, setPageType] = useState("all")
@@ -198,12 +200,13 @@ export default function KnowledgeBasePage() {
   async function handleAnalyzeSource() {
     if (!importTitle || !importText) return
     setAnalyzing(true)
-    const res = await fetch("/api/account-knowledge/import", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: importTitle, content: importText, sourceType: "imported_text" }),
-    })
-    const data = await res.json()
+    const data = await withProgress(
+      fetch("/api/account-knowledge/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: importTitle, content: importText, sourceType: "imported_text" }),
+      }).then((r) => r.json())
+    )
     if (data.source) {
       setAnalysisResult(data.source)
       loadSources()
@@ -214,12 +217,13 @@ export default function KnowledgeBasePage() {
 
   async function handleRecompile() {
     setRecompiling(true)
-    const res = await fetch("/api/account-knowledge/recompile", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({}),
-    })
-    const data = await res.json()
+    const data = await withProgress(
+      fetch("/api/account-knowledge/recompile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      }).then((r) => r.json())
+    )
     if (data.pages) {
       loadWikiPages()
       handleUpdateOverview()
@@ -306,7 +310,7 @@ export default function KnowledgeBasePage() {
               )}
             >
               <RefreshCw className={cn("w-3.5 h-3.5", recompiling && "animate-spin")} />
-              {recompiling ? "编译中..." : "重新编译 Wiki"}
+              重新编译 Wiki
             </button>
           </div>
         </div>
@@ -577,7 +581,7 @@ export default function KnowledgeBasePage() {
                   (analyzing || !importTitle || !importText) && "opacity-50 cursor-not-allowed"
                 )}
               >
-                {analyzing ? "分析中..." : "分析资料"}
+                分析资料
               </button>
             </div>
           </div>

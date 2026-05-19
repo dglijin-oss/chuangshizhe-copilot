@@ -56,9 +56,9 @@ export async function PATCH(
       ...(targetClients !== undefined && { targetClients: Array.isArray(targetClients) ? targetClients.join(",") : targetClients }),
       ...(accountGoals !== undefined && { accountGoals: Array.isArray(accountGoals) ? accountGoals.join(",") : accountGoals }),
       ...(contentBan !== undefined && { contentBan: Array.isArray(contentBan) ? contentBan.join(",") : contentBan }),
-      ...(contentMixFlow !== undefined && { contentMixFlow: typeof contentMixFlow === "number" ? contentMixFlow : parseInt(contentMixFlow) || 4 }),
-      ...(contentMixPersona !== undefined && { contentMixPersona: typeof contentMixPersona === "number" ? contentMixPersona : parseInt(contentMixPersona) || 2 }),
-      ...(contentMixProduct !== undefined && { contentMixProduct: typeof contentMixProduct === "number" ? contentMixProduct : parseInt(contentMixProduct) || 1 }),
+      ...(contentMixFlow !== undefined && { contentMixFlow: Math.max(0, typeof contentMixFlow === "number" ? contentMixFlow : parseInt(contentMixFlow) || 4) }),
+      ...(contentMixPersona !== undefined && { contentMixPersona: Math.max(0, typeof contentMixPersona === "number" ? contentMixPersona : parseInt(contentMixPersona) || 2) }),
+      ...(contentMixProduct !== undefined && { contentMixProduct: Math.max(0, typeof contentMixProduct === "number" ? contentMixProduct : parseInt(contentMixProduct) || 1) }),
     },
   })
 

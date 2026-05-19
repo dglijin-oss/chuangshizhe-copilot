@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Copy, RefreshCw, Sparkles, Check, ArrowLeft, Wand2, Save, BookOpen, QrCode, MessageSquare } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useAiGeneration } from "@/hooks/use-ai-generation"
 
 // Rewrite presets for each section
 const rewritePresets: Record<string, { label: string; prompt: string }[]> = {
@@ -57,6 +58,7 @@ export default function ItemResultPage() {
   const [selectedPreset, setSelectedPreset] = useState("")
   const [rewriteInput, setRewriteInput] = useState("")
   const [rewriting, setRewriting] = useState(false)
+  const { withProgress } = useAiGeneration()
 
   const contentTypeLabels: Record<string, string> = {
     traffic: "流量型",
@@ -95,13 +97,14 @@ export default function ItemResultPage() {
     setGenerating(true)
     setError("")
     try {
-      const res = await fetch(`/api/weekly-plan-items/${itemId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
-      })
-      const data = await res.json()
-      if (!res.ok) { setError(data.error || "生成失败"); return }
+      const data = await withProgress(
+        fetch(`/api/weekly-plan-items/${itemId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
+        }).then((r) => r.json())
+      )
+      if (data.error) { setError(data.error); return }
       if (data.result) {
         setTitle(data.result.title || "")
         setHook(data.result.hook || "")
@@ -272,12 +275,13 @@ export default function ItemResultPage() {
       else if (section === "description") targetText = `${description}\n${tagsText}`
       else if (section === "tips") targetText = tipsText
 
-      const res = await fetch("/api/ai/rewrite", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: targetText, section, direction: rewriteInput, ipId: item?.plan?.ip?.id }),
-      })
-      const data = await res.json()
+      const data = await withProgress(
+        fetch("/api/ai/rewrite", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: targetText, section, direction: rewriteInput, ipId: item?.plan?.ip?.id }),
+        }).then((r) => r.json())
+      )
       if (data.text) {
         if (section === "titleHook") {
           const lines = data.text.split("\n").filter(Boolean)
@@ -384,7 +388,7 @@ export default function ItemResultPage() {
               )}
             >
               <Wand2 className="w-4 h-4" />
-              {generating ? "AI 生成中…" : "AI 生成发布包"}
+              AI 生成发布包
             </button>
           </div>
         ) : (
@@ -449,7 +453,7 @@ export default function ItemResultPage() {
                   (rewriting || !rewriteInput.trim()) && "opacity-50 cursor-not-allowed"
                 )}
               >
-                {rewriting ? "AI 改写中…" : "让 AI 改这一块"}
+                让 AI 改这一块
               </button>
               <p className="text-xs text-primary mt-2">已选好改稿方向，可以直接让 AI 改，也可以再补充一句。</p>
               <button
@@ -547,7 +551,7 @@ export default function ItemResultPage() {
                       (rewriting || !rewriteInput.trim() || activeRewriteSection !== "script") && "opacity-50 cursor-not-allowed"
                     )}
                   >
-                    {rewriting ? "AI 改写中…" : "让 AI 改这一块"}
+                    让 AI 改这一块
                   </button>
                   <button
                     onClick={() => handleSaveSectionToKnowledge("script", "口播逐字稿", script)}
@@ -618,7 +622,7 @@ export default function ItemResultPage() {
                       (rewriting || !rewriteInput.trim() || activeRewriteSection !== "description") && "opacity-50 cursor-not-allowed"
                     )}
                   >
-                    {rewriting ? "AI 改写中…" : "让 AI 改这一块"}
+                    让 AI 改这一块
                   </button>
                   <button
                     onClick={() => handleSaveSectionToKnowledge("description", "发布文案", `${description}\n${tagsText}`)}
@@ -675,7 +679,7 @@ export default function ItemResultPage() {
                         (rewriting || !rewriteInput.trim() || activeRewriteSection !== "tips") && "opacity-50 cursor-not-allowed"
                       )}
                     >
-                      {rewriting ? "AI 改写中…" : "让 AI 改这一块"}
+                      让 AI 改这一块
                     </button>
                     <button
                       onClick={() => handleSaveSectionToKnowledge("tips", "拍摄建议", tipsText)}

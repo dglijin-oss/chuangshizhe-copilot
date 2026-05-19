@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Sparkles, Wand2, Check, Clock, AlertCircle, RefreshCw, ArrowLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useAiGeneration } from "@/hooks/use-ai-generation"
 
 const contentTypes: Record<string, { label: string; color: string; subtleColor: string }> = {
   traffic: { label: "流量型", color: "bg-primary-light text-primary", subtleColor: "text-primary" },
@@ -24,6 +25,8 @@ export default function WeeklyPlanPage() {
   const [userDirection, setUserDirection] = useState("")
   const [submitFeedback, setSubmitFeedback] = useState("")
   const [submitting, setSubmitting] = useState(false)
+  const [generatingItem, setGeneratingItem] = useState<string | null>(null)
+  const { withProgress } = useAiGeneration()
 
   const groupedItems = useCallback(() => {
     if (!plan?.items) return []
@@ -69,13 +72,14 @@ export default function WeeklyPlanPage() {
     setError("")
     setGenerating(true)
     try {
-      const res = await fetch(`/api/ip/${ipId}/weekly-plan`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userDirection: userDirection.trim() || undefined }),
-      })
-      const data = await res.json()
-      if (!res.ok) { setError(data.error || "生成失败"); return }
+      const data = await withProgress(
+        fetch(`/api/ip/${ipId}/weekly-plan`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userDirection: userDirection.trim() || undefined }),
+        }).then((r) => r.json())
+      )
+      if (data.error) { setError(data.error); return }
       setPlan(data.plan)
       setUserDirection(data.plan.userDirection || "")
     } catch {
@@ -93,13 +97,14 @@ export default function WeeklyPlanPage() {
     setSubmitFeedback("")
     setSubmitting(true)
     try {
-      const res = await fetch(`/api/ip/${ipId}/weekly-plan`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userDirection: userDirection.trim() }),
-      })
-      const data = await res.json()
-      if (!res.ok) { setSubmitFeedback(data.error || "生成失败"); return }
+      const data = await withProgress(
+        fetch(`/api/ip/${ipId}/weekly-plan`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userDirection: userDirection.trim() }),
+        }).then((r) => r.json())
+      )
+      if (data.error) { setSubmitFeedback(data.error); return }
       setPlan(data.plan)
       setUserDirection(data.plan.userDirection || "")
       setSubmitFeedback("已按你的想法重新策划。")
@@ -107,6 +112,32 @@ export default function WeeklyPlanPage() {
       setSubmitFeedback("网络错误，请稍后重试")
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  const handleGenerateItem = async (itemId: string) => {
+    setGeneratingItem(itemId)
+    setError("")
+    try {
+      const data = await withProgress(
+        fetch(`/api/weekly-plan-items/${itemId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
+        }).then((r) => r.json())
+      )
+      if (data.error) { setError(data.error); return }
+      // Update the item in plan state
+      setPlan({
+        ...plan,
+        items: plan.items.map((i: any) => i.id === itemId ? { ...i, ...data.item } : i),
+      })
+      // Navigate to view the generated package
+      router.push(`/item/${itemId}`)
+    } catch {
+      setError("网络错误，请稍后重试")
+    } finally {
+      setGeneratingItem(null)
     }
   }
 
@@ -182,7 +213,7 @@ export default function WeeklyPlanPage() {
                   (submitting || !userDirection.trim()) && "opacity-50 cursor-not-allowed"
                 )}
               >
-                {submitting ? "正在按这个方向策划…" : "按这个想法策划本周"}
+                按这个想法策划本周
               </button>
             </div>
           </div>
@@ -200,7 +231,7 @@ export default function WeeklyPlanPage() {
                 )}
               >
                 <Wand2 className="w-4 h-4" />
-                {generating ? "AI 生成中…" : "AI 自主生成周策划"}
+                AI 自主生成周策划
               </button>
             </div>
           </div>
@@ -256,7 +287,7 @@ export default function WeeklyPlanPage() {
               )}
             >
               <RefreshCw className={cn("w-3.5 h-3.5", generating && "animate-spin")} />
-              {generating ? "正在重做…" : "重新生成这一周"}
+              重新生成这一周
             </button>
           </div>
 
@@ -290,7 +321,7 @@ export default function WeeklyPlanPage() {
                   (submitting || !userDirection.trim()) && "opacity-50 cursor-not-allowed"
                 )}
               >
-                {submitting ? "正在按这个方向策划…" : "按这个想法策划本周"}
+                按这个想法策划本周
               </button>
             </div>
           </div>
@@ -326,10 +357,14 @@ export default function WeeklyPlanPage() {
                             }
                           </span>
                           <button
-                            onClick={() => router.push(`/item/${item.id}`)}
-                            className="border border-gray-200 text-muted px-2 py-1 rounded text-xs hover:bg-gray-50 transition-colors"
+                            onClick={() => item.generatedResult ? router.push(`/item/${item.id}`) : handleGenerateItem(item.id)}
+                            disabled={generatingItem === item.id}
+                            className={cn(
+                              "border border-gray-200 text-muted px-2 py-1 rounded text-xs hover:bg-gray-50 transition-colors",
+                              generatingItem === item.id && "opacity-50 cursor-not-allowed"
+                            )}
                           >
-                            {item.generatedResult ? "查看发布包" : "生成完整发布包"}
+                            {generatingItem === item.id ? "生成中..." : item.generatedResult ? "查看发布包" : "生成完整发布包"}
                           </button>
                         </div>
                       </article>
