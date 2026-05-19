@@ -29,7 +29,7 @@ export default function RegisterPage() {
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error || "注册失败"); return }
-      router.push("/")
+      window.location.href = "/"
     } catch {
       setError("网络错误，请稍后重试")
     } finally {
