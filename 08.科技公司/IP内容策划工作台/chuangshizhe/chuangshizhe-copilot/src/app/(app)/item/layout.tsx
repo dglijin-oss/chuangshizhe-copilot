@@ -8,7 +8,7 @@ export default function ItemLayout({ children }: { children: React.ReactNode }) 
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch("/api/auth/me")
+    fetch("/api/auth/me", { credentials: "include" })
       .then((res) => {
         if (!res.ok) {
           router.push("/login")

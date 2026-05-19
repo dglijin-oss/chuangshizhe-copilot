@@ -20,13 +20,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [showQuestionnaire, setShowQuestionnaire] = useState(false)
 
   const refreshUser = useCallback(async () => {
-    const res = await fetch("/api/auth/me")
+    const res = await fetch("/api/auth/me", { credentials: "include" })
     const data = await res.json()
     if (data?.user) setUser(data.user)
   }, [])
 
   useEffect(() => {
-    fetch("/api/auth/me")
+    fetch("/api/auth/me", { credentials: "include" })
       .then((res) => {
         if (!res.ok) {
           router.push("/login")

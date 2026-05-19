@@ -101,7 +101,7 @@ export default function KnowledgeBasePage() {
   async function loadData() {
     setLoading(true)
     try {
-      const userRes = await fetch("/api/auth/me")
+      const userRes = await fetch("/api/auth/me", { credentials: "include" })
       if (userRes.ok) {
         const userData = await userRes.json()
         setUserName(userData?.user?.name || "")
@@ -541,15 +541,29 @@ export default function KnowledgeBasePage() {
                   <label className="text-xs text-gray-400 cursor-pointer border border-dashed border-gray-200 rounded-lg px-3 py-2 block text-center hover:bg-gray-50 transition-colors">
                     <Upload className="w-4 h-4 inline mr-1" />
                     或拖拽文件到此处
-                    <input type="file" className="hidden" onChange={(e) => {
+                    <input type="file" className="hidden" onChange={async (e) => {
                       const file = e.target.files?.[0]
-                      if (file) {
-                        const reader = new FileReader()
-                        reader.onload = (ev) => {
-                          setImportText(ev.target?.result as string)
-                          if (!importTitle) setImportTitle(file.name)
+                      if (!file) return
+                      if (!importTitle) setImportTitle(file.name)
+                      setAnalyzing(true)
+                      try {
+                        const formData = new FormData()
+                        formData.append("files", file)
+                        const res = await fetch("/api/corpus-feed/upload", {
+                          method: "POST",
+                          body: formData,
+                        })
+                        const data = await res.json()
+                        if (data.files?.[0]?.text) {
+                          setImportText(data.files[0].text)
+                        } else if (data.files?.[0]?.error) {
+                          setImportText("")
+                          alert(data.files[0].error)
                         }
-                        reader.readAsText(file)
+                      } catch {
+                        alert("文件上传失败")
+                      } finally {
+                        setAnalyzing(false)
                       }
                     }} />
                   </label>
