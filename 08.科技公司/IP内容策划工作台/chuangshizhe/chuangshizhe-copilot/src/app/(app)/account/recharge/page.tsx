@@ -18,6 +18,7 @@ export default function RechargePage() {
   const [selected, setSelected] = useState(0)
   const [submitting, setSubmitting] = useState(false)
   const [order, setOrder] = useState<{ id: string; amount: number; points: number; qrUrl?: string } | null>(null)
+  const [qrDataUrl, setQrDataUrl] = useState<string>("")
   const [error, setError] = useState("")
   const pkg = packages[selected]
 
@@ -33,6 +34,7 @@ export default function RechargePage() {
       const data = await res.json()
       if (!res.ok) { setError(data.error || "创建订单失败"); return }
       setOrder(data.order)
+      if (data.qrDataUrl) setQrDataUrl(data.qrDataUrl)
     } catch {
       setError("网络错误，请稍后重试")
     } finally {
@@ -48,8 +50,14 @@ export default function RechargePage() {
           <h2 className="text-lg font-bold mt-2">微信扫码支付 ¥{order.amount}</h2>
           <p className="text-sm text-muted mt-1">到账 {order.points} 积分</p>
 
-          <div className="bg-gray-200 rounded-xl w-64 h-64 mx-auto my-6 flex items-center justify-center">
-            <span className="text-sm text-gray-400">请联系管理员配置支付二维码</span>
+          <div className="bg-gray-200 rounded-xl w-64 h-64 mx-auto my-6 overflow-hidden">
+            {qrDataUrl ? (
+              <img src={qrDataUrl} alt="微信支付二维码" className="w-full h-full object-contain" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <span className="text-sm text-gray-400">请联系管理员配置支付二维码</span>
+              </div>
+            )}
           </div>
 
           <div className="text-xs text-gray-400 space-y-1">

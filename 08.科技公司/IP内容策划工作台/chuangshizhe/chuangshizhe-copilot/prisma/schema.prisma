@@ -350,3 +350,12 @@ model HotwordMatrix {
   @@index([userId])
   @@index([coreWord])
 }
+
+// Payment Config - system-wide payment QR code (base64 data URL)
+model PaymentConfig {
+  id          String   @id @default(cuid())
+  key         String   @unique // e.g. "wechat_qr"
+  value       String?  // base64 data URL of QR code image
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+}

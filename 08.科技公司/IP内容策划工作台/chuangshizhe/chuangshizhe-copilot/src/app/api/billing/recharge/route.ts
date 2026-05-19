@@ -10,18 +10,21 @@ export async function POST(req: Request) {
 
   const { amount, points } = parseBody(rechargeSchema, await req.json())
 
-  const order = await prisma.pointsRecharge.create({
-    data: {
-      userId: user.id,
-      amount,
-      points,
-      bonus: 0,
-      status: "pending",
-      payMethod: "wechat",
-    },
-  })
+  const [order, paymentConfig] = await Promise.all([
+    prisma.pointsRecharge.create({
+      data: {
+        userId: user.id,
+        amount,
+        points,
+        bonus: 0,
+        status: "pending",
+        payMethod: "wechat",
+      },
+    }),
+    prisma.paymentConfig.findUnique({ where: { key: "wechat_qr" } }),
+  ])
 
-  return NextResponse.json({ order })
+  return NextResponse.json({ order, qrDataUrl: paymentConfig?.value || null })
 }
 
 // GET /api/billing/recharge - list user's recharge orders
