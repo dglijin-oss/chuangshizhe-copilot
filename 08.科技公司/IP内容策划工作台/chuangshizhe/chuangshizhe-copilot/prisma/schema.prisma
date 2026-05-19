@@ -1,0 +1,336 @@
+// Prisma Schema for 创世者 Copilot
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id          String   @id @default(cuid())
+  phone       String   @unique
+  password    String
+  name        String?
+  role        String   @default("user")
+  points      Int      @default(110)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  ips             Ip[]
+  knowledgeBases  KnowledgeBase[]
+  geoArticles     GeoArticle[]
+  publishRecords  PublishRecord[]
+  generationRules GenerationRule[]
+  integrations    IntegrationConfig[]
+  questionnaires  Questionnaire[]
+  weeklyPlans     WeeklyPlan[]
+  generationLogs  GenerationLog[]
+  pointsRecharges PointsRecharge[]
+  keywords        Keyword[]
+  keywordGroups   KeywordGroup[]
+  sessions        Session[]
+  knowledgeSources KnowledgeSource[]
+  wikiPages       WikiPage[]
+  compileEvents   CompileEvent[]
+  accountMemories AccountMemory[]
+  corpusFeeds     CorpusFeed[]
+}
+
+model Ip {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  name          String
+  founderName   String?
+  founderTraits String?
+  industry      String?
+  products      String?
+  targetClients String?
+  accountGoals  String?
+  contentBan    String?
+  contentMixFlow    Int @default(4)
+  contentMixPersona Int @default(2)
+  contentMixProduct Int @default(1)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  knowledgeBase KnowledgeBase?
+  weeklyPlans   WeeklyPlan[]
+  geoArticles   GeoArticle[]
+  knowledgeSources KnowledgeSource[]
+  wikiPages     WikiPage[]
+  accountMemories AccountMemory[]
+  corpusFeeds     CorpusFeed[]
+}
+
+model KnowledgeBase {
+  id       String   @id @default(cuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id])
+  ipId     String?  @unique
+  ip       Ip?      @relation(fields: [ipId], references: [id])
+  content  String
+  sourceType String @default("wiki")
+  title    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model KeywordGroup {
+  id       String   @id @default(cuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id])
+  name     String
+  createdAt DateTime @default(now())
+
+  keywords Keyword[]
+}
+
+model Keyword {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  groupId   String?
+  group     KeywordGroup? @relation(fields: [groupId], references: [id])
+  content   String
+  isHot     Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model GeoArticle {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  ipId           String?
+  ip             Ip?      @relation(fields: [ipId], references: [id])
+  topic          String
+  keywords       String?
+  platform       String?
+  tone           String   @default("professional")
+  targetLength   Int      @default(1200)
+  targetQuestions String?
+  articleType    String   @default("promo")
+  content        String?
+  status         String   @default("draft")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  publishRecords PublishRecord[]
+}
+
+model PublishRecord {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  geoArticleId String?
+  geoArticle  GeoArticle? @relation(fields: [geoArticleId], references: [id])
+  platform    String
+  title       String
+  content     String?
+  url         String?
+  status      String   @default("pending")
+  publishedAt DateTime?
+  views       Int      @default(0)
+  aiQuotes    Int      @default(0)
+  consultations Int    @default(0)
+  createdAt   DateTime @default(now())
+}
+
+model GenerationRule {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  name       String
+  articleType String  @default("promo")
+  tone       String   @default("professional")
+  targetLength Int    @default(1200)
+  targetQuestions String?
+  extraRules String?
+  createdAt  DateTime @default(now())
+}
+
+model Questionnaire {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  industry        String?
+  businessVolume  String?
+  role            String?
+  teamSize        String?
+  clientLocation  String?
+  primaryPlatform String?
+  contentFreq     String?
+  accountGoal     String?
+  contentPain     String?
+  clientType      String?
+  priceRange      String?
+  salesCycle      String?
+  aiUsageFreq     String?
+  productIntro    String?
+  supplement      String?
+  submitted       Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model IntegrationConfig {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  platform   String
+  configName String
+  configData String?
+  status     String   @default("pending")
+  createdAt  DateTime @default(now())
+}
+
+model WeeklyPlan {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  ipId         String?
+  ip           Ip?      @relation(fields: [ipId], references: [id])
+  weekStart    DateTime
+  weekEnd      DateTime
+  content      String?
+  articleCount Int      @default(0)
+  userDirection String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  items        WeeklyPlanItem[]
+}
+
+model WeeklyPlanItem {
+  id          String   @id @default(cuid())
+  planId      String
+  plan        WeeklyPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  contentType String   // traffic, persona, product
+  title       String
+  reason      String
+  generatedResult Json?
+  generationStatus String @default("idle")
+  createdAt   DateTime @default(now())
+}
+
+model GenerationLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  type      String
+  model     String?
+  status    String
+  tokens    Int      @default(0)
+  duration  Int      @default(0)
+  cost      Float    @default(0)
+  error     String?
+  createdAt DateTime @default(now())
+}
+
+model PointsRecharge {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  amount     Float
+  points     Int
+  bonus      Int      @default(0)
+  status     String   @default("pending")
+  payMethod  String   @default("wechat")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+// Account Knowledge - Source entries (IP profiles, imported files, etc.)
+model KnowledgeSource {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  ipId        String?
+  ip          Ip?      @relation(fields: [ipId], references: [id])
+  sourceType  String   // ip_profile, imported_file, imported_text, manual
+  title       String
+  subtitle    String?
+  content     String?
+  fileName    String?
+  status      String   @default("active") // active, archived
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  wikiPages   WikiPage[]
+}
+
+// Account Knowledge - Compiled Wiki pages
+model WikiPage {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  title       String
+  category    String   // overview, ip_subpage, trust_asset
+  content     String   // markdown content
+  sourceId    String?
+  source      KnowledgeSource? @relation(fields: [sourceId], references: [id])
+  ipId        String?
+  ip          Ip?      @relation(fields: [ipId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Account Knowledge - Compile event log
+model CompileEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  action    String   // ip_created, source_imported, wiki_compiled, wiki_recompiled, page_updated, page_deleted
+  detail    String?
+  createdAt DateTime @default(now())
+}
+
+// Account Memory - user-provided memory entries for AI guidance
+model AccountMemory {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  ipId        String?
+  ip          Ip?      @relation(fields: [ipId], references: [id])
+  category    String   // fact_correction, writing_preference, expression_restriction, customer_insight
+  content     String
+  confirmed   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([ipId])
+}
+
+// Corpus Feed - historical materials uploaded for AI analysis
+model CorpusFeed {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  ipId        String?
+  ip          Ip?      @relation(fields: [ipId], references: [id])
+  feedType    String   // file, text
+  title       String?
+  fileName    String?
+  content     String?
+  status      String   @default("pending") // pending, analyzed, saved
+  suggestion  String?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([ipId])
+}
