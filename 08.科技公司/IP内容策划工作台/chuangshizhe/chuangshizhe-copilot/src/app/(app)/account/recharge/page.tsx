@@ -5,12 +5,12 @@ import { useUser } from "@/lib/user-context"
 import { cn } from "@/lib/utils"
 
 const packages = [
-  { price: 10, points: 100, bonus: 0, aiGens: "~10 次 AI 生成" },
-  { price: 20, points: 200, bonus: 0, aiGens: "~20 次 AI 生成" },
-  { price: 30, points: 300, bonus: 0, aiGens: "~30 次 AI 生成" },
-  { price: 50, points: 500, bonus: 100, aiGens: "~60 次 AI 生成", label: "多送 100 积分" },
-  { price: 100, points: 1000, bonus: 300, aiGens: "~130 次 AI 生成", label: "多送 300 积分" },
-  { price: 200, points: 2000, bonus: 1000, aiGens: "~300 次 AI 生成", label: "多送 1000 积分" },
+  { price: 10, points: 100, bonus: 0, aiGens: "~20 次 AI 生成" },
+  { price: 20, points: 200, bonus: 0, aiGens: "~40 次 AI 生成" },
+  { price: 30, points: 300, bonus: 0, aiGens: "~60 次 AI 生成" },
+  { price: 50, points: 500, bonus: 100, aiGens: "~120 次 AI 生成", label: "多送 100 积分" },
+  { price: 100, points: 1000, bonus: 300, aiGens: "~260 次 AI 生成", label: "多送 300 积分" },
+  { price: 200, points: 2000, bonus: 1000, aiGens: "~600 次 AI 生成", label: "多送 1000 积分" },
 ]
 
 export default function RechargePage() {

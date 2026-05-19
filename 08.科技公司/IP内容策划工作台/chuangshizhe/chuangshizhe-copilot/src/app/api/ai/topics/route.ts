@@ -28,7 +28,7 @@ export async function POST(req: Request) {
 [{"topic":"选题标题","keywords":"关键词1,关键词2","questions":["问句1","问句2"]}]`
 
   try {
-    const deducted = await deductPoints(user.id, 1)
+    const deducted = await deductPoints(user.id, 5)
     if (!deducted) return NextResponse.json({ error: "积分不足" }, { status: 402 })
 
     const startTime = Date.now()

@@ -40,7 +40,7 @@ ${content}
 只返回 JSON，不要其他任何文字。`
 
   try {
-    const deducted = await deductPoints(user.id, 1)
+    const deducted = await deductPoints(user.id, 5)
     if (!deducted) return NextResponse.json({ error: "积分不足" }, { status: 402 })
 
     const startTime = Date.now()

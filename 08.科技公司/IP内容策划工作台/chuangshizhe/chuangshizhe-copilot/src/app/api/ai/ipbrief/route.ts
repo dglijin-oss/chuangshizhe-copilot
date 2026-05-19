@@ -23,7 +23,7 @@ export async function POST(req: Request) {
 如果某字段无法从描述中推断，该字段设为 null。`
 
   try {
-    const deducted = await deductPoints(user.id, 1)
+    const deducted = await deductPoints(user.id, 5)
     if (!deducted) return NextResponse.json({ error: "积分不足" }, { status: 402 })
 
     const startTime = Date.now()

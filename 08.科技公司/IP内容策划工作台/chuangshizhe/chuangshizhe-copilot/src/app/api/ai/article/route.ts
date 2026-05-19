@@ -39,7 +39,7 @@ ${wikiContent ? `参考资料：\n${wikiContent}` : ''}
 请直接输出文章正文。`
 
   try {
-    const deducted = await deductPoints(user.id, 2)
+    const deducted = await deductPoints(user.id, 5)
     if (!deducted) return NextResponse.json({ error: "积分不足" }, { status: 402 })
 
     const startTime = Date.now()

@@ -59,7 +59,7 @@ export async function POST(req: Request) {
 [{"dimension":"维度名称","keywords":["问句1","问句2","问句3"]}]`
 
   try {
-    const deducted = await deductPoints(user.id, 1)
+    const deducted = await deductPoints(user.id, 5)
     if (!deducted) return NextResponse.json({ error: "积分不足" }, { status: 402 })
 
     const startTime = Date.now()

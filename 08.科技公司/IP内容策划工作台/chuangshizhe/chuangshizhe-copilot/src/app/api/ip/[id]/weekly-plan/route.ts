@@ -101,7 +101,7 @@ ${wikiPages}
 - 如果没有用户特别要求，则完全围绕 IP 自主发挥，每条选题必须从不同角度切入，不要重复用户原话`
 
   try {
-    const deducted = await deductPoints(user.id, 1)
+    const deducted = await deductPoints(user.id, 5)
     if (!deducted) return NextResponse.json({ error: "积分不足" }, { status: 402 })
 
     const startTime = Date.now()

@@ -51,7 +51,7 @@ ${sourceContent}
 - 每个页面内容要结构化，使用标题、列表等 markdown 语法`
 
     const startTime = Date.now()
-    const deducted = await deductPoints(user.id, 2)
+    const deducted = await deductPoints(user.id, 5)
     if (!deducted) {
       return NextResponse.json({ error: "积分不足" }, { status: 402 })
     }

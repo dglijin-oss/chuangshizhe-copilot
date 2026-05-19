@@ -150,7 +150,7 @@ ${wikiPages}
 
   try {
     // Deduct points before generation
-    const pointsToDeduct = 1 // 1 point per generation
+    const pointsToDeduct = 5
     const deducted = await deductPoints(user.id, pointsToDeduct)
     if (!deducted) {
       return NextResponse.json({ error: "积分不足，请充值后重试" }, { status: 402 })
