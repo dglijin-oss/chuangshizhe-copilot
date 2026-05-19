@@ -87,6 +87,13 @@ export function AiGenerationProvider({ children }: { children: React.ReactNode }
       start(currentOpId)
       try {
         const result = await promise
+        // Check if result is a Response-like object or parsed JSON with error field
+        if (result && typeof result === "object" && "error" in (result as any)) {
+          const err = (result as any).error
+          if (err) fail(err)
+          else if (opIdRef.current === currentOpId) success()
+          throw new Error(err)
+        }
         if (opIdRef.current === currentOpId) success()
         return result
       } catch (err: any) {
