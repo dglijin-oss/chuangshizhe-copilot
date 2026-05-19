@@ -52,7 +52,14 @@ export default function AdminConfigPage() {
         credentials: "include",
       })
       console.log("Response status:", res.status)
-      const data = await res.json()
+      const text = await res.text()
+      console.log("Response raw text:", text.substring(0, 200))
+      let data
+      try {
+        data = text ? JSON.parse(text) : {}
+      } catch {
+        data = { error: "服务器返回非JSON响应" }
+      }
       console.log("Response data:", data)
       if (!res.ok) { setSaveError(data.error || `请求失败 (${res.status})`); return }
       alert("支付二维码已保存")
