@@ -44,11 +44,11 @@ ${wikiContent ? `参考资料：\n${wikiContent}` : ''}
 
     const startTime = Date.now()
     const content = await chat([{ role: "user", content: prompt }], 8000)
-    await logGeneration(user.id, "article", "qwen3.6-plus", "success", content.length / 4, 0.02, Date.now() - startTime)
+    await logGeneration(user.id, "article", "qwen3-max-2026-01-23", "success", content.length / 4, 0.02, Date.now() - startTime)
     return NextResponse.json({ content })
   } catch (err: any) {
     console.error("Article generation error:", err)
-    await logGeneration(user.id, "article", "qwen3.6-plus", "error", 0, 0, 0, err.message)
+    await logGeneration(user.id, "article", "qwen3-max-2026-01-23", "error", 0, 0, 0, err.message)
     return NextResponse.json({ error: "生成失败，请稍后重试" }, { status: 500 })
   }
 }

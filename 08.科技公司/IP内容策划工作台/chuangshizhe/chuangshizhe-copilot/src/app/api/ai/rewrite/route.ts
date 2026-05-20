@@ -79,12 +79,12 @@ export async function POST(req: Request) {
     const result = await chat([
       { role: "user", content: `${systemPrompt}\n\n请改写以下内容：\n${text}` },
     ])
-    await logGeneration(user.id, "rewrite", "qwen3.6-plus", "success", result.length / 4, 0.005, Date.now() - startTime)
+    await logGeneration(user.id, "rewrite", "qwen3-max-2026-01-23", "success", result.length / 4, 0.005, Date.now() - startTime)
     return NextResponse.json({ text: result })
   } catch (err: any) {
     console.error("Rewrite error:", err)
     await prisma.generationLog.create({
-      data: { userId: user.id, type: "rewrite", model: "qwen3.6-plus", status: "error", duration: 0, error: err.message },
+      data: { userId: user.id, type: "rewrite", model: "qwen3-max-2026-01-23", status: "error", duration: 0, error: err.message },
     })
     return NextResponse.json({ error: "改写失败" }, { status: 500 })
   }

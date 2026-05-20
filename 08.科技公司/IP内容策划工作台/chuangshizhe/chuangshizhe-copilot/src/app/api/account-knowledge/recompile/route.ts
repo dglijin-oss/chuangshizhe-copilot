@@ -56,7 +56,7 @@ ${sourceContent}
       return NextResponse.json({ error: "积分不足" }, { status: 402 })
     }
     const result = await chat([{ role: "user", content: prompt }])
-    await logGeneration(user.id, "knowledge_compile", "qwen3.6-plus", "success", result.length / 4, 0.01, Date.now() - startTime)
+    await logGeneration(user.id, "knowledge_compile", "qwen3-max-2026-01-23", "success", result.length / 4, 0.01, Date.now() - startTime)
     const cleaned = result.replace(/```(?:json)?\n?/g, "").replace(/```/g, "").trim()
     const jsonMatch = cleaned.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
@@ -111,7 +111,7 @@ ${sourceContent}
   } catch (err: any) {
     console.error("Recompile error:", err)
     await prisma.generationLog.create({
-      data: { userId: user.id, type: "knowledge_compile", model: "qwen3.6-plus", status: "error", duration: 0, error: err.message },
+      data: { userId: user.id, type: "knowledge_compile", model: "qwen3-max-2026-01-23", status: "error", duration: 0, error: err.message },
     })
     return NextResponse.json({ error: "编译失败，请稍后重试" }, { status: 500 })
   }

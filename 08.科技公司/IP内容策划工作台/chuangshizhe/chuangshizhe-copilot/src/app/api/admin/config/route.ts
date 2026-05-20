@@ -13,9 +13,7 @@ const defaultPackages = [
 ]
 
 const defaultModels = [
-  { name: "通义千问 Turbo", key: "qwen-turbo", pricePerK: 0.008 },
-  { name: "通义千问 Plus", key: "qwen-plus", pricePerK: 0.04 },
-  { name: "通义千问 Max", key: "qwen-max", pricePerK: 0.12 },
+  { name: "通义千问 Max 2026-01-23", key: "qwen3-max-2026-01-23", pricePerK: 0.12 },
 ]
 
 export async function GET() {

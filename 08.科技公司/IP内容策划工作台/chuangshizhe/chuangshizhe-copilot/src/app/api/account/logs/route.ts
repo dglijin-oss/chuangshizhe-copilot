@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     data: {
       userId: user.id,
       type: type || "article",
-      model: model || "qwen-plus",
+      model: model || "qwen3-max-2026-01-23",
       status: status || "success",
       tokens: tokens || 0,
       duration: duration || 0,

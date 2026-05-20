@@ -157,12 +157,12 @@ ${wikiPages}
     })
 
     // Log generation
-    await logGeneration(user.id, "weekly_plan", "qwen3.6-plus", "success", result.length / 4, 0.01, duration)
+    await logGeneration(user.id, "weekly_plan", "qwen3-max-2026-01-23", "success", result.length / 4, 0.01, duration)
 
     return NextResponse.json({ plan })
   } catch (err: any) {
     console.error("Weekly plan generation error:", err)
-    await logGeneration(user.id, "weekly_plan", "qwen3.6-plus", "error", 0, 0, 0, err.message)
+    await logGeneration(user.id, "weekly_plan", "qwen3-max-2026-01-23", "error", 0, 0, 0, err.message)
     return NextResponse.json({ error: "生成失败，请稍后重试" }, { status: 500 })
   }
 }

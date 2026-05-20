@@ -28,7 +28,7 @@ export async function POST(req: Request) {
 
     const startTime = Date.now()
     const result = await chat([{ role: "user", content: prompt }])
-    await logGeneration(user.id, "ipbrief", "qwen3.6-plus", "success", result.length / 4, 0.005, Date.now() - startTime)
+    await logGeneration(user.id, "ipbrief", "qwen3-max-2026-01-23", "success", result.length / 4, 0.005, Date.now() - startTime)
     // Strip markdown code blocks first
     const cleaned = result.replace(/```(?:json)?\n?/g, "").replace(/```/g, "").trim()
     const jsonMatch = cleaned.match(/\{[\s\S]*\}/)
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ profile: null, raw: result })
   } catch (err: any) {
     console.error("IP brief error:", err)
-    await logGeneration(user.id, "ipbrief", "qwen3.6-plus", "error", 0, 0, 0, err.message)
+    await logGeneration(user.id, "ipbrief", "qwen3-max-2026-01-23", "error", 0, 0, 0, err.message)
     return NextResponse.json({ error: "分析失败，请稍后重试" }, { status: 500 })
   }
 }

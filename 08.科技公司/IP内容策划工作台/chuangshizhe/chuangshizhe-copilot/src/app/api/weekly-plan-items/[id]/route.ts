@@ -161,21 +161,21 @@ ${wikiPages}
     const duration = Date.now() - startTime
 
     if (!result) {
-      await logGeneration(user.id, "publish_package", "qwen3.6-plus", "error", 0, 0, duration, "AI 返回为空")
+      await logGeneration(user.id, "publish_package", "qwen3-max-2026-01-23", "error", 0, 0, duration, "AI 返回为空")
       return NextResponse.json({ error: "AI 未返回有效内容，请重试" }, { status: 502 })
     }
 
     const cleaned = result.replace(/```(?:json)?\n?/g, "").replace(/```/g, "").trim()
     const jsonMatch = cleaned.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
-      await logGeneration(user.id, "publish_package", "qwen3.6-plus", "error", 0, 0, duration, `AI 返回格式异常: ${result.substring(0, 200)}`)
+      await logGeneration(user.id, "publish_package", "qwen3-max-2026-01-23", "error", 0, 0, duration, `AI 返回格式异常: ${result.substring(0, 200)}`)
       return NextResponse.json({ error: "AI 返回格式异常，请重试" }, { status: 422 })
     }
 
     const parsed = JSON.parse(jsonMatch[0])
 
     if (!parsed.title || !parsed.script) {
-      await logGeneration(user.id, "publish_package", "qwen3.6-plus", "error", 0, 0, duration, "AI 返回内容不完整")
+      await logGeneration(user.id, "publish_package", "qwen3-max-2026-01-23", "error", 0, 0, duration, "AI 返回内容不完整")
       return NextResponse.json({ error: "AI 返回内容不完整，请重试" }, { status: 422 })
     }
 
@@ -188,7 +188,7 @@ ${wikiPages}
       },
     })
 
-    await logGeneration(user.id, "publish_package", "qwen3.6-plus", "success", result.length / 4, 0.01, duration)
+    await logGeneration(user.id, "publish_package", "qwen3-max-2026-01-23", "success", result.length / 4, 0.01, duration)
 
     return NextResponse.json({
       item: updated,
@@ -198,7 +198,7 @@ ${wikiPages}
     console.error("Generate item error:", err)
     const errorMessage = err.message || "未知错误"
     await prisma.generationLog.create({
-      data: { userId: user.id, type: "publish_package", model: "qwen3.6-plus", status: "error", duration: 0, error: errorMessage },
+      data: { userId: user.id, type: "publish_package", model: "qwen3-max-2026-01-23", status: "error", duration: 0, error: errorMessage },
     })
     // Return specific error messages for known failures
     if (errorMessage.includes("API") || errorMessage.includes("apikey") || errorMessage.includes("key")) {

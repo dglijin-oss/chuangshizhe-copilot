@@ -13,9 +13,10 @@ export async function chat(messages: Anthropic.MessageCreateParamsNonStreaming["
     messages,
     max_tokens: maxTokens,
   })
-  // qwen3.6-plus returns thinking + text blocks; extract the text one
+  // Handle different response formats across models
   for (const block of res.content) {
     if (block.type === "text") return block.text
   }
+  // Fallback: some models return content as a single string or different structure
   return ""
 }
