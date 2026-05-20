@@ -38,6 +38,7 @@ model User {
   accountMemories AccountMemory[]
   corpusFeeds     CorpusFeed[]
   hotwordMatrices HotwordMatrix[]
+  videoScrapes    VideoScrape[]
 }
 
 model Ip {
@@ -349,6 +350,26 @@ model HotwordMatrix {
 
   @@index([userId])
   @@index([coreWord])
+}
+
+// Video Scrape - AI intelligent collection from video platforms
+model VideoScrape {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  platform   String   // bilibili, douyin, xiaohongshu, kuaishou, youtube, twitter, instagram, weibo, tiktok, lemon8
+  feature    String   @default("subtitle") // subtitle, detail, profile, comments, trending
+  sourceUrl  String
+  videoTitle String?
+  transcript String?
+  rawData    Json?    // full Tikhub API response
+  rewritten  String?
+  duration   Int      @default(0) // seconds, 0 if not applicable
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([platform])
+  @@index([feature])
 }
 
 // Payment Config - system-wide payment QR code (base64 data URL)

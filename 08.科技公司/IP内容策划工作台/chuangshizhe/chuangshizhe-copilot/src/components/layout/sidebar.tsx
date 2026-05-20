@@ -26,6 +26,7 @@ import {
   Coins,
   ChevronDown,
   ChevronUp,
+  Download,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -35,6 +36,13 @@ const navGroups = [
     label: "工作区总览",
     icon: LayoutDashboard,
     href: "/",
+    single: true,
+  },
+  {
+    id: "scrape",
+    label: "AI 智能采集",
+    icon: Download,
+    href: "/scrape",
     single: true,
   },
   {
