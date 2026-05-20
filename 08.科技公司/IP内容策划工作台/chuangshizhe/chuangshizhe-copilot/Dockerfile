@@ -11,7 +11,10 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npx prisma generate --schema=prisma/schema.prisma && ls -la src/generated/prisma/
+# Prisma 7 needs DATABASE_URL at generate time to satisfy prisma.config.ts
+ENV DATABASE_URL=postgresql://dummy:dummy@localhost:5432/dummy
+RUN npx prisma generate
+RUN ls -la src/generated/prisma/
 RUN npm run build
 
 # Production server
