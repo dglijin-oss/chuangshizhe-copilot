@@ -1,0 +1,25 @@
+# Obsidian 忽略的目录/文件（不会出现在关系图谱中）
+
+# 开发产物
+node_modules/
+.next/
+dist/
+build/
+
+# 系统/IDE
+.vscode/
+.idea/
+
+# Claude Code 配置（已移出 vault）
+.claude/
+.claudian/
+
+# Git（Obsidian 不应该索引）
+.git/
+
+# 临时文件
+*.tmp
+*.swp
+*~
+Thumbs.db
+.DS_Store

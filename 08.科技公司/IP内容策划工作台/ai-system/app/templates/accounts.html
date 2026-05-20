@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}对标账号 - AI内容采集改写系统{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <div>
+        <h1 class="text-2xl font-bold text-gray-800">对标账号</h1>
+        <p class="text-gray-500">管理需要监控的账号</p>
+    </div>
+    <button onclick="showAddAccount()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+        + 添加账号
+    </button>
+</div>
+
+<div id="add-form" class="card mb-6 hidden">
+    <form onsubmit="return addAccount(event)" class="space-y-4">
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">主页链接</label>
+            <input type="url" id="f-account-url" class="w-full border rounded-lg px-3 py-2" placeholder="粘贴对标账号主页链接，自动识别平台并提取信息" required>
+            <p class="text-xs text-gray-400 mt-1">支持 B站空间链接(如 https://space.bilibili.com/123456) 等</p>
+        </div>
+        <div id="parsed-info" class="hidden bg-gray-50 rounded-lg p-4 space-y-3">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">平台</label>
+                    <div id="info-platform" class="font-medium"></div>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">账号ID</label>
+                    <div id="info-id" class="font-medium"></div>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">账号名称 <span class="text-gray-400 font-normal text-xs">自动读取</span></label>
+                    <input type="text" id="info-name" class="w-full border rounded-lg px-3 py-2 bg-gray-100" placeholder="自动读取中..." readonly>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">备注 <span class="text-gray-400 font-normal text-xs">选填</span></label>
+                    <input type="text" id="f-account-remark" class="w-full border rounded-lg px-3 py-2" placeholder="如：竞品-对标账号">
+                </div>
+            </div>
+        </div>
+        <div class="flex space-x-2">
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">保存</button>
+            <button type="button" onclick="hideAddAccount()" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">取消</button>
+        </div>
+    </form>
+</div>
+
+<!-- Edit Modal -->
+<div id="edit-modal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-bold">编辑账号</h2>
+            <button onclick="hideEditAccount()" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+        </div>
+        <form onsubmit="return updateAccount(event)" class="space-y-4">
+            <input type="hidden" id="e-account-id">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">账号名称</label>
+                    <input type="text" id="e-account-name" class="w-full border rounded-lg px-3 py-2" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">备注</label>
+                    <input type="text" id="e-account-remark" class="w-full border rounded-lg px-3 py-2" placeholder="选填">
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">主页链接</label>
+                <input type="url" id="e-account-url" class="w-full border rounded-lg px-3 py-2">
+            </div>
+            <div class="flex items-center justify-between">
+                <label class="flex items-center space-x-2">
+                    <input type="checkbox" id="e-is-active" class="rounded">
+                    <span class="text-sm text-gray-700">启用监控</span>
+                </label>
+                <button type="button" onclick="refreshAccountUrl()" class="text-blue-600 hover:text-blue-800 text-sm">重新解析链接</button>
+            </div>
+            <div class="flex space-x-2 justify-end">
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">保存</button>
+                <button type="button" onclick="hideEditAccount()" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">取消</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <table class="w-full text-sm" id="accounts-table">
+        <thead>
+            <tr class="border-b">
+                <th class="text-left py-2 px-3">平台</th>
+                <th class="text-left py-2 px-3">账号名称</th>
+                <th class="text-left py-2 px-3">粉丝</th>
+                <th class="text-left py-2 px-3">视频</th>
+                <th class="text-left py-2 px-3">状态</th>
+                <th class="text-left py-2 px-3">最后检查</th>
+                <th class="text-left py-2 px-3">操作</th>
+            </tr>
+        </thead>
+        <tbody id="accounts-body"></tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    setActiveNav('accounts');
+    loadAccounts();
+});
+</script>
+{% endblock %}

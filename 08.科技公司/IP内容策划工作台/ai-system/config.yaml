@@ -1,0 +1,55 @@
+app:
+  name: "AI内容采集改写系统"
+  version: "0.1.0"
+
+server:
+  host: "127.0.0.1"
+  port: 8000
+  debug: false
+
+database:
+  path: "./data/ai_system.db"
+
+llm:
+  base_url: "https://api.openai.com/v1"
+  model: "gpt-4o"
+  temperature: 0.8
+  max_tokens: 4000
+  timeout: 60
+  batch_concurrency: 3
+
+scraping:
+  bilibili:
+    request_interval: 2.0
+    max_retries: 3
+    user_agent_rotation: true
+  wechat:
+    cookie_file: "./data/wechat_cookies.json"
+    headless: true
+    request_interval: 5.0
+    page_timeout: 30000
+
+scheduler:
+  keyword_search:
+    enabled: true
+    interval_minutes: 30
+  account_check:
+    enabled: true
+    interval_minutes: 60
+  cleanup:
+    enabled: true
+    interval_hours: 24
+
+keywords:
+  seed_file: "./config/seed_keywords.yaml"
+
+rewriting:
+  default_mode: "style_transfer"
+  default_style: "grounded"
+  max_content_length: 3000
+
+logging:
+  level: "INFO"
+  file: "./logs/ai_system.log"
+  max_size_mb: 10
+  backup_count: 3

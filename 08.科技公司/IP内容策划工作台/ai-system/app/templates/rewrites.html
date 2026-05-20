@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}改写结果 - AI内容采集改写系统{% endblock %}
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">改写结果</h1>
+    <p class="text-gray-500">查看和管理AI改写后的内容</p>
+</div>
+
+<div class="card mb-6">
+    <div class="flex space-x-4">
+        <select id="filter-status" onchange="loadRewrites()" class="border rounded-lg px-3 py-2 text-sm">
+            <option value="">全部状态</option>
+            <option value="draft">草稿</option>
+            <option value="approved">已审核</option>
+            <option value="published">已发布</option>
+        </select>
+    </div>
+</div>
+
+<div class="space-y-4" id="rewrites-list"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    setActiveNav('rewrites');
+    loadRewrites();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}采集内容 - AI内容采集改写系统{% endblock %}
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">采集内容</h1>
+    <p class="text-gray-500">浏览已采集的内容</p>
+</div>
+
+<div class="card mb-6">
+    <div class="flex space-x-4">
+        <select id="filter-platform" onchange="loadContentList()" class="border rounded-lg px-3 py-2 text-sm">
+            <option value="">全部平台</option>
+            <option value="bilibili">Bilibili</option>
+            <option value="wechat">微信视频号</option>
+        </select>
+        <select id="filter-processed" onchange="loadContentList()" class="border rounded-lg px-3 py-2 text-sm">
+            <option value="">全部状态</option>
+            <option value="false">未处理</option>
+            <option value="true">已处理</option>
+        </select>
+    </div>
+</div>
+
+<div class="space-y-4" id="content-list"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    setActiveNav('content');
+    loadContentList();
+});
+</script>
+{% endblock %}

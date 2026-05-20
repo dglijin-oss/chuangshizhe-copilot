@@ -1,0 +1,7 @@
+data/*.db
+data/wechat_cookies.json
+logs/*.log
+.env
+__pycache__/
+*.pyc
+.pytest_cache/

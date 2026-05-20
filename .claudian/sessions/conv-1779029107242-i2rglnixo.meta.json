@@ -1,0 +1,24 @@
+{
+  "id": "conv-1779029107242-i2rglnixo",
+  "providerId": "claude",
+  "title": "整理一下这个开发日志",
+  "titleGenerationStatus": "failed",
+  "createdAt": 1779029107242,
+  "updatedAt": 1779029137795,
+  "lastResponseAt": 1779029137795,
+  "sessionId": "f3eb40f7-df56-4d24-bb65-1444297477aa",
+  "providerState": {
+    "providerSessionId": "f3eb40f7-df56-4d24-bb65-1444297477aa"
+  },
+  "currentNote": "开发日志.md",
+  "usage": {
+    "model": "haiku",
+    "inputTokens": 19662,
+    "cacheCreationInputTokens": 981,
+    "cacheReadInputTokens": 21876,
+    "contextWindow": 200000,
+    "contextTokens": 42519,
+    "percentage": 21,
+    "contextWindowIsAuthoritative": true
+  }
+}

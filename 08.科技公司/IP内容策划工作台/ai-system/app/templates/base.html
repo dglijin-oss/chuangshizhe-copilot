@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AI内容采集改写系统{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <style>
+        .nav-link { @apply px-3 py-2 rounded-md text-sm font-medium transition-colors; }
+        .nav-link.active { @apply bg-gray-800 text-white; }
+        .nav-link:not(.active) { @apply text-gray-300 hover:bg-gray-700 hover:text-white; }
+        .card { @apply bg-white rounded-lg shadow p-6; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <nav class="bg-gray-900 text-white">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-4">
+                    <span class="text-lg font-bold">AI内容采集改写</span>
+                </div>
+                <div class="flex space-x-1">
+                    <a href="/" class="nav-link" id="nav-dashboard">仪表盘</a>
+                    <a href="/accounts" class="nav-link" id="nav-accounts">对标账号</a>
+                    <a href="/keywords" class="nav-link" id="nav-keywords">关键词</a>
+                    <a href="/content" class="nav-link" id="nav-content">采集内容</a>
+                    <a href="/rewrites" class="nav-link" id="nav-rewrites">改写结果</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto py-6 px-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="/static/js/app.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

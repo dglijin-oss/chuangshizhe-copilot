@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}仪表盘 - AI内容采集改写系统{% endblock %}
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">仪表盘</h1>
+    <p class="text-gray-500">系统运行概览</p>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div class="card border-l-4 border-blue-500">
+        <div class="text-sm text-gray-500">对标账号</div>
+        <div class="text-2xl font-bold" id="stat-accounts">-</div>
+    </div>
+    <div class="card border-l-4 border-green-500">
+        <div class="text-sm text-gray-500">关键词</div>
+        <div class="text-2xl font-bold" id="stat-keywords">-</div>
+    </div>
+    <div class="card border-l-4 border-purple-500">
+        <div class="text-sm text-gray-500">采集内容</div>
+        <div class="text-2xl font-bold" id="stat-content">-</div>
+    </div>
+    <div class="card border-l-4 border-orange-500">
+        <div class="text-sm text-gray-500">今日新增</div>
+        <div class="text-2xl font-bold" id="stat-today">-</div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="card">
+        <h2 class="text-lg font-semibold mb-4">热门关键词</h2>
+        <div id="trending-list" class="space-y-2"></div>
+    </div>
+    <div class="card">
+        <h2 class="text-lg font-semibold mb-4">系统状态</h2>
+        <div class="space-y-3">
+            <div class="flex justify-between">
+                <span class="text-gray-500">待处理任务</span>
+                <span class="font-medium" id="stat-pending">-</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-500">运行中任务</span>
+                <span class="font-medium" id="stat-running">-</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-500">改写总数</span>
+                <span class="font-medium" id="stat-rewrites">-</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    setActiveNav('dashboard');
+    loadDashboard();
+});
+</script>
+{% endblock %}

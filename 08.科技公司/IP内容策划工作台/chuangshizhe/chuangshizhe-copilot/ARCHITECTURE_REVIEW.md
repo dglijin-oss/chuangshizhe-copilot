@@ -225,3 +225,21 @@
 | validation | `src/lib/validation.ts` | Zod schema 统一校验所有 API 路由 |
 | knowledge-overview | `src/lib/knowledge-overview.ts` | 知识库总览更新逻辑，消除 HTTP 自调用 |
 | knowledge | `src/lib/knowledge.ts` | 优化为 Promise.all 并行查询 |
+
+
+系统架构评审，给出你专业建议给我，看哪里要优化。
+
+热词关联  生成的生 成矩阵热词前端没有地方显示记录，刷新了就找不到了，后面无法调用。
+
+管理所有 IP 的人设档案页面   增加删除ip功能！删除ip后这个ip所生产的内容也要一并删除，不要留垃圾。
+
+设置ai生成一次扣5积分。
+
+管理员后台没有上传微信收款码入口，客户企鹅人金额生成订单后没法看到收款码
+-----
+完善软删除功能 文件上传异步化 
+
+
+5-20
+
+后续更新代码时：本地重新 npm run build → 重新打包 copilot-standalone.tar.gz → 上传到服务器 → 解压覆盖 → pm2 restart copilot。

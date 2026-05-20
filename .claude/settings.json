@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p C:/obsidian/.claude-backup C:/obsidian/.claudian-backup)",
+      "Bash(mv .claude/* C:/obsidian/.claude-backup/)",
+      "Bash(mv .claudian/* C:/obsidian/.claudian-backup/)",
+      "Bash(rmdir .claude .claudian)",
+      "Bash(mkdir -p /tmp/claude-config-backup)",
+      "Bash(mv .claude /tmp/claude-config-backup/)",
+      "Read(//tmp/**)",
+      "Bash(mv /tmp/claude_vault_backup/.git .)"
+    ]
+  }
+}

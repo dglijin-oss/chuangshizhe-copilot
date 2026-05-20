@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}关键词 - AI内容采集改写系统{% endblock %}
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <div>
+        <h1 class="text-2xl font-bold text-gray-800">关键词管理</h1>
+        <p class="text-gray-500">管理内容发现关键词</p>
+    </div>
+    <button onclick="showAddKeyword()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+        + 添加关键词
+    </button>
+</div>
+
+<div id="add-form" class="card mb-6 hidden">
+    <form onsubmit="return addKeyword(event)" class="space-y-4">
+        <div class="grid grid-cols-3 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">关键词</label>
+                <input type="text" id="f-term" class="w-full border rounded-lg px-3 py-2" required>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">平台</label>
+                <select id="f-platform" class="w-full border rounded-lg px-3 py-2">
+                    <option value="all">全部</option>
+                    <option value="bilibili">Bilibili</option>
+                    <option value="wechat">微信视频号</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">分类</label>
+                <input type="text" id="f-category" class="w-full border rounded-lg px-3 py-2" value="general">
+            </div>
+        </div>
+        <div class="flex space-x-2">
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">保存</button>
+            <button type="button" onclick="hideAddKeyword()" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300">取消</button>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <table class="w-full text-sm">
+        <thead>
+            <tr class="border-b">
+                <th class="text-left py-2 px-3">关键词</th>
+                <th class="text-left py-2 px-3">平台</th>
+                <th class="text-left py-2 px-3">分类</th>
+                <th class="text-left py-2 px-3">热度</th>
+                <th class="text-left py-2 px-3">趋势</th>
+                <th class="text-left py-2 px-3">操作</th>
+            </tr>
+        </thead>
+        <tbody id="keywords-body"></tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    setActiveNav('keywords');
+    loadKeywords();
+});
+</script>
+{% endblock %}

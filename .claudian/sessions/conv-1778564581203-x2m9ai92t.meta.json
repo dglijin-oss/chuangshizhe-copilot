@@ -1,0 +1,27 @@
+{
+  "id": "conv-1778564581203-x2m9ai92t",
+  "providerId": "claude",
+  "title": "你好",
+  "titleGenerationStatus": "failed",
+  "createdAt": 1778564581204,
+  "updatedAt": 1778989735717,
+  "lastResponseAt": 1778989735717,
+  "sessionId": "e8fca186-4c1f-44e3-8ce8-c584c2774634",
+  "providerState": {
+    "providerSessionId": "e8fca186-4c1f-44e3-8ce8-c584c2774634",
+    "previousProviderSessionIds": [
+      "e8fca186-4c1f-44e3-8ce8-c584c2774634",
+      "e9041c31-0257-48b0-b6cd-912cff89ed6b"
+    ]
+  },
+  "usage": {
+    "model": "haiku",
+    "inputTokens": 25565,
+    "cacheCreationInputTokens": 1330,
+    "cacheReadInputTokens": 46779,
+    "contextWindow": 200000,
+    "contextTokens": 73674,
+    "percentage": 37,
+    "contextWindowIsAuthoritative": true
+  }
+}
