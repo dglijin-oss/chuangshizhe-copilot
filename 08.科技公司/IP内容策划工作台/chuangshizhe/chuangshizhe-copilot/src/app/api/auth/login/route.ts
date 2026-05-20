@@ -28,14 +28,14 @@ export async function POST(req: NextRequest) {
     const res = NextResponse.json({ user: { id: user.id, name: user.name, phone: user.phone, role: user.role, points: user.points } })
     res.cookies.set("session-token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: false,
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 30,
       path: "/",
     })
     res.cookies.set("user-role", user.role, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: false,
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 30,
       path: "/",
