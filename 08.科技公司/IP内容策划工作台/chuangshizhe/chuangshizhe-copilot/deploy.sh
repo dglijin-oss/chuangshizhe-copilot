@@ -32,16 +32,13 @@ docker tag chuangshizhe-copilot:$VERSION chuangshizhe-copilot:latest
 echo "镜像构建完成: chuangshizhe-copilot:$VERSION"
 REMOTE
 
-echo "=== 4/4 启动新容器（旧镜像保留） ==="
-ssh "$SERVER" << REMOTE
-# 如果已有运行中的容器，先改名保留（不回滚用）
-if docker ps -a --format '{{.Names}}' | grep -q '^chuangshizhe-copilot$'; then
-  CURRENT_ID=\$(docker inspect chuangshizhe-copilot --format '{{.Config.Image}}' 2>/dev/null || echo "")
-  docker rename chuangshizhe-copilot chuangshizhe-copilot-old 2>/dev/null || true
-  docker stop chuangshizhe-copilot-old 2>/dev/null || true
-fi
+echo "=== 4/4 启动新容器（旧容器保留） ==="
+ssh "$SERVER" << 'REMOTE'
+# 停止并移除旧容器
+docker stop chuangshizhe-copilot 2>/dev/null || true
+docker rm chuangshizhe-copilot 2>/dev/null || true
 
-# 启动新版本
+# 启动新版本（使用 latest 标签）
 docker run -d \
   --name chuangshizhe-copilot \
   --restart always \
@@ -49,9 +46,9 @@ docker run -d \
   -e DATABASE_URL="postgresql://chuangshizhe_user:Csj2026Secure%21@127.0.0.1:5432/chuangshizhe" \
   -e ALIYUN_API_KEY="sk-sp-1698373d17b74e1bab3d7bccc171f556" \
   -e NODE_ENV=production \
-  chuangshizhe-copilot:$VERSION
+  chuangshizhe-copilot:latest
 
-echo "容器已启动，版本: $VERSION"
+echo "容器已启动"
 REMOTE
 
 echo "=== 部署完成！版本: $VERSION ==="
