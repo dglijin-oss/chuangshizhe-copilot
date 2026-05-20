@@ -32,7 +32,7 @@ type IpDetail = {
 }
 
 export default function AdminIpDetailPage() {
-  const params = useParams<{ id: string }>()
+  const params = useParams<{ userId: string; ipId: string }>()
   const router = useRouter()
   const { role } = useUser()
   const [ip, setIp] = useState<IpDetail | null>(null)
@@ -41,11 +41,11 @@ export default function AdminIpDetailPage() {
 
   useEffect(() => {
     if (role !== "admin") { router.push("/") }
-    fetch(`/api/admin/ips/${params.id}`, { credentials: "include" })
+    fetch(`/api/admin/ip-users/${params.userId}/ips/${params.ipId}`, { credentials: "include" })
       .then(res => res.json())
       .then(data => { setIp(data.ip); setLoading(false) })
       .catch(() => setLoading(false))
-  }, [role, router, params.id])
+  }, [role, router, params.userId, params.ipId])
 
   if (loading) return <div className="p-4 md:p-6 text-gray-400">加载中...</div>
   if (!ip) return <div className="p-4 md:p-6 text-gray-400">IP 不存在</div>
@@ -64,7 +64,6 @@ export default function AdminIpDetailPage() {
   }
 
   const hasTag = (val: any, tag: string) => parseTags(val).includes(tag)
-
   const fmtDate = (d: string) => new Date(d).toLocaleDateString("zh-CN")
 
   return (
@@ -73,7 +72,7 @@ export default function AdminIpDetailPage() {
       <nav className="bg-white border-b border-gray-200 px-4 md:px-6 py-3">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <button onClick={() => router.push("/admin/ips")} className="text-xs text-muted hover:text-primary transition-colors">← 返回</button>
+            <a href={`/admin/ips/${params.userId}`} className="text-xs text-muted hover:text-primary transition-colors">← 返回 {ip.user?.name || "—"}</a>
             <span className="text-xs text-gray-400">管理后台</span>
             <span className="text-sm md:text-base font-bold">{ip.name}</span>
           </div>
