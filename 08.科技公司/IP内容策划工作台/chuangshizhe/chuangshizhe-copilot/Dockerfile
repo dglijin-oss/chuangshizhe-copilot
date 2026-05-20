@@ -11,7 +11,7 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npx prisma generate
+RUN npx prisma generate 2>&1 && echo "=== Generated files ===" && find src/generated -type f 2>/dev/null && echo "=== All prisma files ===" && find . -path './node_modules' -prune -o -name 'prisma' -print 2>/dev/null
 RUN npm run build
 
 # Production server
