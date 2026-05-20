@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { prismaIp } from "@/lib/prisma"
 import { chat } from "@/lib/llm"
 import { fetchKnowledgeContext } from "@/lib/knowledge"
 import { deductPoints } from "@/lib/billing"
@@ -17,7 +17,7 @@ export async function GET(
 
   const { id } = await params
 
-  const plan = await prisma.weeklyPlan.findFirst({
+  const plan = await prismaIp.weeklyPlan.findFirst({
     where: { ipId: id, userId: user.id },
     orderBy: { createdAt: "desc" },
     include: { items: { orderBy: { createdAt: "asc" } } },
@@ -37,7 +37,7 @@ export async function POST(
   const { id } = await params
   const { userDirection } = parseBody(weeklyPlanGenerateSchema, await req.json())
 
-  const ip = await prisma.ip.findUnique({
+  const ip = await prismaIp.ip.findUnique({
     where: { id, userId: user.id },
   })
   if (!ip) return NextResponse.json({ error: "IP 不存在" }, { status: 404 })
@@ -137,7 +137,7 @@ ${wikiPages}
     const weekEnd = new Date(weekStart)
     weekEnd.setDate(weekStart.getDate() + 6)
 
-    const plan = await prisma.weeklyPlan.create({
+    const plan = await prismaIp.weeklyPlan.create({
       data: {
         userId: user.id,
         ipId: id,
@@ -179,13 +179,13 @@ export async function PUT(
   const { items, userDirection } = parseBody(weeklyPlanSaveSchema, await req.json())
 
   // Update the latest weekly plan for this IP
-  const latestPlan = await prisma.weeklyPlan.findFirst({
+  const latestPlan = await prismaIp.weeklyPlan.findFirst({
     where: { ipId: id, userId: user.id },
     orderBy: { createdAt: "desc" },
   })
   if (!latestPlan) return NextResponse.json({ error: "没有找到周策划" }, { status: 404 })
 
-  await prisma.weeklyPlan.update({
+  await prismaIp.weeklyPlan.update({
     where: { id: latestPlan.id },
     data: {
       userDirection: userDirection || null,

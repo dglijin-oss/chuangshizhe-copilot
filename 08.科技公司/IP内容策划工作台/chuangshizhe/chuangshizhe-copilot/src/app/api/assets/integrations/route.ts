@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { prismaIp } from "@/lib/prisma"
 
 // GET /api/assets/integrations - list integration configs
 export async function GET() {
   const user = await getSessionUser()
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 })
 
-  const integrations = await prisma.integrationConfig.findMany({
+  const integrations = await prismaIp.integrationConfig.findMany({
     where: { userId: user.id },
     orderBy: { createdAt: "desc" },
   })
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
 
   if (!platform || !configName) return NextResponse.json({ error: "平台和名称必填" }, { status: 400 })
 
-  const integration = await prisma.integrationConfig.create({
+  const integration = await prismaIp.integrationConfig.create({
     data: {
       userId: user.id,
       platform,
@@ -46,6 +46,6 @@ export async function DELETE(req: Request) {
   const id = searchParams.get("id")
   if (!id) return NextResponse.json({ error: "ID 必填" }, { status: 400 })
 
-  await prisma.integrationConfig.delete({ where: { id, userId: user.id } })
+  await prismaIp.integrationConfig.delete({ where: { id, userId: user.id } })
   return NextResponse.json({ success: true })
 }

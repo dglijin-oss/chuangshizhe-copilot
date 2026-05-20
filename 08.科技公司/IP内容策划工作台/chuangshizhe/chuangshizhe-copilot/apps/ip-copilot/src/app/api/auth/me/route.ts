@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { prismaIp } from "@/lib/prisma"
 import { getSessionUser } from "@/lib/auth"
 
 export async function GET() {
@@ -8,7 +8,7 @@ export async function GET() {
     return NextResponse.json({ error: "未登录" }, { status: 401 })
   }
 
-  const questionnaire = await prisma.questionnaire.findFirst({
+  const questionnaire = await prismaIp.questionnaire.findFirst({
     where: { userId: user.id, submitted: true },
     select: { id: true },
   })

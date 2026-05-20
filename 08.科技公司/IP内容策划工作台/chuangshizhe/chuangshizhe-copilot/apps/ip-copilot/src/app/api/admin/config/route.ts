@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { prismaCore } from "@/lib/prisma"
 import { getSessionUser } from "@/lib/auth"
 
 // Default config stored in DB or env, for now return defaults

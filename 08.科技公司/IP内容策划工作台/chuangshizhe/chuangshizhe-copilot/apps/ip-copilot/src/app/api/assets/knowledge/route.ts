@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { prismaIp } from "@/lib/prisma"
 
 // GET /api/assets/knowledge - list knowledge base entries
 export async function GET() {
   const user = await getSessionUser()
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 })
 
-  const entries = await prisma.knowledgeBase.findMany({
+  const entries = await prismaIp.knowledgeBase.findMany({
     where: { userId: user.id },
     orderBy: { updatedAt: "desc" },
   })
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
 
   if (!title || !content) return NextResponse.json({ error: "标题和内容必填" }, { status: 400 })
 
-  const entry = await prisma.knowledgeBase.create({
+  const entry = await prismaIp.knowledgeBase.create({
     data: {
       userId: user.id,
       title,
@@ -46,6 +46,6 @@ export async function DELETE(req: Request) {
   const id = searchParams.get("id")
   if (!id) return NextResponse.json({ error: "ID 必填" }, { status: 400 })
 
-  await prisma.knowledgeBase.delete({ where: { id, userId: user.id } })
+  await prismaIp.knowledgeBase.delete({ where: { id, userId: user.id } })
   return NextResponse.json({ success: true })
 }

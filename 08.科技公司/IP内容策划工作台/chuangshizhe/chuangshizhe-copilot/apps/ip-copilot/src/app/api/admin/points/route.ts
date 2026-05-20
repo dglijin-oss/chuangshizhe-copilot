@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { prismaCore } from "@/lib/prisma"
 import { getSessionUser } from "@/lib/auth"
 
 // POST /api/admin/points - adjust user points
@@ -16,7 +16,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "参数错误" }, { status: 400 })
     }
 
-    const user = await prisma.user.findUnique({ where: { id: userId } })
+    const user = await prismaCore.user.findUnique({ where: { id: userId } })
     if (!user) return NextResponse.json({ error: "用户不存在" }, { status: 404 })
 
     const newPoints = user.points + amount
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "积分不足" }, { status: 400 })
     }
 
-    await prisma.user.update({
+    await prismaCore.user.update({
       where: { id: userId },
       data: { points: newPoints },
     })

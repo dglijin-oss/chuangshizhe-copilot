@@ -1,4 +1,4 @@
-import { prisma } from "./prisma"
+import { prismaCore } from "./prisma"
 
 /**
  * Log an AI generation request to the GenerationLog table.
@@ -15,7 +15,7 @@ export async function logGeneration(
   error?: string,
 ) {
   try {
-    await prisma.generationLog.create({
+    await prismaCore.generationLog.create({
       data: { userId, type, model, status, tokens, cost, duration, error },
     })
   } catch { /* ignore */ }

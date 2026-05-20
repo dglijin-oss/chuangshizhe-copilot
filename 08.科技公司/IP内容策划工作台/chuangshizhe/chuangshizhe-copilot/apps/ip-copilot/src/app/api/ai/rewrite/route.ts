@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
 import { chat } from "@/lib/llm"
-import { prisma } from "@/lib/prisma"
+import { prismaCore } from "@/lib/prisma"
 import { fetchKnowledgeContext } from "@/lib/knowledge"
 import { deductPoints } from "@/lib/billing"
 import { logGeneration } from "@/lib/logging"
@@ -83,7 +83,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ text: result })
   } catch (err: any) {
     console.error("Rewrite error:", err)
-    await prisma.generationLog.create({
+    await prismaCore.generationLog.create({
       data: { userId: user.id, type: "rewrite", model: "qwen3-max-2026-01-23", status: "error", duration: 0, error: err.message },
     })
     return NextResponse.json({ error: "改写失败" }, { status: 500 })

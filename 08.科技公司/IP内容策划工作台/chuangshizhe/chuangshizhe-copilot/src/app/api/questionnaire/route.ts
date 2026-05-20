@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { prismaCore, prismaIp } from "@/lib/prisma"
 import { getSessionUser } from "@/lib/auth"
 
 export async function POST(req: Request) {
@@ -10,14 +10,14 @@ export async function POST(req: Request) {
     const body = await req.json()
     const { answers } = body as { answers: Record<string, string> }
 
-    const existing = await prisma.questionnaire.findFirst({
+    const existing = await prismaIp.questionnaire.findFirst({
       where: { userId: user.id, submitted: true },
     })
     if (existing) {
       return NextResponse.json({ error: "问卷已提交过，无需重复" }, { status: 400 })
     }
 
-    await prisma.questionnaire.create({
+    await prismaIp.questionnaire.create({
       data: {
         userId: user.id,
         industry: answers["01"] || null,
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
       },
     })
 
-    await prisma.user.update({
+    await prismaCore.user.update({
       where: { id: user.id },
       data: { points: user.points + 10 },
     })
@@ -71,7 +71,7 @@ export async function POST(req: Request) {
       `- 涉及资质、客户、数据、认证时必须来自来源资料，缺失时标注待补充。`,
     ].join("\n")
 
-    await prisma.wikiPage.create({
+    await prismaIp.wikiPage.create({
       data: {
         userId: user.id,
         title: "账号知识库总览",
@@ -80,7 +80,7 @@ export async function POST(req: Request) {
       },
     })
 
-    await prisma.compileEvent.create({
+    await prismaIp.compileEvent.create({
       data: {
         userId: user.id,
         action: "wiki_compiled",

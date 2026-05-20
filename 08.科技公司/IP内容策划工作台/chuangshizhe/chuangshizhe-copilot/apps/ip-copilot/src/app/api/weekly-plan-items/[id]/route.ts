@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { prismaCore, prismaIp } from "@/lib/prisma"
 import { chat } from "@/lib/llm"
 import { fetchKnowledgeContext } from "@/lib/knowledge"
 import { deductPoints } from "@/lib/billing"
@@ -17,7 +17,7 @@ export async function GET(
 
   const { id } = await params
 
-  const item = await prisma.weeklyPlanItem.findUnique({
+  const item = await prismaIp.weeklyPlanItem.findUnique({
     where: { id },
     include: {
       plan: {
@@ -45,7 +45,7 @@ export async function PATCH(
   const { id } = await params
   const body = parseBody(weeklyPlanItemUpdateSchema, await req.json())
 
-  const item = await prisma.weeklyPlanItem.findUnique({
+  const item = await prismaIp.weeklyPlanItem.findUnique({
     where: { id },
     include: { plan: true },
   })
@@ -54,7 +54,7 @@ export async function PATCH(
     return NextResponse.json({ error: "选题不存在" }, { status: 404 })
   }
 
-  const updated = await prisma.weeklyPlanItem.update({
+  const updated = await prismaIp.weeklyPlanItem.update({
     where: { id },
     data: {
       generatedResult: body.generatedResult || null,
@@ -76,7 +76,7 @@ export async function POST(
   const { id } = await params
   const { userDirection } = parseBody(weeklyPlanGenerateSchema, await req.json())
 
-  const item = await prisma.weeklyPlanItem.findUnique({
+  const item = await prismaIp.weeklyPlanItem.findUnique({
     where: { id },
     include: {
       plan: {
@@ -180,7 +180,7 @@ ${wikiPages}
     }
 
     // Save result
-    const updated = await prisma.weeklyPlanItem.update({
+    const updated = await prismaIp.weeklyPlanItem.update({
       where: { id },
       data: {
         generatedResult: parsed,
@@ -197,7 +197,7 @@ ${wikiPages}
   } catch (err: any) {
     console.error("Generate item error:", err)
     const errorMessage = err.message || "未知错误"
-    await prisma.generationLog.create({
+    await prismaCore.generationLog.create({
       data: { userId: user.id, type: "publish_package", model: "qwen3-max-2026-01-23", status: "error", duration: 0, error: errorMessage },
     })
     // Return specific error messages for known failures

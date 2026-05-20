@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { prismaCore } from "@/lib/prisma"
 import { parseBody, generationLogSchema } from "@/lib/validation"
 
 // GET /api/account/logs - list generation logs
@@ -8,18 +8,18 @@ export async function GET() {
   const user = await getSessionUser()
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 })
 
-  const logs = await prisma.generationLog.findMany({
+  const logs = await prismaCore.generationLog.findMany({
     where: { userId: user.id },
     orderBy: { createdAt: "desc" },
     take: 50,
   })
 
-  const totalTokens = await prisma.generationLog.aggregate({
+  const totalTokens = await prismaCore.generationLog.aggregate({
     where: { userId: user.id },
     _sum: { tokens: true },
   })
 
-  const totalCost = await prisma.generationLog.aggregate({
+  const totalCost = await prismaCore.generationLog.aggregate({
     where: { userId: user.id },
     _sum: { cost: true },
   })
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
 
   const { type, model, status, tokens, duration, cost, error } = parseBody(generationLogSchema, await req.json())
 
-  const log = await prisma.generationLog.create({
+  const log = await prismaCore.generationLog.create({
     data: {
       userId: user.id,
       type: type || "article",

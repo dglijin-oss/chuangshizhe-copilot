@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { prismaCore, prismaIp } from "@/lib/prisma"
 import { getSessionUser } from "@/lib/auth"
 
 // GET /api/admin/ip-users/[userId]/ips - list all IPs for a specific user
@@ -14,10 +14,10 @@ export async function GET(
 
   const { userId } = await params
 
-  const user = await prisma.user.findUnique({ where: { id: userId } })
+  const user = await prismaCore.user.findUnique({ where: { id: userId } })
   if (!user) return NextResponse.json({ error: "用户不存在" }, { status: 404 })
 
-  const ips = await prisma.ip.findMany({
+  const ips = await prismaIp.ip.findMany({
     where: { userId },
     orderBy: { createdAt: "desc" },
     include: {

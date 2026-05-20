@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { prismaCore, prismaIp } from "@/lib/prisma"
 import { getSessionUser } from "@/lib/auth"
 
 export async function GET() {
@@ -8,13 +8,24 @@ export async function GET() {
     return NextResponse.json({ error: "无权限" }, { status: 403 })
   }
 
-  const ips = await prisma.ip.findMany({
+  const ips = await prismaIp.ip.findMany({
     orderBy: { createdAt: "desc" },
     include: {
-      user: { select: { name: true, phone: true } },
       _count: { select: { geoArticles: true, weeklyPlans: true } },
     },
   })
 
-  return NextResponse.json({ ips })
+  const userIds = [...new Set(ips.map((ip: any) => ip.userId))]
+  const users = await prismaCore.user.findMany({
+    where: { id: { in: userIds } },
+    select: { id: true, name: true, phone: true },
+  })
+  const userMap = new Map(users.map((u: any) => [u.id, u]))
+
+  const ipsWithUser = ips.map((ip: any) => ({
+    ...ip,
+    user: userMap.get(ip.userId) || null,
+  }))
+
+  return NextResponse.json({ ips: ipsWithUser })
 }

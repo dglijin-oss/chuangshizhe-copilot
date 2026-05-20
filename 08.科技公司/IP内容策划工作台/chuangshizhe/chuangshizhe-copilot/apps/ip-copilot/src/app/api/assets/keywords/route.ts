@@ -1,19 +1,19 @@
 import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { prismaIp } from "@/lib/prisma"
 
 // GET /api/assets/keywords - list keyword groups with keywords
 export async function GET() {
   const user = await getSessionUser()
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 })
 
-  const groups = await prisma.keywordGroup.findMany({
+  const groups = await prismaIp.keywordGroup.findMany({
     where: { userId: user.id },
     include: { keywords: true },
     orderBy: { createdAt: "desc" },
   })
 
-  const hotKeywords = await prisma.keyword.findMany({
+  const hotKeywords = await prismaIp.keyword.findMany({
     where: { userId: user.id, isHot: true },
     orderBy: { createdAt: "desc" },
     take: 50,
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
 
   if (type === "group") {
     if (!name) return NextResponse.json({ error: "分组名称必填" }, { status: 400 })
-    const group = await prisma.keywordGroup.create({
+    const group = await prismaIp.keywordGroup.create({
       data: { userId: user.id, name },
     })
     return NextResponse.json({ group })
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
 
   if (type === "keyword") {
     if (!content) return NextResponse.json({ error: "关键词内容必填" }, { status: 400 })
-    const keyword = await prisma.keyword.create({
+    const keyword = await prismaIp.keyword.create({
       data: {
         userId: user.id,
         content,
@@ -65,9 +65,9 @@ export async function DELETE(req: Request) {
   if (!id || !type) return NextResponse.json({ error: "参数不完整" }, { status: 400 })
 
   if (type === "group") {
-    await prisma.keywordGroup.delete({ where: { id, userId: user.id } })
+    await prismaIp.keywordGroup.delete({ where: { id, userId: user.id } })
   } else {
-    await prisma.keyword.delete({ where: { id, userId: user.id } })
+    await prismaIp.keyword.delete({ where: { id, userId: user.id } })
   }
 
   return NextResponse.json({ success: true })

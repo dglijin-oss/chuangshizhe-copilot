@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { prismaCore } from "@/lib/prisma"
 import { getSessionUser } from "@/lib/auth"
 
 export async function GET() {
@@ -8,7 +8,7 @@ export async function GET() {
     return NextResponse.json({ error: "无权限" }, { status: 403 })
   }
 
-  const logs = await prisma.generationLog.findMany({
+  const logs = await prismaCore.generationLog.findMany({
     orderBy: { createdAt: "desc" },
     include: {
       user: { select: { name: true, phone: true } },

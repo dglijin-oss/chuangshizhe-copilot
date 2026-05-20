@@ -1,4 +1,4 @@
-import { prisma } from "./prisma"
+import { prismaIp } from "./prisma"
 
 export interface KnowledgeContext {
   memories: string  // formatted AccountMemory entries
@@ -35,13 +35,13 @@ export async function fetchKnowledgeContext(
   // Parallel fetch all 4 independent queries
   const [ipMemories, accountMemories, ipWikiPages, accountWikiPages] = await Promise.all([
     ipId
-      ? prisma.accountMemory.findMany({ where: { userId, ipId }, orderBy: { createdAt: "desc" } })
+      ? prismaIp.accountMemory.findMany({ where: { userId, ipId }, orderBy: { createdAt: "desc" } })
       : Promise.resolve([]),
-    prisma.accountMemory.findMany({ where: { userId, ipId: null }, orderBy: { createdAt: "desc" } }),
+    prismaIp.accountMemory.findMany({ where: { userId, ipId: null }, orderBy: { createdAt: "desc" } }),
     ipId
-      ? prisma.wikiPage.findMany({ where: { userId, ipId }, orderBy: { updatedAt: "desc" } })
+      ? prismaIp.wikiPage.findMany({ where: { userId, ipId }, orderBy: { updatedAt: "desc" } })
       : Promise.resolve([]),
-    prisma.wikiPage.findMany({ where: { userId, ipId: null }, orderBy: { updatedAt: "desc" } }),
+    prismaIp.wikiPage.findMany({ where: { userId, ipId: null }, orderBy: { updatedAt: "desc" } }),
   ])
 
   // Format AccountMemory as structured text for prompt injection

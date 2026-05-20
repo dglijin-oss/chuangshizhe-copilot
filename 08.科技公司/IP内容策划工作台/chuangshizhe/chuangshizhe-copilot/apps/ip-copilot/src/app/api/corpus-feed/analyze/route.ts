@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
 import { chat } from "@/lib/llm"
-import { prisma } from "@/lib/prisma"
+import { prismaCore } from "@/lib/prisma"
 import { deductPoints } from "@/lib/billing"
 import { logGeneration } from "@/lib/logging"
 import { parseBody, corpusAnalyzeSchema } from "@/lib/validation"

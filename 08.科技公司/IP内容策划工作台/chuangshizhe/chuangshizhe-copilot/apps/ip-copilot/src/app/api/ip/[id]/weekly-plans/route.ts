@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { prismaIp } from "@/lib/prisma"
 
 // GET /api/ip/[id]/weekly-plans - list all weekly plans for this IP
 export async function GET(
@@ -12,7 +12,7 @@ export async function GET(
 
   const { id } = await params
 
-  const plans = await prisma.weeklyPlan.findMany({
+  const plans = await prismaIp.weeklyPlan.findMany({
     where: { ipId: id, userId: user.id },
     orderBy: { createdAt: "desc" },
     include: {

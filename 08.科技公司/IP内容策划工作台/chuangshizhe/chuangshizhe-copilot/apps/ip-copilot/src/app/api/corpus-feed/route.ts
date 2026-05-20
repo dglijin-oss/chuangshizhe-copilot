@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { prismaIp } from "@/lib/prisma"
 import { parseBody, corpusFeedSchema } from "@/lib/validation"
 
 // GET /api/corpus-feed - list feeds for an IP
@@ -14,7 +14,7 @@ export async function GET(req: Request) {
   const where: any = { userId: user.id }
   if (ipId) where.ipId = ipId
 
-  const feeds = await prisma.corpusFeed.findMany({
+  const feeds = await prismaIp.corpusFeed.findMany({
     where,
     orderBy: { createdAt: "desc" },
   })
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
 
   const { ipId, feedType, title, fileName, content } = parseBody(corpusFeedSchema, await req.json())
 
-  const feed = await prisma.corpusFeed.create({
+  const feed = await prismaIp.corpusFeed.create({
     data: {
       userId: user.id,
       ipId: ipId || null,
@@ -53,11 +53,11 @@ export async function DELETE(req: Request) {
   const id = searchParams.get("id")
   if (!id) return NextResponse.json({ error: "缺少 id" }, { status: 400 })
 
-  const feed = await prisma.corpusFeed.findUnique({ where: { id } })
+  const feed = await prismaIp.corpusFeed.findUnique({ where: { id } })
   if (!feed || feed.userId !== user.id) {
     return NextResponse.json({ error: "语料不存在" }, { status: 404 })
   }
 
-  await prisma.corpusFeed.delete({ where: { id } })
+  await prismaIp.corpusFeed.delete({ where: { id } })
   return NextResponse.json({ success: true })
 }

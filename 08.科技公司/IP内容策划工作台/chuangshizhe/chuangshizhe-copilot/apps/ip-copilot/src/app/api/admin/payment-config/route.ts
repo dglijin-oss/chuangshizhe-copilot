@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { prismaCore } from "@/lib/prisma"
 
 // GET /api/admin/payment-config - get current payment QR code
 export async function GET() {
@@ -9,7 +9,7 @@ export async function GET() {
     return NextResponse.json({ error: "无权限" }, { status: 403 })
   }
 
-  const config = await prisma.paymentConfig.findUnique({
+  const config = await prismaCore.paymentConfig.findUnique({
     where: { key: "wechat_qr" },
   })
 
@@ -49,7 +49,7 @@ export async function PUT(req: Request) {
   }
 
   try {
-    await prisma.paymentConfig.upsert({
+    await prismaCore.paymentConfig.upsert({
       where: { key: "wechat_qr" },
       create: { key: "wechat_qr", value: qrDataUrl },
       update: { value: qrDataUrl },

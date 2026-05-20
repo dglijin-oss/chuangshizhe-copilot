@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { prismaIp } from "@/lib/prisma"
 import { parseBody, updateIpSchema } from "@/lib/validation"
 
 // GET /api/ip/[id] - get single IP
@@ -13,7 +13,7 @@ export async function GET(
 
   const { id } = await params
 
-  const ip = await prisma.ip.findUnique({
+  const ip = await prismaIp.ip.findUnique({
     where: { id, userId: user.id },
   })
   if (!ip) return NextResponse.json({ error: "IP 不存在" }, { status: 404 })
@@ -32,7 +32,7 @@ export async function PATCH(
   const { id } = await params
   const body = parseBody(updateIpSchema, await req.json())
 
-  const existing = await prisma.ip.findUnique({
+  const existing = await prismaIp.ip.findUnique({
     where: { id },
   })
   if (!existing || existing.userId !== user.id) {
@@ -45,7 +45,7 @@ export async function PATCH(
     contentMixPersona, contentMixProduct,
   } = body
 
-  const ip = await prisma.ip.update({
+  const ip = await prismaIp.ip.update({
     where: { id },
     data: {
       ...(name !== undefined && { name }),
@@ -79,11 +79,11 @@ export async function PATCH(
   ].filter(Boolean).join("\n")
 
   await Promise.all([
-    prisma.knowledgeSource.updateMany({
+    prismaIp.knowledgeSource.updateMany({
       where: { userId: user.id, ipId: ip.id, sourceType: "ip_profile" },
       data: { title: `${ip.name} - IP 档案`, content: syncContent },
     }),
-    prisma.wikiPage.updateMany({
+    prismaIp.wikiPage.updateMany({
       where: { userId: user.id, ipId: ip.id, category: "ip_subpage" },
       data: { title: ip.name, content: `# ${ip.name}\n\n${syncContent}` },
     }),
@@ -102,22 +102,22 @@ export async function DELETE(
 
   const { id } = await params
 
-  const existing = await prisma.ip.findUnique({ where: { id } })
+  const existing = await prismaIp.ip.findUnique({ where: { id } })
   if (!existing || existing.userId !== user.id) {
     return NextResponse.json({ error: "IP 不存在" }, { status: 404 })
   }
 
   try {
-    await prisma.$transaction([
+    await prismaIp.$transaction([
       // WeeklyPlan items cascade via onDelete: Cascade on WeeklyPlanItem → planId
-      prisma.weeklyPlan.deleteMany({ where: { ipId: id } }),
-      prisma.knowledgeSource.deleteMany({ where: { ipId: id } }),
-      prisma.wikiPage.deleteMany({ where: { ipId: id } }),
-      prisma.accountMemory.deleteMany({ where: { ipId: id } }),
-      prisma.corpusFeed.deleteMany({ where: { ipId: id } }),
-      prisma.geoArticle.deleteMany({ where: { ipId: id } }),
-      prisma.knowledgeBase.deleteMany({ where: { ipId: id } }),
-      prisma.ip.delete({ where: { id } }),
+      prismaIp.weeklyPlan.deleteMany({ where: { ipId: id } }),
+      prismaIp.knowledgeSource.deleteMany({ where: { ipId: id } }),
+      prismaIp.wikiPage.deleteMany({ where: { ipId: id } }),
+      prismaIp.accountMemory.deleteMany({ where: { ipId: id } }),
+      prismaIp.corpusFeed.deleteMany({ where: { ipId: id } }),
+      prismaIp.geoArticle.deleteMany({ where: { ipId: id } }),
+      prismaIp.knowledgeBase.deleteMany({ where: { ipId: id } }),
+      prismaIp.ip.delete({ where: { id } }),
     ])
     return NextResponse.json({ success: true })
   } catch (err) {

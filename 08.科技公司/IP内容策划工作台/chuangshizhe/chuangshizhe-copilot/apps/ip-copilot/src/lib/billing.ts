@@ -1,4 +1,4 @@
-import { prisma } from "./prisma"
+import { prismaCore } from "./prisma"
 
 /**
  * Deduct points from user after AI generation.
@@ -6,7 +6,7 @@ import { prisma } from "./prisma"
  * Returns true if deduction succeeded, false if user has insufficient points.
  */
 export async function deductPoints(userId: string, points: number): Promise<boolean> {
-  const result = await prisma.user.updateMany({
+  const result = await prismaCore.user.updateMany({
     where: { id: userId, points: { gte: points } },
     data: { points: { decrement: points } },
   })

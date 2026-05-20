@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { prismaCore } from "@/lib/prisma"
 import { verifyPassword, hashPassword, createSession } from "@/lib/auth"
 import { parseBody, loginSchema } from "@/lib/validation"
 import { checkRateLimit, resetRateLimit } from "@/lib/rate-limiter"
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const user = await prisma.user.findUnique({ where: { phone } })
+    const user = await prismaCore.user.findUnique({ where: { phone } })
     if (!user) {
       return NextResponse.json({ error: "账号或密码错误" }, { status: 401 })
     }
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
     // Auto-migrate legacy SHA-256 passwords to bcrypt
     if (!user.password.startsWith("$")) {
       const bcryptHash = await hashPassword(password)
-      await prisma.user.update({ where: { id: user.id }, data: { password: bcryptHash } })
+      await prismaCore.user.update({ where: { id: user.id }, data: { password: bcryptHash } })
     }
 
     const token = await createSession(user.id)

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { prismaIp } from "@/lib/prisma"
 import { parseBody, createMemorySchema, updateMemorySchema } from "@/lib/validation"
 
 const categoryLabels: Record<string, string> = {
@@ -21,7 +21,7 @@ export async function GET(req: Request) {
   const where: any = { userId: user.id }
   if (ipId) where.ipId = ipId
 
-  const memories = await prisma.accountMemory.findMany({
+  const memories = await prismaIp.accountMemory.findMany({
     where,
     orderBy: { createdAt: "desc" },
   })
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
 
   const { ipId, category, content } = parseBody(createMemorySchema, await req.json())
 
-  const memory = await prisma.accountMemory.create({
+  const memory = await prismaIp.accountMemory.create({
     data: {
       userId: user.id,
       ipId: ipId || null,
@@ -57,12 +57,12 @@ export async function DELETE(req: Request) {
   const id = searchParams.get("id")
   if (!id) return NextResponse.json({ error: "缺少 id" }, { status: 400 })
 
-  const memory = await prisma.accountMemory.findUnique({ where: { id } })
+  const memory = await prismaIp.accountMemory.findUnique({ where: { id } })
   if (!memory || memory.userId !== user.id) {
     return NextResponse.json({ error: "记忆不存在" }, { status: 404 })
   }
 
-  await prisma.accountMemory.delete({ where: { id } })
+  await prismaIp.accountMemory.delete({ where: { id } })
   return NextResponse.json({ success: true })
 }
 
@@ -77,12 +77,12 @@ export async function PUT(req: Request) {
 
   const { content, category } = parseBody(updateMemorySchema, await req.json())
 
-  const memory = await prisma.accountMemory.findUnique({ where: { id } })
+  const memory = await prismaIp.accountMemory.findUnique({ where: { id } })
   if (!memory || memory.userId !== user.id) {
     return NextResponse.json({ error: "记忆不存在" }, { status: 404 })
   }
 
-  const updated = await prisma.accountMemory.update({
+  const updated = await prismaIp.accountMemory.update({
     where: { id },
     data: {
       content,

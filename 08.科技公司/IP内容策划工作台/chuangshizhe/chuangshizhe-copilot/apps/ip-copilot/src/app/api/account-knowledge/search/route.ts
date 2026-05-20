@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { prismaIp } from "@/lib/prisma"
 import { parseBody, searchSchema } from "@/lib/validation"
 
 // POST /api/account-knowledge/search - search across wiki pages and sources
@@ -12,7 +12,7 @@ export async function POST(req: Request) {
 
   // Search wiki pages and sources using ILIKE (PostgreSQL)
   const [wikiPages, sources] = await Promise.all([
-    prisma.wikiPage.findMany({
+    prismaIp.wikiPage.findMany({
       where: {
         userId: user.id,
         OR: [
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
       },
       take: 20,
     }),
-    prisma.knowledgeSource.findMany({
+    prismaIp.knowledgeSource.findMany({
       where: {
         userId: user.id,
         OR: [

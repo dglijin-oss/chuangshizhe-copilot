@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { prismaIp } from "@/lib/prisma"
 
 // GET /api/history - list all generated publish packages grouped by IP
 export async function GET(req: Request) {
@@ -11,7 +11,7 @@ export async function GET(req: Request) {
   const ipId = searchParams.get("ipId")
 
   // Fetch all weekly plan items with generationStatus "done"
-  const items = await prisma.weeklyPlanItem.findMany({
+  const items = await prismaIp.weeklyPlanItem.findMany({
     where: {
       plan: {
         userId: user.id,

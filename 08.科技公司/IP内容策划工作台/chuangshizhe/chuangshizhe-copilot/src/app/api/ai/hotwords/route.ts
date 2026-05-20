@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
 import { chat } from "@/lib/llm"
-import { prisma } from "@/lib/prisma"
+import { prismaIp } from "@/lib/prisma"
 import { deductPoints } from "@/lib/billing"
 import { logGeneration } from "@/lib/logging"
 import { parseBody, hotwordsSchema } from "@/lib/validation"
@@ -15,14 +15,14 @@ export async function GET(req: Request) {
   const page = parseInt(searchParams.get("page") || "1")
   const limit = parseInt(searchParams.get("limit") || "20")
 
-  const matrices = await prisma.hotwordMatrix.findMany({
+  const matrices = await prismaIp.hotwordMatrix.findMany({
     where: { userId: user.id },
     orderBy: { createdAt: "desc" },
     skip: (page - 1) * limit,
     take: limit,
   })
 
-  const total = await prisma.hotwordMatrix.count({ where: { userId: user.id } })
+  const total = await prismaIp.hotwordMatrix.count({ where: { userId: user.id } })
 
   return NextResponse.json({ matrices, total, page, limit })
 }
@@ -71,7 +71,7 @@ export async function POST(req: Request) {
       const hotwords = JSON.parse(jsonMatch[0])
 
       // Save to database
-      const matrix = await prisma.hotwordMatrix.create({
+      const matrix = await prismaIp.hotwordMatrix.create({
         data: {
           userId: user.id,
           coreWord,
@@ -101,6 +101,6 @@ export async function DELETE(req: Request) {
   const id = searchParams.get("id")
   if (!id) return NextResponse.json({ error: "ID 必填" }, { status: 400 })
 
-  await prisma.hotwordMatrix.deleteMany({ where: { id, userId: user.id } })
+  await prismaIp.hotwordMatrix.deleteMany({ where: { id, userId: user.id } })
   return NextResponse.json({ success: true })
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { prismaIp } from "@/lib/prisma"
 import { parseBody, wikiPageSchema } from "@/lib/validation"
 
 // GET /api/account-knowledge/wiki-pages - list wiki pages
@@ -14,7 +14,7 @@ export async function GET(req: Request) {
   const where: any = { userId: user.id }
   if (category) where.category = category
 
-  const pages = await prisma.wikiPage.findMany({
+  const pages = await prismaIp.wikiPage.findMany({
     where,
     include: { source: { select: { title: true, sourceType: true } } },
     orderBy: { updatedAt: "desc" },
@@ -30,7 +30,7 @@ export async function POST(req: Request) {
 
   const { title, content, category, sourceId, ipId } = parseBody(wikiPageSchema, await req.json())
 
-  const page = await prisma.wikiPage.create({
+  const page = await prismaIp.wikiPage.create({
     data: {
       userId: user.id,
       title,
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
   })
 
   // Log compile event
-  await prisma.compileEvent.create({
+  await prismaIp.compileEvent.create({
     data: {
       userId: user.id,
       action: "page_updated",
@@ -63,7 +63,7 @@ export async function PUT(req: Request) {
 
   if (!id) return NextResponse.json({ error: "缺少 id" }, { status: 400 })
 
-  const page = await prisma.wikiPage.update({
+  const page = await prismaIp.wikiPage.update({
     where: { id, userId: user.id },
     data: {
       ...(title && { title }),
@@ -71,7 +71,7 @@ export async function PUT(req: Request) {
     },
   })
 
-  await prisma.compileEvent.create({
+  await prismaIp.compileEvent.create({
     data: {
       userId: user.id,
       action: "page_updated",
@@ -92,14 +92,14 @@ export async function DELETE(req: Request) {
 
   if (!id) return NextResponse.json({ error: "缺少 id" }, { status: 400 })
 
-  const page = await prisma.wikiPage.findUnique({ where: { id } })
+  const page = await prismaIp.wikiPage.findUnique({ where: { id } })
   if (!page || page.userId !== user.id) {
     return NextResponse.json({ error: "页面不存在" }, { status: 404 })
   }
 
-  await prisma.wikiPage.delete({ where: { id } })
+  await prismaIp.wikiPage.delete({ where: { id } })
 
-  await prisma.compileEvent.create({
+  await prismaIp.compileEvent.create({
     data: {
       userId: user.id,
       action: "page_deleted",

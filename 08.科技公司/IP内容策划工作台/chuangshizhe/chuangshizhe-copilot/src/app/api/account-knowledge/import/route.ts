@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { prismaIp } from "@/lib/prisma"
 import { parseBody, knowledgeSourceSchema } from "@/lib/validation"
 
 // POST /api/account-knowledge/import - import knowledge from text/file
@@ -10,7 +10,7 @@ export async function POST(req: Request) {
 
   const { title, content, sourceType, fileName, ipId } = parseBody(knowledgeSourceSchema, await req.json())
 
-  const source = await prisma.knowledgeSource.create({
+  const source = await prismaIp.knowledgeSource.create({
     data: {
       userId: user.id,
       title,
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     },
   })
 
-  await prisma.compileEvent.create({
+  await prismaIp.compileEvent.create({
     data: {
       userId: user.id,
       action: "source_imported",

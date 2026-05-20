@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { prismaIp } from "@/lib/prisma"
 import { parseBody, knowledgeSourceSchema } from "@/lib/validation"
 
 // GET /api/account-knowledge/sources - list sources
@@ -14,7 +14,7 @@ export async function GET(req: Request) {
   const where: any = { userId: user.id }
   if (sourceType) where.sourceType = sourceType
 
-  const sources = await prisma.knowledgeSource.findMany({
+  const sources = await prismaIp.knowledgeSource.findMany({
     where,
     orderBy: { createdAt: "desc" },
   })
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
 
   const { title, subtitle, content, sourceType, ipId, fileName } = parseBody(knowledgeSourceSchema, await req.json())
 
-  const source = await prisma.knowledgeSource.create({
+  const source = await prismaIp.knowledgeSource.create({
     data: {
       userId: user.id,
       title,
@@ -41,7 +41,7 @@ export async function POST(req: Request) {
     },
   })
 
-  await prisma.compileEvent.create({
+  await prismaIp.compileEvent.create({
     data: {
       userId: user.id,
       action: "source_imported",
@@ -62,7 +62,7 @@ export async function DELETE(req: Request) {
 
   if (!id) return NextResponse.json({ error: "缺少 id" }, { status: 400 })
 
-  await prisma.knowledgeSource.delete({
+  await prismaIp.knowledgeSource.delete({
     where: { id, userId: user.id },
   })
 

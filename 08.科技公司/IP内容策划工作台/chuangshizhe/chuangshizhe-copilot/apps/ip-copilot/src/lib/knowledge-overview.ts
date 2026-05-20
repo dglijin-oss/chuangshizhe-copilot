@@ -1,16 +1,16 @@
-import { prisma } from "./prisma"
+import { prismaIp } from "./prisma"
 
 export async function updateOverview(userId: string) {
   // Gather live stats
   const [questionnaire, ipCount, allIps, trustAssets, sourceCount, wikiPageCount, ipSubpageCount] =
     await Promise.all([
-      prisma.questionnaire.findFirst({ where: { userId, submitted: true } }),
-      prisma.ip.count({ where: { userId } }),
-      prisma.ip.findMany({ where: { userId }, select: { id: true, name: true, targetClients: true } }),
-      prisma.wikiPage.findMany({ where: { userId, category: "trust_asset" } }),
-      prisma.knowledgeSource.count({ where: { userId } }),
-      prisma.wikiPage.count({ where: { userId } }),
-      prisma.wikiPage.count({ where: { userId, category: "ip_subpage" } }),
+      prismaIp.questionnaire.findFirst({ where: { userId, submitted: true } }),
+      prismaIp.ip.count({ where: { userId } }),
+      prismaIp.ip.findMany({ where: { userId }, select: { id: true, name: true, targetClients: true } }),
+      prismaIp.wikiPage.findMany({ where: { userId, category: "trust_asset" } }),
+      prismaIp.knowledgeSource.count({ where: { userId } }),
+      prismaIp.wikiPage.count({ where: { userId } }),
+      prismaIp.wikiPage.count({ where: { userId, category: "ip_subpage" } }),
     ])
 
   let companyName = "待补充公司名称"
@@ -64,18 +64,18 @@ export async function updateOverview(userId: string) {
   ].join("\n")
 
   // Upsert overview
-  const existing = await prisma.wikiPage.findFirst({
+  const existing = await prismaIp.wikiPage.findFirst({
     where: { userId, category: "overview" },
   })
 
   let page
   if (existing) {
-    page = await prisma.wikiPage.update({
+    page = await prismaIp.wikiPage.update({
       where: { id: existing.id },
       data: { content: overviewContent, updatedAt: new Date() },
     })
   } else {
-    page = await prisma.wikiPage.create({
+    page = await prismaIp.wikiPage.create({
       data: {
         userId,
         title: "账号知识库总览",
@@ -86,7 +86,7 @@ export async function updateOverview(userId: string) {
   }
 
   // Ensure each IP has exactly one wiki subpage and one knowledge source (auto-sync + dedup)
-  const fullIps = await prisma.ip.findMany({
+  const fullIps = await prismaIp.ip.findMany({
     where: { userId },
     select: { id: true, name: true, founderName: true, founderTraits: true, industry: true, products: true, targetClients: true, accountGoals: true, contentBan: true, contentMixFlow: true, contentMixPersona: true, contentMixProduct: true },
   })
@@ -110,11 +110,11 @@ export async function updateOverview(userId: string) {
 
     // Parallel fetch existing wiki pages and sources for this IP
     const [existingWikis, existingSources] = await Promise.all([
-      prisma.wikiPage.findMany({
+      prismaIp.wikiPage.findMany({
         where: { userId, ipId: ip.id, category: "ip_subpage" },
         orderBy: { updatedAt: "desc" },
       }),
-      prisma.knowledgeSource.findMany({
+      prismaIp.knowledgeSource.findMany({
         where: { userId, ipId: ip.id, sourceType: "ip_profile" },
         orderBy: { updatedAt: "desc" },
       }),
@@ -123,12 +123,12 @@ export async function updateOverview(userId: string) {
     // Dedup: keep newest, delete rest
     if (existingWikis.length > 1) {
       const toDelete = existingWikis.slice(1).map((w: any) => w.id)
-      await prisma.wikiPage.deleteMany({ where: { id: { in: toDelete } } })
+      await prismaIp.wikiPage.deleteMany({ where: { id: { in: toDelete } } })
     }
 
     if (existingSources.length > 1) {
       const toDelete = existingSources.slice(1).map((s: any) => s.id)
-      await prisma.knowledgeSource.deleteMany({ where: { id: { in: toDelete } } })
+      await prismaIp.knowledgeSource.deleteMany({ where: { id: { in: toDelete } } })
     }
 
     const latestWiki = existingWikis[0]
@@ -137,19 +137,19 @@ export async function updateOverview(userId: string) {
     // Parallel upsert source and wiki
     await Promise.all([
       latestSource
-        ? prisma.knowledgeSource.update({
+        ? prismaIp.knowledgeSource.update({
             where: { id: latestSource.id },
             data: { title: `${ip.name} - IP 档案`, content: syncContent },
           })
-        : prisma.knowledgeSource.create({
+        : prismaIp.knowledgeSource.create({
             data: { userId, ipId: ip.id, sourceType: "ip_profile", title: `${ip.name} - IP 档案`, content: syncContent },
           }),
       latestWiki
-        ? prisma.wikiPage.update({
+        ? prismaIp.wikiPage.update({
             where: { id: latestWiki.id },
             data: { title: ip.name, content: `# ${ip.name}\n\n${syncContent}` },
           })
-        : prisma.wikiPage.create({
+        : prismaIp.wikiPage.create({
             data: { userId, ipId: ip.id, title: ip.name, category: "ip_subpage", content: `# ${ip.name}\n\n${syncContent}` },
           }),
     ])

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { prismaIp } from "@/lib/prisma"
 
 // POST /api/account-knowledge/init-overview - ensure overview wiki page exists
 export async function POST(req: Request) {
@@ -8,7 +8,7 @@ export async function POST(req: Request) {
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 })
 
   // Check if overview already exists
-  const existing = await prisma.wikiPage.findFirst({
+  const existing = await prismaIp.wikiPage.findFirst({
     where: { userId: user.id, category: "overview" },
   })
   if (existing) {
@@ -16,7 +16,7 @@ export async function POST(req: Request) {
   }
 
   // Try to get questionnaire data
-  const questionnaire = await prisma.questionnaire.findFirst({
+  const questionnaire = await prismaIp.questionnaire.findFirst({
     where: { userId: user.id, submitted: true },
   })
 
@@ -58,7 +58,7 @@ export async function POST(req: Request) {
     `- 涉及资质、客户、数据、认证时必须来自来源资料，缺失时标注待补充。`,
   ].join("\n")
 
-  const page = await prisma.wikiPage.create({
+  const page = await prismaIp.wikiPage.create({
     data: {
       userId: user.id,
       title: "账号知识库总览",
@@ -67,7 +67,7 @@ export async function POST(req: Request) {
     },
   })
 
-  await prisma.compileEvent.create({
+  await prismaIp.compileEvent.create({
     data: {
       userId: user.id,
       action: "wiki_compiled",

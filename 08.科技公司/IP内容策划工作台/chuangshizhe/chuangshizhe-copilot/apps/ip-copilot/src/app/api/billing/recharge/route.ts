@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { prismaCore } from "@/lib/prisma"
 import { parseBody, rechargeSchema } from "@/lib/validation"
 
 // POST /api/billing/recharge - create a recharge order
@@ -11,7 +11,7 @@ export async function POST(req: Request) {
   const { amount, points } = parseBody(rechargeSchema, await req.json())
 
   const [order, paymentConfig] = await Promise.all([
-    prisma.pointsRecharge.create({
+    prismaCore.pointsRecharge.create({
       data: {
         userId: user.id,
         amount,
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
         payMethod: "wechat",
       },
     }),
-    prisma.paymentConfig.findUnique({ where: { key: "wechat_qr" } }),
+    prismaCore.paymentConfig.findUnique({ where: { key: "wechat_qr" } }),
   ])
 
   return NextResponse.json({ order, qrDataUrl: paymentConfig?.value || null })
@@ -32,7 +32,7 @@ export async function GET(req: Request) {
   const user = await getSessionUser()
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 })
 
-  const orders = await prisma.pointsRecharge.findMany({
+  const orders = await prismaCore.pointsRecharge.findMany({
     where: { userId: user.id },
     orderBy: { createdAt: "desc" },
     take: 20,

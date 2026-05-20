@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { prismaIp } from "@/lib/prisma"
 
 // GET /api/account-knowledge/overview - stats cards with live data
 export async function GET(req: Request) {
@@ -8,14 +8,14 @@ export async function GET(req: Request) {
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 })
 
   const [sourceCount, wikiCount, ipSubpageCount, trustAssetCount, ipCount] = await Promise.all([
-    prisma.knowledgeSource.count({ where: { userId: user.id } }),
-    prisma.wikiPage.count({ where: { userId: user.id } }),
-    prisma.wikiPage.count({ where: { userId: user.id, category: "ip_subpage" } }),
-    prisma.wikiPage.count({ where: { userId: user.id, category: "trust_asset" } }),
-    prisma.ip.count({ where: { userId: user.id } }),
+    prismaIp.knowledgeSource.count({ where: { userId: user.id } }),
+    prismaIp.wikiPage.count({ where: { userId: user.id } }),
+    prismaIp.wikiPage.count({ where: { userId: user.id, category: "ip_subpage" } }),
+    prismaIp.wikiPage.count({ where: { userId: user.id, category: "trust_asset" } }),
+    prismaIp.ip.count({ where: { userId: user.id } }),
   ])
 
-  const latestEvent = await prisma.compileEvent.findFirst({
+  const latestEvent = await prismaIp.compileEvent.findFirst({
     where: { userId: user.id },
     orderBy: { createdAt: "desc" },
   })

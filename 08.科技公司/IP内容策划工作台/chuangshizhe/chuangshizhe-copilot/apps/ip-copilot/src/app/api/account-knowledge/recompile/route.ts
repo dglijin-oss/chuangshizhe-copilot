@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { prismaCore, prismaIp } from "@/lib/prisma"
 import { chat } from "@/lib/llm"
 import { deductPoints } from "@/lib/billing"
 import { logGeneration } from "@/lib/logging"
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
   const where: any = { userId: user.id }
   if (ipId) where.ipId = ipId
 
-  const sources = await prisma.knowledgeSource.findMany({ where })
+  const sources = await prismaIp.knowledgeSource.findMany({ where })
 
   if (sources.length === 0) {
     return NextResponse.json({ error: "没有可编译的来源" }, { status: 400 })
@@ -71,9 +71,9 @@ ${sourceContent}
 
     // Delete existing non-overview pages (preserve the account knowledge overview)
     if (ipId) {
-      await prisma.wikiPage.deleteMany({ where: { userId: user.id, ipId } })
+      await prismaIp.wikiPage.deleteMany({ where: { userId: user.id, ipId } })
     } else {
-      await prisma.wikiPage.deleteMany({ where: { userId: user.id, category: { not: "overview" } } })
+      await prismaIp.wikiPage.deleteMany({ where: { userId: user.id, category: { not: "overview" } } })
     }
 
     // Link compiled pages to the first source as primary reference
@@ -81,7 +81,7 @@ ${sourceContent}
 
     const pages = await Promise.all(
       parsed.pages.map((page: any) =>
-        prisma.wikiPage.create({
+        prismaIp.wikiPage.create({
           data: {
             userId: user.id,
             title: page.title,
@@ -94,7 +94,7 @@ ${sourceContent}
       )
     )
 
-    await prisma.compileEvent.create({
+    await prismaIp.compileEvent.create({
       data: {
         userId: user.id,
         action,
@@ -110,7 +110,7 @@ ${sourceContent}
     return NextResponse.json({ pages })
   } catch (err: any) {
     console.error("Recompile error:", err)
-    await prisma.generationLog.create({
+    await prismaCore.generationLog.create({
       data: { userId: user.id, type: "knowledge_compile", model: "qwen3-max-2026-01-23", status: "error", duration: 0, error: err.message },
     })
     return NextResponse.json({ error: "编译失败，请稍后重试" }, { status: 500 })

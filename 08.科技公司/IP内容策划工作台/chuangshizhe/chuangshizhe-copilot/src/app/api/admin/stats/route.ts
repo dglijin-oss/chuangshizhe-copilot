@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { prismaCore, prismaIp } from "@/lib/prisma"
 import { getSessionUser } from "@/lib/auth"
 
 export async function GET() {
@@ -9,16 +9,16 @@ export async function GET() {
   }
 
   const [totalUsers, totalIps, totalArticles, totalRecharges, recentUsers, recentLogs, recentRecharges] = await Promise.all([
-    prisma.user.count(),
-    prisma.ip.count(),
-    prisma.geoArticle.count(),
-    prisma.pointsRecharge.count(),
-    prisma.user.findMany({ take: 10, orderBy: { createdAt: "desc" }, select: { id: true, name: true, phone: true, points: true, createdAt: true } }),
-    prisma.generationLog.findMany({ take: 10, orderBy: { createdAt: "desc" } }),
-    prisma.pointsRecharge.findMany({ take: 10, orderBy: { createdAt: "desc" }, include: { user: { select: { name: true, phone: true } } } }),
+    prismaCore.user.count(),
+    prismaIp.ip.count(),
+    prismaIp.geoArticle.count(),
+    prismaCore.pointsRecharge.count(),
+    prismaCore.user.findMany({ take: 10, orderBy: { createdAt: "desc" }, select: { id: true, name: true, phone: true, points: true, createdAt: true } }),
+    prismaCore.generationLog.findMany({ take: 10, orderBy: { createdAt: "desc" } }),
+    prismaCore.pointsRecharge.findMany({ take: 10, orderBy: { createdAt: "desc" }, include: { user: { select: { name: true, phone: true } } } }),
   ])
 
-  const totalPoints = await prisma.user.aggregate({ _sum: { points: true } })
+  const totalPoints = await prismaCore.user.aggregate({ _sum: { points: true } })
 
   return NextResponse.json({
     stats: {

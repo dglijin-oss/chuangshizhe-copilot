@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { prismaIp } from "@/lib/prisma"
 import { getSessionUser } from "@/lib/auth"
 import { parseBody, createIpSchema } from "@/lib/validation"
 
@@ -10,7 +10,7 @@ export async function POST(req: Request) {
   try {
     const { name, founderName, founderTraits, industry, products, targetClients, accountGoals, contentBan, contentMixFlow, contentMixPersona, contentMixProduct } = parseBody(createIpSchema, await req.json())
 
-    const ip = await prisma.ip.create({
+    const ip = await prismaIp.ip.create({
       data: {
         userId: user.id,
         name,
@@ -44,7 +44,7 @@ export async function POST(req: Request) {
     ].filter(Boolean).join("\n")
 
     await Promise.all([
-      prisma.knowledgeSource.create({
+      prismaIp.knowledgeSource.create({
         data: {
           userId: user.id,
           ipId: ip.id,
@@ -53,7 +53,7 @@ export async function POST(req: Request) {
           content: profileContent,
         },
       }),
-      prisma.wikiPage.create({
+      prismaIp.wikiPage.create({
         data: {
           userId: user.id,
           ipId: ip.id,
@@ -62,7 +62,7 @@ export async function POST(req: Request) {
           content: `# ${ip.name}\n\n${profileContent}`,
         },
       }),
-      prisma.compileEvent.create({
+      prismaIp.compileEvent.create({
         data: {
           userId: user.id,
           action: "ip_created",

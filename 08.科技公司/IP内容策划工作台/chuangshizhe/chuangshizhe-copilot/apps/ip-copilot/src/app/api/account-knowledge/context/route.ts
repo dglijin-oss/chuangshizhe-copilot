@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { prismaIp } from "@/lib/prisma"
 import { parseBody, contextSchema } from "@/lib/validation"
 
 // POST /api/account-knowledge/context - inject knowledge context for AI generation
@@ -14,7 +14,7 @@ export async function POST(req: Request) {
   // purpose: "geo_article" | "ip_content" | "agent_chat" | "weekly_plan"
 
   // Always include overview
-  const overview = await prisma.wikiPage.findFirst({
+  const overview = await prismaIp.wikiPage.findFirst({
     where: { userId: user.id, category: "overview" },
     select: { title: true, content: true, category: true },
   })
@@ -31,15 +31,15 @@ export async function POST(req: Request) {
   // For IP-specific requests, include IP subpage and trust assets
   if (ipId) {
     const [ipPage, ipTrustAssets, ipSources] = await Promise.all([
-      prisma.wikiPage.findFirst({
+      prismaIp.wikiPage.findFirst({
         where: { userId: user.id, category: "ip_subpage", ipId },
         select: { title: true, content: true },
       }),
-      prisma.wikiPage.findMany({
+      prismaIp.wikiPage.findMany({
         where: { userId: user.id, category: "trust_asset", ipId },
         select: { title: true, content: true },
       }),
-      prisma.knowledgeSource.findMany({
+      prismaIp.knowledgeSource.findMany({
         where: { userId: user.id, ipId },
         select: { title: true, content: true, sourceType: true },
         take: 10,
@@ -52,12 +52,12 @@ export async function POST(req: Request) {
   } else {
     // For account-level requests, include all trust assets and sources
     const [allTrustAssets, allSources] = await Promise.all([
-      prisma.wikiPage.findMany({
+      prismaIp.wikiPage.findMany({
         where: { userId: user.id, category: "trust_asset" },
         select: { title: true, content: true },
         take: 20,
       }),
-      prisma.knowledgeSource.findMany({
+      prismaIp.knowledgeSource.findMany({
         where: { userId: user.id },
         select: { title: true, content: true, sourceType: true },
         take: 20,

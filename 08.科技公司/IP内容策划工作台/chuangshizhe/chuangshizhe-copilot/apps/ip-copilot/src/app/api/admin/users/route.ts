@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { prismaCore, prismaIp } from "@/lib/prisma"
 import { getSessionUser } from "@/lib/auth"
 
 // GET /api/admin/users - list all users
@@ -9,7 +9,7 @@ export async function GET() {
     return NextResponse.json({ error: "无权限" }, { status: 403 })
   }
 
-  const users = await prisma.user.findMany({
+  const users = await prismaCore.user.findMany({
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
@@ -18,18 +18,36 @@ export async function GET() {
       role: true,
       points: true,
       createdAt: true,
-      _count: {
-        select: {
-          ips: true,
-          questionnaires: true,
-          pointsRecharges: true,
-          generationLogs: true,
-        },
-      },
     },
   })
 
-  return NextResponse.json({ users })
+  // Fetch counts from IP schema separately
+  const userIds = users.map(u => u.id)
+  const [ipCounts, questionnaireCounts, rechargeCounts, logCounts] = await Promise.all([
+    prismaIp.ip.groupBy({ by: ["userId"], _count: { id: true }, where: { userId: { in: userIds } } }),
+    prismaIp.questionnaire.groupBy({ by: ["userId"], _count: { id: true }, where: { userId: { in: userIds } } }),
+    prismaCore.pointsRecharge.groupBy({ by: ["userId"], _count: { id: true }, where: { userId: { in: userIds } } }),
+    prismaCore.generationLog.groupBy({ by: ["userId"], _count: { id: true }, where: { userId: { in: userIds } } }),
+  ])
+
+  const countMaps = {
+    ips: new Map(ipCounts.map((c: any) => [c.userId, c._count.id])),
+    questionnaires: new Map(questionnaireCounts.map((c: any) => [c.userId, c._count.id])),
+    pointsRecharges: new Map(rechargeCounts.map((c: any) => [c.userId, c._count.id])),
+    generationLogs: new Map(logCounts.map((c: any) => [c.userId, c._count.id])),
+  }
+
+  const usersWithCounts = users.map(u => ({
+    ...u,
+    _count: {
+      ips: countMaps.ips.get(u.id) || 0,
+      questionnaires: countMaps.questionnaires.get(u.id) || 0,
+      pointsRecharges: countMaps.pointsRecharges.get(u.id) || 0,
+      generationLogs: countMaps.generationLogs.get(u.id) || 0,
+    },
+  }))
+
+  return NextResponse.json({ users: usersWithCounts })
 }
 
 // PATCH /api/admin/users - edit user
@@ -47,7 +65,7 @@ export async function PATCH(req: Request) {
   const { name, role, points } = body
 
   try {
-    const updated = await prisma.user.update({
+    const updated = await prismaCore.user.update({
       where: { id },
       data: {
         ...(name !== undefined && { name }),
@@ -75,32 +93,28 @@ export async function DELETE(req: Request) {
   if (!id) return NextResponse.json({ error: "参数错误" }, { status: 400 })
 
   try {
-    // Cascade delete: child records → Ip → direct children → User
-    await prisma.$transaction([
-      // 1. Child records that might reference Ip
-      prisma.publishRecord.deleteMany({ where: { userId: id } }),
-      prisma.keyword.deleteMany({ where: { userId: id } }),
-      prisma.wikiPage.deleteMany({ where: { userId: id } }),
-      prisma.knowledgeBase.deleteMany({ where: { userId: id } }),
-      prisma.knowledgeSource.deleteMany({ where: { userId: id } }),
-      prisma.accountMemory.deleteMany({ where: { userId: id } }),
-      prisma.corpusFeed.deleteMany({ where: { userId: id } }),
-      prisma.geoArticle.deleteMany({ where: { userId: id } }),
-      prisma.weeklyPlan.deleteMany({ where: { userId: id } }),
-      // 2. Ip (no children left at this point)
-      prisma.ip.deleteMany({ where: { userId: id } }),
-      // 3. Remaining direct children of User
-      prisma.keywordGroup.deleteMany({ where: { userId: id } }),
-      prisma.generationLog.deleteMany({ where: { userId: id } }),
-      prisma.pointsRecharge.deleteMany({ where: { userId: id } }),
-      prisma.questionnaire.deleteMany({ where: { userId: id } }),
-      prisma.generationRule.deleteMany({ where: { userId: id } }),
-      prisma.integrationConfig.deleteMany({ where: { userId: id } }),
-      prisma.session.deleteMany({ where: { userId: id } }),
-      prisma.compileEvent.deleteMany({ where: { userId: id } }),
-      // 4. Finally the user
-      prisma.user.delete({ where: { id } }),
-    ])
+    // Delete IP schema data first, then shared schema data (can't use cross-schema transaction)
+    await prismaIp.publishRecord.deleteMany({ where: { userId: id } })
+    await prismaIp.keyword.deleteMany({ where: { userId: id } })
+    await prismaIp.wikiPage.deleteMany({ where: { userId: id } })
+    await prismaIp.knowledgeBase.deleteMany({ where: { userId: id } })
+    await prismaIp.knowledgeSource.deleteMany({ where: { userId: id } })
+    await prismaIp.accountMemory.deleteMany({ where: { userId: id } })
+    await prismaIp.corpusFeed.deleteMany({ where: { userId: id } })
+    await prismaIp.geoArticle.deleteMany({ where: { userId: id } })
+    await prismaIp.weeklyPlan.deleteMany({ where: { userId: id } })
+    await prismaIp.ip.deleteMany({ where: { userId: id } })
+    await prismaIp.keywordGroup.deleteMany({ where: { userId: id } })
+    await prismaIp.questionnaire.deleteMany({ where: { userId: id } })
+    await prismaIp.generationRule.deleteMany({ where: { userId: id } })
+    await prismaIp.integrationConfig.deleteMany({ where: { userId: id } })
+    await prismaIp.compileEvent.deleteMany({ where: { userId: id } })
+    // Shared schema data
+    await prismaCore.generationLog.deleteMany({ where: { userId: id } })
+    await prismaCore.pointsRecharge.deleteMany({ where: { userId: id } })
+    await prismaCore.session.deleteMany({ where: { userId: id } })
+    // Finally the user
+    await prismaCore.user.delete({ where: { id } })
 
     return NextResponse.json({ success: true })
   } catch (err) {

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { prismaIp } from "@/lib/prisma"
 
 // GET /api/geo/articles - list all GEO articles for current user
 export async function GET(req: Request) {
@@ -11,14 +11,14 @@ export async function GET(req: Request) {
   const page = parseInt(searchParams.get("page") || "1")
   const limit = parseInt(searchParams.get("limit") || "20")
 
-  const articles = await prisma.geoArticle.findMany({
+  const articles = await prismaIp.geoArticle.findMany({
     where: { userId: user.id },
     orderBy: { createdAt: "desc" },
     skip: (page - 1) * limit,
     take: limit,
   })
 
-  const total = await prisma.geoArticle.count({ where: { userId: user.id } })
+  const total = await prismaIp.geoArticle.count({ where: { userId: user.id } })
 
   return NextResponse.json({ articles, total, page, limit })
 }
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
 
   if (!topic) return NextResponse.json({ error: "文章主题必填" }, { status: 400 })
 
-  const article = await prisma.geoArticle.create({
+  const article = await prismaIp.geoArticle.create({
     data: {
       userId: user.id,
       topic,
@@ -60,7 +60,7 @@ export async function PATCH(req: Request) {
 
   const { content, status } = await req.json()
 
-  const article = await prisma.geoArticle.update({
+  const article = await prismaIp.geoArticle.update({
     where: { id, userId: user.id },
     data: {
       ...(content !== undefined && { content }),

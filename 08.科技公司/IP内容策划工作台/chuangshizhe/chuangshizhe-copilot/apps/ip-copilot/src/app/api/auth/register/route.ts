@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { prismaCore } from "@/lib/prisma"
 import { hashPassword, createSession } from "@/lib/auth"
 import { parseBody, registerSchema } from "@/lib/validation"
 import { captchaStore } from "@/lib/captcha"
@@ -31,13 +31,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "验证码错误" }, { status: 400 })
     }
 
-    const existing = await prisma.user.findUnique({ where: { phone } })
+    const existing = await prismaCore.user.findUnique({ where: { phone } })
     if (existing) {
       return NextResponse.json({ error: "该手机号已注册" }, { status: 400 })
     }
 
     const passwordHash = await hashPassword(password)
-    const user = await prisma.user.create({
+    const user = await prismaCore.user.create({
       data: { name, phone, password: passwordHash },
     })
 

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { prismaIp } from "@/lib/prisma"
 
 // DELETE /api/geo/articles/[id] - delete an article
 export async function DELETE(
@@ -13,7 +13,7 @@ export async function DELETE(
   const { id } = await params
 
   try {
-    await prisma.geoArticle.delete({ where: { id, userId: user.id } })
+    await prismaIp.geoArticle.delete({ where: { id, userId: user.id } })
     return NextResponse.json({ success: true })
   } catch {
     return NextResponse.json({ error: "删除失败" }, { status: 404 })

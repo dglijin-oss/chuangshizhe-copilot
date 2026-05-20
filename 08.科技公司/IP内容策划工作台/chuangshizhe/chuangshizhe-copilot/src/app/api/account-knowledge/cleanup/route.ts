@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { prismaIp } from "@/lib/prisma"
 
 // POST /api/account-knowledge/cleanup - remove messy wiki pages with source-derived titles
 export async function POST(req: Request) {
@@ -8,7 +8,7 @@ export async function POST(req: Request) {
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 })
 
   // Delete wiki pages whose titles look like source material (contain brackets like [发布包], [IP档案])
-  const messyPages = await prisma.wikiPage.findMany({
+  const messyPages = await prismaIp.wikiPage.findMany({
     where: {
       userId: user.id,
       category: { not: "overview" },
@@ -23,13 +23,13 @@ export async function POST(req: Request) {
 
   const deletedCount = messyPages.length
   if (deletedCount > 0) {
-    await prisma.wikiPage.deleteMany({
+    await prismaIp.wikiPage.deleteMany({
       where: {
         id: { in: messyPages.map((p: any) => p.id) },
       },
     })
 
-    await prisma.compileEvent.create({
+    await prismaIp.compileEvent.create({
       data: {
         userId: user.id,
         action: "wiki_compiled",

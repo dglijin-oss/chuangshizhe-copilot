@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { prismaCore, prismaIp } from "@/lib/prisma"
 import { getSessionUser } from "@/lib/auth"
 
 export async function GET(
@@ -13,15 +13,17 @@ export async function GET(
 
   const { userId, ipId } = await params
 
-  const ip = await prisma.ip.findUnique({
-    where: { id: ipId, userId },
-    include: {
-      user: { select: { name: true, phone: true } },
-      geoArticles: { orderBy: { createdAt: "desc" }, take: 20 },
-      weeklyPlans: { orderBy: { createdAt: "desc" }, take: 20, include: { items: true } },
-    },
-  })
+  const [ip, user] = await Promise.all([
+    prismaIp.ip.findUnique({
+      where: { id: ipId, userId },
+      include: {
+        geoArticles: { orderBy: { createdAt: "desc" }, take: 20 },
+        weeklyPlans: { orderBy: { createdAt: "desc" }, take: 20, include: { items: true } },
+      },
+    }),
+    prismaCore.user.findUnique({ where: { id: userId }, select: { name: true, phone: true } }),
+  ])
   if (!ip) return NextResponse.json({ error: "IP 不存在" }, { status: 404 })
 
-  return NextResponse.json({ ip })
+  return NextResponse.json({ ip, user })
 }
