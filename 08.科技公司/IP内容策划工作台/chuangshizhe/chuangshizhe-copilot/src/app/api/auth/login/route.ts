@@ -2,10 +2,23 @@ import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { verifyPassword, hashPassword, createSession } from "@/lib/auth"
 import { parseBody, loginSchema } from "@/lib/validation"
+import { checkRateLimit, resetRateLimit } from "@/lib/rate-limiter"
+
+const LOGIN_RATE_LIMIT = 5
+const LOGIN_RATE_WINDOW = 15 * 60 * 1000 // 15 minutes
 
 export async function POST(req: NextRequest) {
   try {
     const { phone, password } = parseBody(loginSchema, await req.json())
+
+    // Rate limit check
+    const rate = checkRateLimit(`login:${phone}`, LOGIN_RATE_LIMIT, LOGIN_RATE_WINDOW)
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: `登录尝试次数过多，请 ${rate.retryAfter} 秒后重试` },
+        { status: 429 }
+      )
+    }
 
     const user = await prisma.user.findUnique({ where: { phone } })
     if (!user) {
@@ -16,6 +29,9 @@ export async function POST(req: NextRequest) {
     if (!valid) {
       return NextResponse.json({ error: "账号或密码错误" }, { status: 401 })
     }
+
+    // Successful login — reset rate limit
+    resetRateLimit(`login:${phone}`)
 
     // Auto-migrate legacy SHA-256 passwords to bcrypt
     if (!user.password.startsWith("$")) {
@@ -28,14 +44,14 @@ export async function POST(req: NextRequest) {
     const res = NextResponse.json({ user: { id: user.id, name: user.name, phone: user.phone, role: user.role, points: user.points } })
     res.cookies.set("session-token", token, {
       httpOnly: true,
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 30,
       path: "/",
     })
     res.cookies.set("user-role", user.role, {
       httpOnly: true,
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 30,
       path: "/",
@@ -43,6 +59,6 @@ export async function POST(req: NextRequest) {
 
     return res
   } catch (err: any) {
-    return NextResponse.json({ error: err.message || "登录失败" }, { status: 500 })
+    return NextResponse.json({ error: "登录失败" }, { status: 500 })
   }
 }

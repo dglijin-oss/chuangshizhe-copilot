@@ -1,9 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import { Eye, EyeOff } from "lucide-react"
+import { Eye, EyeOff, RefreshCw } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 
@@ -14,8 +14,27 @@ export default function RegisterPage() {
   const [form, setForm] = useState({ name: "", phone: "", password: "", password2: "" })
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [captcha, setCaptcha] = useState<{ id: string; question: string } | null>(null)
+  const [captchaAnswer, setCaptchaAnswer] = useState("")
 
-  const canSubmit = form.name && form.phone && form.password && form.password2 && form.password === form.password2
+  const canSubmit = form.name && form.phone && form.password && form.password2 && form.password === form.password2 && captchaAnswer
+
+  const fetchCaptcha = async () => {
+    try {
+      const res = await fetch("/api/auth/captcha")
+      const data = await res.json()
+      if (res.ok) {
+        setCaptcha({ id: data.id, question: data.question })
+        setCaptchaAnswer("")
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  useEffect(() => {
+    fetchCaptcha()
+  }, [])
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -25,10 +44,23 @@ export default function RegisterPage() {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: form.name, phone: form.phone, password: form.password }),
+        body: JSON.stringify({
+          name: form.name,
+          phone: form.phone,
+          password: form.password,
+          captchaId: captcha?.id,
+          captchaAnswer: Number(captchaAnswer),
+        }),
       })
       const data = await res.json()
-      if (!res.ok) { setError(data.error || "注册失败"); return }
+      if (!res.ok) {
+        setError(data.error || "注册失败")
+        // If captcha error, refresh captcha
+        if (data.error?.includes("验证码")) {
+          fetchCaptcha()
+        }
+        return
+      }
       window.location.href = "/"
     } catch {
       setError("网络错误，请稍后重试")
@@ -118,6 +150,32 @@ export default function RegisterPage() {
                 </button>
               </div>
             </div>
+
+            {/* Captcha */}
+            <div>
+              <label className="text-xs font-medium text-muted mb-1 block">验证码</label>
+              <div className="flex gap-2">
+                <div className="flex items-center bg-gray-100 rounded-lg px-3 py-2 text-sm font-mono font-bold text-primary min-w-[120px] select-none">
+                  {captcha?.question || "加载中..."}
+                </div>
+                <button
+                  type="button"
+                  onClick={fetchCaptcha}
+                  className="p-2 text-gray-400 hover:text-primary transition-colors"
+                  title="换一张"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </button>
+                <input
+                  type="number"
+                  placeholder="答案"
+                  value={captchaAnswer}
+                  onChange={(e) => setCaptchaAnswer(e.target.value)}
+                  className="w-20 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
+                />
+              </div>
+            </div>
+
             <button
               type="submit"
               disabled={!canSubmit || loading}
