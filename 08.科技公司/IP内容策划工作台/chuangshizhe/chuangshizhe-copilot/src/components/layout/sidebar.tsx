@@ -21,6 +21,9 @@ import {
   Settings,
   User,
   Shield,
+  FolderKanban,
+  KeyRound,
+  Coins,
   ChevronDown,
   ChevronUp,
 } from "lucide-react"
@@ -207,6 +210,22 @@ export function Sidebar({
           <Link href="/admin/config" className={cn("flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-colors mb-0.5", isActive("/admin/config") ? "bg-primary-mid/20 text-primary" : "text-gray-500 hover:bg-gray-200")}>
             <Settings className="w-3.5 h-3.5" />
             <span>系统配置</span>
+          </Link>
+          <Link href="/admin/ips" className={cn("flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-colors mb-0.5", isActive("/admin/ips") ? "bg-primary-mid/20 text-primary" : "text-gray-500 hover:bg-gray-200")}>
+            <FolderKanban className="w-3.5 h-3.5" />
+            <span>IP 档案</span>
+          </Link>
+          <Link href="/admin/sessions" className={cn("flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-colors mb-0.5", isActive("/admin/sessions") ? "bg-primary-mid/20 text-primary" : "text-gray-500 hover:bg-gray-200")}>
+            <KeyRound className="w-3.5 h-3.5" />
+            <span>登录记录</span>
+          </Link>
+          <Link href="/admin/recharges" className={cn("flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-colors mb-0.5", isActive("/admin/recharges") ? "bg-primary-mid/20 text-primary" : "text-gray-500 hover:bg-gray-200")}>
+            <Coins className="w-3.5 h-3.5" />
+            <span>充值记录</span>
+          </Link>
+          <Link href="/admin/logs" className={cn("flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-colors mb-0.5", isActive("/admin/logs") ? "bg-primary-mid/20 text-primary" : "text-gray-500 hover:bg-gray-200")}>
+            <FileText className="w-3.5 h-3.5" />
+            <span>操作日志</span>
           </Link>
         </div>
       )}
