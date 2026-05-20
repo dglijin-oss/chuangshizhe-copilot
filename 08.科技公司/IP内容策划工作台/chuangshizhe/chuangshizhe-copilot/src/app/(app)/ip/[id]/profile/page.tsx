@@ -443,12 +443,6 @@ export default function IpProfilePage() {
             >
               {saving ? "保存中…" : saved ? "已保存" : "保存修改"}
             </button>
-            <button
-              onClick={handleDeleteIp}
-              className="border border-red-200 text-red-400 px-3 py-2 rounded-lg text-sm hover:bg-red-50 transition-colors"
-            >
-              删除此 IP
-            </button>
           </div>
         </div>
       </nav>
@@ -1011,6 +1005,21 @@ export default function IpProfilePage() {
               })}
             </div>
           )}
+        </div>
+
+        {/* ===== Bottom Sticky Save Bar ===== */}
+        <div className="bg-white border border-gray-200 rounded-xl px-4 md:px-6 py-4 flex items-center justify-between sticky bottom-4 shadow-lg">
+          <span className="text-xs text-gray-400">所有修改需要点击下方按钮保存</span>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className={cn(
+              "bg-primary hover:bg-primary-hover text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors",
+              saving && "opacity-50 cursor-not-allowed"
+            )}
+          >
+            {saving ? "保存中…" : saved ? "已保存 ✓" : "保存修改"}
+          </button>
         </div>
       </div>
     </div>
