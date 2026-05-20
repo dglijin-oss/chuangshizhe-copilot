@@ -39,9 +39,11 @@ export async function POST(req: Request) {
         })
 
         for await (const chunk of res) {
-          const content = chunk.delta?.text
-          if (content) {
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "chunk", content })}\n\n`))
+          if (chunk.type === "content_block_delta") {
+            const content = chunk.delta?.text
+            if (content) {
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "chunk", content })}\n\n`))
+            }
           }
         }
 
