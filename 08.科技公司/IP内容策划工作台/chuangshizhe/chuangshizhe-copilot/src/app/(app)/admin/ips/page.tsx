@@ -71,7 +71,9 @@ export default function AdminIpsPage() {
               )}
               {filtered.map(ip => (
                 <tr key={ip.id} className="border-b border-gray-200 hover:bg-gray-50">
-                  <td className="py-2.5 px-3 font-medium">{ip.name}</td>
+                  <td className="py-2.5 px-3">
+                    <a href={`/admin/ips/${ip.id}`} className="font-medium text-primary hover:underline cursor-pointer">{ip.name}</a>
+                  </td>
                   <td className="py-2.5 px-3 text-gray-500">{ip.founderName || "—"}</td>
                   <td className="py-2.5 px-3 text-gray-500">{ip.industry || "—"}</td>
                   <td className="py-2.5 px-3 text-gray-500">{ip.user?.name || ip.user?.phone || "—"}</td>
