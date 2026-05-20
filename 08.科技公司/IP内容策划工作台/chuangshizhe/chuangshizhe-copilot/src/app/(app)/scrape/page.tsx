@@ -47,7 +47,7 @@ export default function ScrapePage() {
         content: m.content,
       }))
 
-      const res = await fetch("/api/hermes/chat", {
+      const res = await fetch("/api/scrape/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: apiMessages }),
@@ -134,7 +134,7 @@ export default function ScrapePage() {
       <div className="flex items-center justify-between px-4 md:px-6 py-3 border-b border-gray-200 bg-white flex-shrink-0">
         <div>
           <h1 className="text-lg font-bold">AI 智能采集</h1>
-          <p className="text-xs text-gray-400">OpenClaw 智能助手 — 告诉我你想采集什么</p>
+          <p className="text-xs text-gray-400">AI 智能助手 — 告诉我你想采集什么</p>
         </div>
         {messages.length > 0 && (
           <button
@@ -152,7 +152,7 @@ export default function ScrapePage() {
           <div className="max-w-2xl mx-auto mt-12">
             <div className="text-center mb-8">
               <div className="text-4xl mb-3">🤖</div>
-              <h2 className="text-xl font-bold mb-1">OpenClaw 智能采集助手</h2>
+              <h2 className="text-xl font-bold mb-1">AI 智能采集助手</h2>
               <p className="text-sm text-gray-400">告诉我你想采集什么，我来帮你完成</p>
             </div>
 

@@ -1,11 +1,11 @@
 import Anthropic from "@anthropic-ai/sdk"
 
-const client = new Anthropic({
+export const client = new Anthropic({
   apiKey: process.env.ALIYUN_API_KEY,
   baseURL: "https://coding.dashscope.aliyuncs.com/apps/anthropic",
 })
 
-export const MODEL = "qwen3.6-plus"
+export const MODEL = "qwen3-max-2026-01-23"
 
 export async function chat(messages: Anthropic.MessageCreateParamsNonStreaming["messages"], maxTokens = 4000) {
   const res = await client.messages.create({
