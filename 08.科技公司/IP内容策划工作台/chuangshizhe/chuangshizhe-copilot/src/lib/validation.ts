@@ -61,7 +61,7 @@ export const articleSchema = z.object({
 })
 
 export const topicsSchema = z.object({
-  industry: z.string().min(1, "行业不能为空"),
+  industry: z.string().optional(),
   productDesc: z.string().optional(),
 })
 

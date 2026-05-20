@@ -903,7 +903,7 @@ export default function IpProfilePage() {
                       onClick={handleAdoptAll}
                       disabled={savingAll}
                       className={cn(
-                        "text-xs text-primary hover:text-primary-hover transition-colors",
+                        "bg-primary hover:bg-primary-hover text-white text-xs px-3 py-1.5 rounded-lg transition-colors",
                         savingAll && "opacity-50 cursor-not-allowed"
                       )}
                     >
@@ -923,12 +923,12 @@ export default function IpProfilePage() {
                           {!adopted ? (
                             <button
                               onClick={() => handleSaveSuggestion(s.category, s.content, i)}
-                              className="text-xs text-primary hover:text-primary-hover transition-colors flex-shrink-0"
+                              className="bg-primary hover:bg-primary-hover text-white text-xs px-3 py-1.5 rounded-lg transition-colors flex-shrink-0"
                             >
                               采纳
                             </button>
                           ) : (
-                            <span className="text-xs text-green-500 flex-shrink-0">已采纳</span>
+                            <span className="bg-green-50 text-green-600 text-xs px-3 py-1.5 rounded-lg flex-shrink-0">已采纳</span>
                           )}
                         </div>
                       )

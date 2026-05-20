@@ -130,7 +130,7 @@ export default function CreateIpPage() {
   }
 
   return (
-    <div className="p-4 md:p-6 max-w-7xl mx-auto">
+    <div className="p-4 md:p-6 max-w-7xl mx-auto pb-24">
       <div className="bg-white rounded-xl border border-gray-200 p-4 md:p-6 mb-6 card-hover">
         <div className="flex items-center gap-2 mb-2">
           <div className="w-2 h-2 rounded-full bg-primary" />
@@ -399,13 +399,6 @@ export default function CreateIpPage() {
                 />
               </div>
             </div>
-            <button
-              onClick={handleSubmit}
-              disabled={submitting}
-              className="mt-5 bg-primary hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors"
-            >
-              {submitting ? "创建中..." : "创建 IP 档案"}
-            </button>
           </div>
         </div>
 
@@ -418,6 +411,21 @@ export default function CreateIpPage() {
             <li className="flex gap-2"><span className="text-primary">•</span> 账号目标和内容禁区，决定整周内容不会跑成别人的号。</li>
           </ul>
         </div>
+      </div>
+
+      {/* Sticky Bottom Save Bar */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white border border-gray-200 rounded-xl px-6 py-3 shadow-lg z-50 flex items-center gap-4">
+        <span className="text-xs text-gray-400">填完后点击创建</span>
+        <button
+          onClick={handleSubmit}
+          disabled={submitting || !form.name}
+          className={cn(
+            "bg-primary hover:bg-primary-hover text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors",
+            (submitting || !form.name) && "opacity-50 cursor-not-allowed"
+          )}
+        >
+          {submitting ? "创建中..." : "创建 IP 档案"}
+        </button>
       </div>
     </div>
   )
