@@ -1,0 +1,111 @@
+import { NextResponse } from "next/server"
+import { getSessionUser } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
+import { parseBody, wikiPageSchema } from "@/lib/validation"
+
+// GET /api/account-knowledge/wiki-pages - list wiki pages
+export async function GET(req: Request) {
+  const user = await getSessionUser()
+  if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 })
+
+  const { searchParams } = new URL(req.url)
+  const category = searchParams.get("category")
+
+  const where: any = { userId: user.id }
+  if (category) where.category = category
+
+  const pages = await prisma.wikiPage.findMany({
+    where,
+    include: { source: { select: { title: true, sourceType: true } } },
+    orderBy: { updatedAt: "desc" },
+  })
+
+  return NextResponse.json({ pages })
+}
+
+// POST /api/account-knowledge/wiki-pages - create wiki page
+export async function POST(req: Request) {
+  const user = await getSessionUser()
+  if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 })
+
+  const { title, content, category, sourceId, ipId } = parseBody(wikiPageSchema, await req.json())
+
+  const page = await prisma.wikiPage.create({
+    data: {
+      userId: user.id,
+      title,
+      content,
+      category,
+      sourceId: sourceId || null,
+      ipId: ipId || null,
+    },
+    include: { source: { select: { title: true, sourceType: true } } },
+  })
+
+  // Log compile event
+  await prisma.compileEvent.create({
+    data: {
+      userId: user.id,
+      action: "page_updated",
+      detail: `Wiki 页面创建: ${title}`,
+    },
+  })
+
+  return NextResponse.json({ page })
+}
+
+// PUT /api/account-knowledge/wiki-pages - update wiki page
+export async function PUT(req: Request) {
+  const user = await getSessionUser()
+  if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 })
+
+  const { id, title, content } = await req.json()
+
+  if (!id) return NextResponse.json({ error: "缺少 id" }, { status: 400 })
+
+  const page = await prisma.wikiPage.update({
+    where: { id, userId: user.id },
+    data: {
+      ...(title && { title }),
+      ...(content !== undefined && { content }),
+    },
+  })
+
+  await prisma.compileEvent.create({
+    data: {
+      userId: user.id,
+      action: "page_updated",
+      detail: `Wiki 页面更新: ${page.title}`,
+    },
+  })
+
+  return NextResponse.json({ page })
+}
+
+// DELETE /api/account-knowledge/wiki-pages - delete wiki page
+export async function DELETE(req: Request) {
+  const user = await getSessionUser()
+  if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 })
+
+  const { searchParams } = new URL(req.url)
+  const id = searchParams.get("id")
+
+  if (!id) return NextResponse.json({ error: "缺少 id" }, { status: 400 })
+
+  const page = await prisma.wikiPage.findUnique({ where: { id } })
+  if (!page || page.userId !== user.id) {
+    return NextResponse.json({ error: "页面不存在" }, { status: 404 })
+  }
+
+  await prisma.wikiPage.delete({ where: { id } })
+
+  await prisma.compileEvent.create({
+    data: {
+      userId: user.id,
+      action: "page_deleted",
+      detail: `Wiki 页面删除: ${page.title}`,
+    },
+  })
+
+  return NextResponse.json({ success: true })
+}

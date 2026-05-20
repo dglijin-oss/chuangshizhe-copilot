@@ -1,0 +1,21 @@
+{
+  "name": "@chuangshizhe/database",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "db:generate:all": "pnpm db:generate:core && pnpm db:generate:ip && pnpm db:generate:edu",
+    "db:generate:core": "prisma generate --schema=./schema-core.prisma",
+    "db:generate:ip": "prisma generate --schema=./schema-ip.prisma",
+    "db:generate:edu": "prisma generate --schema=./schema-edu.prisma",
+    "db:push:all": "pnpm db:push:core && pnpm db:push:ip && pnpm db:push:edu",
+    "db:push:core": "prisma db push --schema=./schema-core.prisma",
+    "db:push:ip": "prisma db push --schema=./schema-ip.prisma",
+    "db:push:edu": "prisma db push --schema=./schema-edu.prisma"
+  },
+  "dependencies": {
+    "@prisma/client": "^7.8.0"
+  },
+  "devDependencies": {
+    "prisma": "^7.8.0"
+  }
+}

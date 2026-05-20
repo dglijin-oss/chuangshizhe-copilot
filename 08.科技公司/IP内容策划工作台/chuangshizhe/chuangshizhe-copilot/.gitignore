@@ -41,6 +41,10 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+/apps/ip-copilot/src/generated/prisma
+/packages/database/client-core
+/packages/database/client-ip
+/packages/database/client-edu
 
 # build artifacts
 *.tar.gz

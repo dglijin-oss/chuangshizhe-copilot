@@ -1,0 +1,298 @@
+// 创世者 Copilot - IP 策划业务 Schema（ip Schema）
+// 包含：IP 档案、知识库、选题、内容生成等 IP 业务表
+
+generator client {
+  provider        = "prisma-client-js"
+  output          = "./client-ip"
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["ip"]
+}
+
+model Ip {
+  @@schema("ip")
+  id            String   @id @default(cuid())
+  userId        String
+  name          String
+  founderName   String?
+  founderTraits Json?
+  industry      String?
+  products      Json?
+  targetClients Json?
+  accountGoals  Json?
+  contentBan    Json?
+  contentMixFlow    Int @default(4)
+  contentMixPersona Int @default(2)
+  contentMixProduct Int @default(1)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  knowledgeBase KnowledgeBase?
+  weeklyPlans   WeeklyPlan[]
+  geoArticles   GeoArticle[]
+  knowledgeSources KnowledgeSource[]
+  wikiPages     WikiPage[]
+  accountMemories AccountMemory[]
+  corpusFeeds     CorpusFeed[]
+}
+
+model KnowledgeBase {
+  @@schema("ip")
+  id       String   @id @default(cuid())
+  userId   String
+  ipId     String?  @unique
+  ip       Ip?      @relation(fields: [ipId], references: [id])
+  content  String
+  sourceType String @default("wiki")
+  title    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model KeywordGroup {
+  @@schema("ip")
+  id       String   @id @default(cuid())
+  userId   String
+  name     String
+  createdAt DateTime @default(now())
+
+  keywords Keyword[]
+}
+
+model Keyword {
+  @@schema("ip")
+  id        String   @id @default(cuid())
+  userId    String
+  groupId   String?
+  group     KeywordGroup? @relation(fields: [groupId], references: [id])
+  content   String
+  isHot     Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model GeoArticle {
+  @@schema("ip")
+  id             String   @id @default(cuid())
+  userId         String
+  ipId           String?
+  ip             Ip?      @relation(fields: [ipId], references: [id])
+  topic          String
+  keywords       String?
+  platform       String?
+  tone           String   @default("professional")
+  targetLength   Int      @default(1200)
+  targetQuestions String?
+  articleType    String   @default("promo")
+  content        String?
+  status         String   @default("draft")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  publishRecords PublishRecord[]
+}
+
+model PublishRecord {
+  @@schema("ip")
+  id          String   @id @default(cuid())
+  userId      String
+  geoArticleId String?
+  geoArticle  GeoArticle? @relation(fields: [geoArticleId], references: [id])
+  platform    String
+  title       String
+  content     String?
+  url         String?
+  status      String   @default("pending")
+  publishedAt DateTime?
+  views       Int      @default(0)
+  aiQuotes    Int      @default(0)
+  consultations Int    @default(0)
+  createdAt   DateTime @default(now())
+}
+
+model GenerationRule {
+  @@schema("ip")
+  id         String   @id @default(cuid())
+  userId     String
+  name       String
+  articleType String  @default("promo")
+  tone       String   @default("professional")
+  targetLength Int    @default(1200)
+  targetQuestions String?
+  extraRules String?
+  createdAt  DateTime @default(now())
+}
+
+model Questionnaire {
+  @@schema("ip")
+  id              String   @id @default(cuid())
+  userId          String
+  industry        String?
+  businessVolume  String?
+  role            String?
+  teamSize        String?
+  clientLocation  String?
+  primaryPlatform String?
+  contentFreq     String?
+  accountGoal     String?
+  contentPain     String?
+  clientType      String?
+  priceRange      String?
+  salesCycle      String?
+  aiUsageFreq     String?
+  productIntro    String?
+  supplement      String?
+  submitted       Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model IntegrationConfig {
+  @@schema("ip")
+  id         String   @id @default(cuid())
+  userId     String
+  platform   String
+  configName String
+  configData String?
+  status     String   @default("pending")
+  createdAt  DateTime @default(now())
+}
+
+model WeeklyPlan {
+  @@schema("ip")
+  id           String   @id @default(cuid())
+  userId       String
+  ipId         String?
+  ip           Ip?      @relation(fields: [ipId], references: [id])
+  weekStart    DateTime
+  weekEnd      DateTime
+  content      String?
+  articleCount Int      @default(0)
+  userDirection String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  items        WeeklyPlanItem[]
+}
+
+model WeeklyPlanItem {
+  @@schema("ip")
+  id          String   @id @default(cuid())
+  planId      String
+  plan        WeeklyPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  contentType String
+  title       String
+  reason      String
+  generatedResult Json?
+  generationStatus String @default("idle")
+  createdAt   DateTime @default(now())
+}
+
+model KnowledgeSource {
+  @@schema("ip")
+  id          String   @id @default(cuid())
+  userId      String
+  ipId        String?
+  ip          Ip?      @relation(fields: [ipId], references: [id])
+  sourceType  String
+  title       String
+  subtitle    String?
+  content     String?
+  fileName    String?
+  status      String   @default("active")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  wikiPages   WikiPage[]
+}
+
+model WikiPage {
+  @@schema("ip")
+  id          String   @id @default(cuid())
+  userId      String
+  title       String
+  category    String
+  content     String
+  sourceId    String?
+  source      KnowledgeSource? @relation(fields: [sourceId], references: [id])
+  ipId        String?
+  ip          Ip?      @relation(fields: [ipId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model CompileEvent {
+  @@schema("ip")
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  detail    String?
+  createdAt DateTime @default(now())
+}
+
+model AccountMemory {
+  @@schema("ip")
+  id          String   @id @default(cuid())
+  userId      String
+  ipId        String?
+  ip          Ip?      @relation(fields: [ipId], references: [id])
+  category    String
+  content     String
+  confirmed   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([ipId])
+}
+
+model CorpusFeed {
+  @@schema("ip")
+  id          String   @id @default(cuid())
+  userId      String
+  ipId        String?
+  ip          Ip?      @relation(fields: [ipId], references: [id])
+  feedType    String
+  title       String?
+  fileName    String?
+  content     String?
+  status      String   @default("pending")
+  suggestion  String?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([ipId])
+}
+
+model HotwordMatrix {
+  @@schema("ip")
+  id        String   @id @default(cuid())
+  userId    String
+  coreWord  String
+  industry  String?
+  region    String?
+  data      Json
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([coreWord])
+}
+
+model VideoScrape {
+  @@schema("ip")
+  id         String   @id @default(cuid())
+  userId     String
+  platform   String
+  feature    String   @default("subtitle")
+  sourceUrl  String
+  videoTitle String?
+  transcript String?
+  rawData    Json?
+  rewritten  String?
+  duration   Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([platform])
+  @@index([feature])
+}
