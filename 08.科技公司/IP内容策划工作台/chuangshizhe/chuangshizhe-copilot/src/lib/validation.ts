@@ -44,7 +44,7 @@ export const updateIpSchema = createIpSchema.partial()
 // AI generation schemas
 export const rewriteSchema = z.object({
   text: z.string().min(1, "原文不能为空"),
-  section: z.enum(["title", "hook", "script", "description"]).optional(),
+  section: z.enum(["title", "hook", "script", "description", "titleHook", "tips"]).optional(),
   ipId: z.string().optional(),
   direction: z.string().optional(),
 })
