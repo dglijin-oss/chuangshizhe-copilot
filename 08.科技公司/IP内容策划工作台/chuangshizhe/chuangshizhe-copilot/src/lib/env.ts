@@ -5,6 +5,6 @@ const envSchema = z.object({
   ALIYUN_API_KEY: z.string().min(1, "ALIYUN_API_KEY 不能为空"),
 })
 
-export const env = typeof process.env.SKIP_ENV_VALIDATION === "undefined"
-  ? envSchema.parse(process.env)
-  : (process.env as unknown as z.infer<typeof envSchema>)
+export const env = typeof process.env.SKIP_ENV_VALIDATION === "string"
+  ? (process.env as unknown as z.infer<typeof envSchema>)
+  : envSchema.parse(process.env)
