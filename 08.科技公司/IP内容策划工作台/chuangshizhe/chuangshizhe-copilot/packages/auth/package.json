@@ -5,6 +5,7 @@
   "main": "index.ts",
   "types": "index.ts",
   "dependencies": {
-    "@chuangshizhe/database": "workspace:*"
+    "@chuangshizhe/database": "workspace:*",
+    "bcryptjs": "^2.4.3"
   }
 }

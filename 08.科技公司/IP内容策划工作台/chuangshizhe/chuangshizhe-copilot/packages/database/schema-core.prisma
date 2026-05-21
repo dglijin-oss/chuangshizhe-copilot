@@ -38,6 +38,22 @@ model Session {
   @@index([expiresAt])
 }
 
+model System {
+  id          String   @id @default(cuid())
+  name        String   @unique        // "IP 内容工作台"
+  identifier  String   @unique        // "ip-copilot"
+  description String?
+  icon        String?
+  port        Int?
+  url         String?
+  active      Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  generationLogs  GenerationLog[]
+}
+
 model GenerationLog {
   id        String   @id @default(cuid())
   userId    String
@@ -49,8 +65,15 @@ model GenerationLog {
   duration  Int      @default(0)
   cost      Float    @default(0)
   error     String?
-  product   String   @default("ip-copilot")  // 区分产品来源
+  product   String   @default("ip-copilot")  // 区分产品来源（向后兼容）
+  systemId  String?                          // 关联 System 表
+  system    System?  @relation(fields: [systemId], references: [id])
   createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([systemId])
+  @@index([product])
+  @@index([createdAt])
 }
 
 model PointsRecharge {

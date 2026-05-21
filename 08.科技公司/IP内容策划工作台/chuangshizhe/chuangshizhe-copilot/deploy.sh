@@ -39,7 +39,12 @@ echo "--- 构建 启明盒子镜像 ---"
 docker build -t copilot-edu:$VERSION -f Dockerfile.edu .
 docker tag copilot-edu:$VERSION copilot-edu:latest
 
-echo "双镜像构建完成"
+# 构建 统一管理平台镜像
+echo "--- 构建 统一管理平台镜像 ---"
+docker build -t copilot-admin:$VERSION -f Dockerfile.admin .
+docker tag copilot-admin:$VERSION copilot-admin:latest
+
+echo "三镜像构建完成"
 REMOTE
 
 echo "=== 4/4 启动双容器 ==="
@@ -68,14 +73,27 @@ docker run -d \
   -e NODE_ENV=production \
   copilot-edu:latest
 
-echo "双容器已启动"
+# === 统一管理平台 ===
+docker stop copilot-admin 2>/dev/null || true
+docker rm copilot-admin 2>/dev/null || true
+docker run -d \
+  --name copilot-admin \
+  --restart always \
+  --network host \
+  -e DATABASE_URL="postgresql://chuangshizhe_user:Csj2026Secure%21@127.0.0.1:5432/chuangshizhe" \
+  -e NODE_ENV=production \
+  copilot-admin:latest
+
+echo "三容器已启动"
 REMOTE
 
 echo "=== 部署完成！版本: $VERSION ==="
 echo "IP 内容工作台: http://111.228.45.216:3000/home"
 echo "启明盒子:      http://111.228.45.216:3001"
+echo "统一管理后台:  http://111.228.45.216:3002"
 echo ""
 echo "查看日志:"
 echo "  IP工作台: ssh root@111.228.45.216 'docker logs -f copilot-ip'"
 echo "  启明盒子: ssh root@111.228.45.216 'docker logs -f copilot-edu'"
+echo "  管理后台: ssh root@111.228.45.216 'docker logs -f copilot-admin'"
 echo "回滚:       bash rollback.sh"

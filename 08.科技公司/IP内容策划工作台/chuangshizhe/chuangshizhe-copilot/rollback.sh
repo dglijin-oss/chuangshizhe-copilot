@@ -8,7 +8,7 @@ set -e
 SERVER="root@111.228.45.216"
 
 echo "=== 服务器上可用版本 ==="
-IMAGES=$(ssh "$SERVER" "docker images copilot-ip copilot-edu --format '{{.Repository}}\t{{.Tag}}\t{{.CreatedAt}}\t{{.ID}}' | grep -v 'latest' | sort -k3 -r")
+IMAGES=$(ssh "$SERVER" "docker images copilot-ip copilot-edu copilot-admin --format '{{.Repository}}\t{{.Tag}}\t{{.CreatedAt}}\t{{.ID}}' | grep -v 'latest' | sort -k3 -r")
 
 if [ -z "$IMAGES" ]; then
   echo "错误：没有找到可回滚的旧版本镜像"
@@ -86,7 +86,19 @@ docker run -d \
   -e NODE_ENV=production \
   copilot-edu:\$TARGET_TAG
 
-echo "双容器已回滚到版本: \$TARGET_TAG"
+# === 回滚 统一管理平台 ===
+echo "--- 回滚 统一管理平台 ---"
+docker stop copilot-admin 2>/dev/null || true
+docker rename copilot-admin copilot-admin-failed 2>/dev/null || true
+docker run -d \
+  --name copilot-admin \
+  --restart always \
+  --network host \
+  -e DATABASE_URL="postgresql://chuangshizhe_user:Csj2026Secure%21@127.0.0.1:5432/chuangshizhe" \
+  -e NODE_ENV=production \
+  copilot-admin:\$TARGET_TAG
+
+echo "三容器已回滚到版本: \$TARGET_TAG"
 REMOTE
 
 echo ""
