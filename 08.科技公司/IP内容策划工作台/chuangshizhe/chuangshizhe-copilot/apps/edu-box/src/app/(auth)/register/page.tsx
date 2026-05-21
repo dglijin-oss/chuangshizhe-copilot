@@ -60,7 +60,8 @@ export default function RegisterPage() {
         }
         return
       }
-      window.location.href = "/home"
+      const origin = window.location.origin
+      window.location.href = `${origin.replace(/:\d+$/, "")}:3000/home`
     } catch {
       setError("网络错误，请稍后重试")
     } finally {

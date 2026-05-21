@@ -53,7 +53,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" })
-    window.location.href = "/home"
+    const origin = window.location.origin
+    const mainOrigin = origin.replace(/:\d+$/, "") + ":3000"
+    window.location.href = `${mainOrigin}/home`
   }
 
   return (
