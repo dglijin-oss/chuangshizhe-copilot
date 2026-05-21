@@ -17,8 +17,6 @@ RUN pnpm install --frozen-lockfile
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/packages/database/node_modules ./packages/database/node_modules
-COPY --from=deps /app/apps/ip-copilot/node_modules ./apps/ip-copilot/node_modules
 COPY . .
 ENV SKIP_ENV_VALIDATION=1
 
