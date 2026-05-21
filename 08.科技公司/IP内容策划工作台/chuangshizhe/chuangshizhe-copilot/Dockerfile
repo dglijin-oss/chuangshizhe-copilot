@@ -24,8 +24,8 @@ ENV SKIP_ENV_VALIDATION=1
 RUN cd packages/database && npx prisma generate --schema=schema-core.prisma
 RUN cd packages/database && npx prisma generate --schema=schema-ip.prisma
 
-# Build the app directly (single app, no need for turbo)
-RUN cd apps/ip-copilot && npx next build
+# Build the app using webpack (Turbopack has issues with Prisma workspace packages)
+RUN cd apps/ip-copilot && npx next build --webpack
 
 # Production server
 FROM base AS runner
@@ -39,8 +39,24 @@ RUN adduser --system --uid 1001 nextjs
 COPY --from=builder /app/apps/ip-copilot/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/apps/ip-copilot/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/ip-copilot/.next/static ./.next/static
-COPY --from=builder /app/packages/database/client-core ./packages/database/client-core
-COPY --from=builder /app/packages/database/client-ip ./packages/database/client-ip
+
+# Copy workspace package to node_modules so webpack externalized requires resolve.
+# Must copy @prisma/* and pg BEFORE @chuangshizhe/database, since database's
+# package.json depends on @prisma/client.
+COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
+COPY --from=builder /app/node_modules/@prisma/client-runtime-utils ./node_modules/@prisma/client-runtime-utils
+COPY --from=builder /app/node_modules/@prisma/adapter-pg ./node_modules/@prisma/adapter-pg
+COPY --from=builder /app/node_modules/pg ./node_modules/pg
+COPY --from=builder /app/node_modules/pg-cloudflare ./node_modules/pg-cloudflare
+COPY --from=builder /app/node_modules/pg-protocol ./node_modules/pg-protocol
+COPY --from=builder /app/node_modules/pg-types ./node_modules/pg-types
+COPY --from=builder /app/node_modules/pgpass ./node_modules/pgpass
+COPY --from=builder /app/node_modules/postgres-array ./node_modules/postgres-array
+COPY --from=builder /app/node_modules/postgres-bytea ./node_modules/postgres-bytea
+COPY --from=builder /app/node_modules/postgres-date ./node_modules/postgres-date
+COPY --from=builder /app/node_modules/postgres-interval ./node_modules/postgres-interval
+COPY --from=builder /app/node_modules/pg-int8 ./node_modules/pg-int8
+COPY --from=builder /app/packages/database ./node_modules/@chuangshizhe/database
 
 USER nextjs
 EXPOSE 3000
