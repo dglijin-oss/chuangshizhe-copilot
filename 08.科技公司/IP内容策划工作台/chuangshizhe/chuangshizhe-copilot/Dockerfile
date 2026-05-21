@@ -38,7 +38,7 @@ RUN adduser --system --uid 1001 nextjs
 
 COPY --from=builder /app/apps/ip-copilot/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/apps/ip-copilot/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/apps/ip-copilot/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/ip-copilot/.next/static ./apps/ip-copilot/.next/static
 
 # Copy the entire .pnpm directory for nested dependencies (pg-protocol, pg-types, etc.)
 COPY --from=builder /app/node_modules/.pnpm ./node_modules/.pnpm
@@ -53,4 +53,4 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-CMD ["node", "server.js"]
+CMD ["node", "apps/ip-copilot/server.js"]
