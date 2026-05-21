@@ -68,7 +68,7 @@ export default function HomePage() {
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" })
-    window.location.href = "http://localhost:3000/home"
+    window.location.href = "/home"
   }
 
   async function handleQuestionnaireSubmit() {

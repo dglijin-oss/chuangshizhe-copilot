@@ -53,7 +53,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" })
-    window.location.href = "http://localhost:3000/home"
+    window.location.href = "/home"
   }
 
   return (
