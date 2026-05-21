@@ -12,7 +12,7 @@ const products = [
     id: "ip-copilot",
     name: "IP 内容工作台",
     desc: "AI 驱动的 IP 内容策划与生产平台，覆盖文案生成、周策划、GEO 增长等全链路",
-    href: "http://localhost:3000/",
+    href: "/",
     icon: FileText,
     color: "from-[#0A3D62] to-[#3C6382]",
     lightBg: "bg-[#E8F1F5]",
@@ -21,7 +21,7 @@ const products = [
     id: "edu-box",
     name: "启明盒子",
     desc: "教育 AI 协同平台，教案生成、作业管理、学情分析、研学项目管理一体化",
-    href: "http://localhost:3001",
+    href: "__edu_box__",
     icon: School,
     color: "from-[#1B4332] to-[#2D6A4F]",
     lightBg: "bg-[#D8F3DC]",
@@ -45,15 +45,17 @@ export default function ProductsPage() {
   }, [])
 
   async function handleEnter(href: string) {
-    if (href.startsWith("http")) {
-      window.open(href, "_blank")
+    let resolved = href
+    if (href === "__edu_box__") {
+      const origin = window.location.origin
+      resolved = origin.replace(/:\d+$/, "") + ":3001"
+    }
+    if (resolved === "/" || resolved.startsWith("/")) {
+      if (user) { router.push(resolved); return }
+      router.push("/login")
       return
     }
-    if (user) {
-      router.push(href)
-      return
-    }
-    router.push("/login")
+    window.open(resolved, "_blank")
   }
 
   async function handleLogout() {
