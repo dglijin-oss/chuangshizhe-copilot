@@ -1,0 +1,36 @@
+services:
+  ip-copilot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: copilot-ip
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.production
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+    networks:
+      - copilot-net
+
+  edu-box:
+    build:
+      context: .
+      dockerfile: Dockerfile.edu
+    container_name: copilot-edu
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    env_file:
+      - .env.production
+    environment:
+      - PORT=3001
+      - NODE_ENV=production
+    networks:
+      - copilot-net
+
+networks:
+  copilot-net:
+    driver: bridge
