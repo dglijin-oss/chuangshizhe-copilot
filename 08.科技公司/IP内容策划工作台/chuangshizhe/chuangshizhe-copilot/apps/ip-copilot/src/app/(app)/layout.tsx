@@ -61,8 +61,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" })
-    router.push("/login")
-    router.refresh()
+    window.location.href = "http://localhost:3000/home"
   }
 
   async function handleQuestionnaireSubmit() {

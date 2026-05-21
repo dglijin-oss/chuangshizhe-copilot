@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import { Eye, EyeOff, RefreshCw } from "lucide-react"
 import Link from "next/link"
+import { Eye, EyeOff, RefreshCw } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export default function RegisterPage() {
@@ -55,7 +55,6 @@ export default function RegisterPage() {
       const data = await res.json()
       if (!res.ok) {
         setError(data.error || "注册失败")
-        // If captcha error, refresh captcha
         if (data.error?.includes("验证码")) {
           fetchCaptcha()
         }
@@ -75,12 +74,12 @@ export default function RegisterPage() {
         <div className="flex-1 bg-primary-light rounded-2xl p-10 min-h-[400px] flex flex-col justify-between">
           <div>
             <Image src="/logo.png" alt="创世者Copilot" width={180} height={38} className="mb-8" />
-            <span className="text-xs text-primary font-medium">IP 内容工作台</span>
+            <span className="text-xs text-primary font-medium">启明盒子</span>
             <h1 className="text-2xl font-bold mt-3 leading-snug">
-              开启你的 AI 内容增长之旅
+              创建账号，开启 AI 教育新时代
             </h1>
             <p className="text-xs text-muted mt-4">
-              注册即可获得 110 积分，立即开始使用 AI 生成服务。
+              注册即可获得初始积分，立即开始使用 AI 教案生成、作业管理等功能。
             </p>
           </div>
         </div>

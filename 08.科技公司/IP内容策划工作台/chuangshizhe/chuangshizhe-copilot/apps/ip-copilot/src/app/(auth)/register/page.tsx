@@ -61,7 +61,7 @@ export default function RegisterPage() {
         }
         return
       }
-      window.location.href = "/"
+      window.location.href = "/home"
     } catch {
       setError("网络错误，请稍后重试")
     } finally {

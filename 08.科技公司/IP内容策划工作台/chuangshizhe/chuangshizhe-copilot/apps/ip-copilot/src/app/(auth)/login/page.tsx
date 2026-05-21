@@ -30,7 +30,7 @@ export default function LoginPage() {
       const data = await res.json()
       if (!res.ok) { setError(data.error || "登录失败"); return }
       // Force a full page navigation to ensure cookies are set before the next request
-      window.location.href = "/"
+      window.location.href = "/home"
     } catch {
       setError("网络错误，请稍后重试")
     } finally {

@@ -3,8 +3,8 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import { Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
+import { Eye, EyeOff } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export default function LoginPage() {
@@ -29,7 +29,6 @@ export default function LoginPage() {
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error || "登录失败"); return }
-      // Force a full page navigation to ensure cookies are set before the next request
       window.location.href = "/home"
     } catch {
       setError("网络错误，请稍后重试")
@@ -41,21 +40,19 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-background-subtle flex items-center justify-center">
       <div className="flex gap-12 items-start max-w-3xl w-full px-6">
-        {/* Left branding */}
         <div className="flex-1 bg-primary-light rounded-2xl p-10 min-h-[400px] flex flex-col justify-between">
           <div>
             <Image src="/logo.png" alt="创世者Copilot" width={180} height={38} className="mb-8" />
-            <span className="text-xs text-primary font-medium">IP 内容工作台</span>
+            <span className="text-xs text-primary font-medium">启明盒子</span>
             <h1 className="text-2xl font-bold mt-3 leading-snug">
-              把灵感、知识库和发布包放在一个<br />工作台里。
+              教案生成、作业管理、学情分析，<br />一个平台全搞定。
             </h1>
             <p className="text-xs text-muted mt-4">
-              登录后继续管理 IP 档案、周策划和完整发布包。
+              登录后使用 AI 协同平台与研学项目管理功能。
             </p>
           </div>
         </div>
 
-        {/* Right login form */}
         <form onSubmit={onSubmit} className="w-[340px] bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
           <h2 className="text-base font-bold mb-1">欢迎回来</h2>
           <p className="text-xs text-muted mb-5">登录后可使用 AI 生成服务，积分制计费。</p>
@@ -106,7 +103,7 @@ export default function LoginPage() {
             </button>
           </div>
 
-          <div className="flex items-center gap-3 mt-4 text-xs text-muted">
+          <div className="flex items-center gap-3 mt-4 text-xs text-gray-400 justify-center">
             <span>还没有账号？</span>
             <Link href="/register" className="text-primary hover:text-primary-hover">去注册</Link>
           </div>

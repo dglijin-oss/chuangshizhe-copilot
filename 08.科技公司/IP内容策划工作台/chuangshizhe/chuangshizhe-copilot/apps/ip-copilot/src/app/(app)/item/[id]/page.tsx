@@ -356,7 +356,7 @@ export default function ItemResultPage() {
             <button
               onClick={async () => {
                 await fetch("/api/auth/logout", { method: "POST" })
-                router.push("/login")
+                window.location.href = "http://localhost:3000/home"
               }}
               className="text-xs text-gray-400 hover:text-red-500 transition-colors"
             >
