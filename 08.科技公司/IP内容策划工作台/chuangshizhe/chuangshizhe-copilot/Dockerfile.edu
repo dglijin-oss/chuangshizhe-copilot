@@ -7,7 +7,7 @@ RUN corepack enable && corepack prepare pnpm@9 --activate
 RUN echo "node-linker=hoisted" > .npmrc
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/database/package.json ./packages/database/
-COPY apps/ip-copilot/package.json ./apps/ip-copilot/
+COPY apps/edu-box/package.json ./apps/edu-box/
 RUN pnpm install --frozen-lockfile
 
 FROM base AS builder
@@ -16,13 +16,13 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV SKIP_ENV_VALIDATION=1
 
-# Generate all Prisma clients (need edu schema too for cross-references)
+# Generate all Prisma clients
 RUN cd packages/database && npx prisma generate --schema=schema-core.prisma
 RUN cd packages/database && npx prisma generate --schema=schema-ip.prisma
 RUN cd packages/database && npx prisma generate --schema=schema-edu.prisma
 
-# Build IP Copilot
-RUN cd apps/ip-copilot && npx next build --webpack
+# Build Edu Box
+RUN cd apps/edu-box && npx next build --webpack
 
 FROM base AS runner
 WORKDIR /app
@@ -32,13 +32,13 @@ ENV SKIP_ENV_VALIDATION=1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/apps/ip-copilot/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/apps/ip-copilot/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/apps/ip-copilot/.next/static ./apps/ip-copilot/.next/static
+COPY --from=builder /app/apps/edu-box/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/apps/edu-box/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/edu-box/.next/static ./apps/edu-box/.next/static
 
 USER nextjs
-EXPOSE 3000
-ENV PORT=3000
+EXPOSE 3001
+ENV PORT=3001
 ENV HOSTNAME="0.0.0.0"
 
-CMD ["node", "apps/ip-copilot/server.js"]
+CMD ["node", "apps/edu-box/server.js"]
