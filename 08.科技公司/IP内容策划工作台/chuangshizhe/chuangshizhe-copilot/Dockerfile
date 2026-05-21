@@ -40,14 +40,11 @@ COPY --from=builder /app/apps/ip-copilot/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/apps/ip-copilot/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/ip-copilot/.next/static ./apps/ip-copilot/.next/static
 
-# Copy workspace package for externalized @chuangshizhe/database.
-# Its generated clients depend on @prisma/client-runtime-utils, so we copy
-# the entire @prisma namespace first.
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+# Copy workspace package for externalized @chuangshizhe/database
 COPY --from=builder /app/packages/database ./node_modules/@chuangshizhe/database
-# Copy pg and its nested deps (hoisted by pnpm)
+# Copy hoisted and pnpm-nested deps that externalized packages reference
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder /app/node_modules/pg ./node_modules/pg
-# Copy .pnpm for transitive deps not hoisted to root
 COPY --from=builder /app/node_modules/.pnpm ./node_modules/.pnpm
 
 USER nextjs
