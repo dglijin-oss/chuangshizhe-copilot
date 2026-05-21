@@ -1,6 +1,8 @@
-FROM node:20-alpine AS base
+# Install pnpm globally in base
+FROM base AS base
+RUN corepack enable && corepack prepare pnpm@9 --activate
 
-# Install pnpm
+# Install dependencies
 FROM base AS deps
 WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@9 --activate
@@ -22,8 +24,8 @@ ENV SKIP_ENV_VALIDATION=1
 RUN cd packages/database && npx prisma generate --schema=schema-core.prisma
 RUN cd packages/database && npx prisma generate --schema=schema-ip.prisma
 
-# Build with turbo, targeting ip-copilot
-RUN npx turbo run build --filter=@chuangshizhe/ip-copilot
+# Build the app directly (single app, no need for turbo)
+RUN cd apps/ip-copilot && npx next build
 
 # Production server
 FROM base AS runner
