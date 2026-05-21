@@ -40,23 +40,13 @@ COPY --from=builder /app/apps/ip-copilot/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/apps/ip-copilot/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/ip-copilot/.next/static ./.next/static
 
-# Copy workspace package to node_modules so webpack externalized requires resolve.
-# Must copy @prisma/* and pg BEFORE @chuangshizhe/database, since database's
-# package.json depends on @prisma/client.
-COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
-COPY --from=builder /app/node_modules/@prisma/client-runtime-utils ./node_modules/@prisma/client-runtime-utils
-COPY --from=builder /app/node_modules/@prisma/adapter-pg ./node_modules/@prisma/adapter-pg
-COPY --from=builder /app/node_modules/pg ./node_modules/pg
-COPY --from=builder /app/node_modules/pg-cloudflare ./node_modules/pg-cloudflare
-COPY --from=builder /app/node_modules/pg-protocol ./node_modules/pg-protocol
-COPY --from=builder /app/node_modules/pg-types ./node_modules/pg-types
-COPY --from=builder /app/node_modules/pgpass ./node_modules/pgpass
-COPY --from=builder /app/node_modules/postgres-array ./node_modules/postgres-array
-COPY --from=builder /app/node_modules/postgres-bytea ./node_modules/postgres-bytea
-COPY --from=builder /app/node_modules/postgres-date ./node_modules/postgres-date
-COPY --from=builder /app/node_modules/postgres-interval ./node_modules/postgres-interval
-COPY --from=builder /app/node_modules/pg-int8 ./node_modules/pg-int8
+# Copy the entire .pnpm directory for nested dependencies (pg-protocol, pg-types, etc.)
+COPY --from=builder /app/node_modules/.pnpm ./node_modules/.pnpm
+# Copy workspace package for externalized @chuangshizhe/database
 COPY --from=builder /app/packages/database ./node_modules/@chuangshizhe/database
+# Copy hoisted top-level packages
+COPY --from=builder /app/node_modules/pg ./node_modules/pg
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
 USER nextjs
 EXPOSE 3000
