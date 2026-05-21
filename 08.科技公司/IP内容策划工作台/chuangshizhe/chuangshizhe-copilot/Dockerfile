@@ -1,5 +1,5 @@
-# Install pnpm globally in base
-FROM base AS base
+FROM node:20-alpine AS base
+# Install pnpm globally
 RUN corepack enable && corepack prepare pnpm@9 --activate
 
 # Install dependencies
