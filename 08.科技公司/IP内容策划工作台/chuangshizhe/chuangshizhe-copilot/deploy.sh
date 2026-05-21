@@ -21,6 +21,7 @@ echo "=== 2/4 上传到服务器 ==="
 scp "$ARCHIVE" "$SERVER:$REMOTE_DIR/"
 
 echo "=== 3/4 远程构建双镜像 ==="
+export VERSION
 ssh "$SERVER" << REMOTE
 cd /opt/app
 rm -rf chuangshizhe_build
@@ -30,13 +31,13 @@ cd chuangshizhe_build
 
 # 构建 IP 内容工作台镜像
 echo "--- 构建 IP 内容工作台镜像 ---"
-docker build -t copilot-ip:\$VERSION -f Dockerfile .
-docker tag copilot-ip:\$VERSION copilot-ip:latest
+docker build -t copilot-ip:$VERSION -f Dockerfile .
+docker tag copilot-ip:$VERSION copilot-ip:latest
 
 # 构建 启明盒子镜像
 echo "--- 构建 启明盒子镜像 ---"
-docker build -t copilot-edu:\$VERSION -f Dockerfile.edu .
-docker tag copilot-edu:\$VERSION copilot-edu:latest
+docker build -t copilot-edu:$VERSION -f Dockerfile.edu .
+docker tag copilot-edu:$VERSION copilot-edu:latest
 
 echo "双镜像构建完成"
 REMOTE
