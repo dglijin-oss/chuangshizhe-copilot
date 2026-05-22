@@ -98,3 +98,127 @@ body {
 .text-auxiliary {
   color: var(--text-muted);
 }
+
+/* ===== Homepage Animations ===== */
+
+/* Particle floating */
+@keyframes float-particle {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.3; }
+  50% { transform: translateY(-20px) scale(1.2); opacity: 0.7; }
+}
+
+/* Glow pulse for hero title */
+@keyframes glow-pulse {
+  0%, 100% { text-shadow: 0 0 20px rgba(10, 61, 98, 0.3), 0 0 40px rgba(10, 61, 98, 0.1); }
+  50% { text-shadow: 0 0 30px rgba(10, 61, 98, 0.5), 0 0 60px rgba(10, 61, 98, 0.2); }
+}
+
+/* Fade in up */
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Fade in */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Slide in from left */
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* Slide in from right */
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* Typing cursor blink */
+@keyframes blink {
+  0%, 100% { border-color: transparent; }
+  50% { border-color: rgba(255,255,255,0.6); }
+}
+
+/* Scroll indicator bounce */
+@keyframes bounce-down {
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0) translateX(-50%); }
+  40% { transform: translateY(8px) translateX(-50%); }
+  60% { transform: translateY(4px) translateX(-50%); }
+}
+
+/* Stat number pulse */
+@keyframes stat-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+/* Floating orb */
+@keyframes orb-float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(10px, -15px) scale(1.05); }
+  50% { transform: translate(-5px, -25px) scale(0.95); }
+  75% { transform: translate(-15px, -10px) scale(1.02); }
+}
+
+/* Gradient shift */
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.8s ease-out both;
+}
+
+.animate-fade-in {
+  animation: fade-in 1s ease-out both;
+}
+
+.animate-slide-left {
+  animation: slide-in-left 0.8s ease-out both;
+}
+
+.animate-slide-right {
+  animation: slide-in-right 0.8s ease-out both;
+}
+
+.animate-glow {
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+.animate-bounce-down {
+  animation: bounce-down 2s ease-in-out infinite;
+  position: absolute;
+  left: 50%;
+}
+
+.animate-stat-pulse {
+  animation: stat-pulse 3s ease-in-out infinite;
+}
+
+.animate-orb {
+  animation: orb-float 8s ease-in-out infinite;
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 6s ease infinite;
+}
+
+/* Delay utilities */
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-400 { animation-delay: 0.4s; }
+.delay-500 { animation-delay: 0.5s; }
+.delay-600 { animation-delay: 0.6s; }
+.delay-700 { animation-delay: 0.7s; }
+.delay-800 { animation-delay: 0.8s; }
+
+/* Visibility helpers */
+.reveal-hidden { opacity: 0; }

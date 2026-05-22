@@ -7,34 +7,54 @@ import { logGeneration } from "@/lib/logging"
 import { parseBody, recompileSchema } from "@/lib/validation"
 import { updateOverview } from "@/lib/knowledge-overview"
 
+export const maxDuration = 300 // 5 minutes for AI compilation
+
 // POST /api/account-knowledge/recompile - regenerate wiki pages from sources
 export async function POST(req: Request) {
   const user = await getSessionUser()
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 })
 
-  const { ipId } = parseBody(recompileSchema, await req.json())
-
-  // Get all sources for this user (optionally filtered by IP)
-  const where: any = { userId: user.id }
-  if (ipId) where.ipId = ipId
-
-  const sources = await prismaIp.knowledgeSource.findMany({ where })
-
-  if (sources.length === 0) {
-    return NextResponse.json({ error: "没有可编译的来源" }, { status: 400 })
-  }
-
-  const sourceContent = sources
-    .map((s) => `## ${s.title}\n${s.subtitle ?? ""}\n${s.content ?? ""}`)
-    .join("\n\n")
-
-  const action = ipId ? "wiki_recompiled" : "wiki_compiled"
-
   try {
-    const prompt = `你是一位专业的知识编译 agent。以下是账号的知识来源材料：
+    const { ipId } = parseBody(recompileSchema, await req.json())
+
+    // Get all sources for this user (optionally filtered by IP)
+    const where: any = { userId: user.id }
+    if (ipId) where.ipId = ipId
+
+    const sources = await prismaIp.knowledgeSource.findMany({ where })
+
+    if (sources.length === 0) {
+      return NextResponse.json({ error: "没有可编译的来源" }, { status: 400 })
+    }
+
+    const sourceContent = sources
+      .map((s) => `## ${s.title}\n${s.subtitle ?? ""}\n${s.content ?? ""}`)
+      .join("\n\n")
+
+    const action = ipId ? "wiki_recompiled" : "wiki_compiled"
+
+    // Fetch IP info for prompt context if ipId is provided
+    let ipContext = ""
+    if (ipId) {
+      const ip = await prismaIp.ip.findUnique({ where: { id: ipId, userId: user.id } })
+      if (ip) {
+        ipContext = `
+## 当前 IP 信息
+- 名称：${ip.name}
+- 创始人：${ip.founderName || "未填写"}
+- 人设特点：${ip.founderTraits ? (Array.isArray(ip.founderTraits) ? ip.founderTraits.join("、") : ip.founderTraits) : "未填写"}
+- 行业：${ip.industry || "未填写"}
+- 产品/服务：${ip.products ? (Array.isArray(ip.products) ? ip.products.join("、") : ip.products) : "未填写"}
+- 目标客户：${ip.targetClients ? (Array.isArray(ip.targetClients) ? ip.targetClients.join("、") : ip.targetClients) : "未填写"}
+- 内容禁区：${ip.contentBan ? (Array.isArray(ip.contentBan) ? ip.contentBan.join("、") : ip.contentBan) : "无"}
+`
+      }
+    }
+
+    const prompt = `你是一位专业的知识编译 agent${ipId ? `，专门为「${ipContext.match(/名称：(.+)/)?.[1] || "该 IP"}」编译 Wiki 页面` : ""}。以下是账号的知识来源材料：
 
 ${sourceContent}
-
+${ipContext ? `请先读取上方 IP 信息，确保编译出的内容符合该 IP 的人设和业务场景。\n` : ""}
 请将这些材料编译为结构化的 Wiki 页面。返回纯 JSON，格式如下：
 {
   "pages": [

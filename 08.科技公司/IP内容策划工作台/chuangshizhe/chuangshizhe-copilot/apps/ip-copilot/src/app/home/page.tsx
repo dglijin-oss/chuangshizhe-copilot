@@ -1,38 +1,476 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { FileText, School, ArrowRight, LogOut } from "lucide-react"
+import { FileText, School, ArrowRight, LogOut, Brain, PenTool, Zap, BarChart3, BookOpen, ClipboardList, Users, TrendingUp } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 
-const products = [
-  {
-    id: "ip-copilot",
-    name: "IP 内容工作台",
-    desc: "AI 驱动的 IP 内容策划与生产平台，覆盖文案生成、周策划、GEO 增长等全链路",
-    href: "/",
-    icon: FileText,
-    color: "from-[#0A3D62] to-[#3C6382]",
-    lightBg: "bg-[#E8F1F5]",
-  },
-  {
-    id: "edu-box",
-    name: "启明盒子",
-    desc: "教育 AI 协同平台，教案生成、作业管理、学情分析、研学项目管理一体化",
-    href: "__edu_box__",
-    icon: School,
-    color: "from-[#1B4332] to-[#2D6A4F]",
-    lightBg: "bg-[#D8F3DC]",
-  },
+const taglines = [
+  "AI 驱动的内容策划与生产引擎",
+  "从选题到发布，全流程智能加速",
+  "一个 IP，一套打法，一周一迭代",
 ]
+
+const ipFeatures = [
+  { icon: PenTool, label: "AI 文案生成", desc: "口播脚本、标题、钩子一键产出" },
+  { icon: Brain, label: "智能周策划", desc: "流量型 / 人设型 / 产品型结构化排期" },
+  { icon: BookOpen, label: "知识库编译", desc: "从素材到 Wiki，AI 自动沉淀知识" },
+  { icon: BarChart3, label: "GEO 增长", desc: "AI 地图内容 + 搜索优化，全域获客" },
+]
+
+const eduFeatures = [
+  { icon: PenTool, label: "AI 教案生成", desc: "按年级、科目一键生成结构化教案" },
+  { icon: ClipboardList, label: "作业批改", desc: "AI 辅助批改 + 学情分析反馈" },
+  { icon: Users, label: "研学管理", desc: "项目报备、安全文档、供应商全链路" },
+  { icon: TrendingUp, label: "学情分析", desc: "学生画像、数据看板、成长追踪" },
+]
+
+const statsBase = [
+  { value: 1500, suffix: "+", label: "IP 矩阵" },
+  { value: 98, suffix: "项", label: "核心能力" },
+  { value: 28, suffix: "所", label: "学校接入" },
+]
+
+/* ---- Hooks ---- */
+
+function useTypewriter(texts: string[], speed = 80, deleteSpeed = 40, pause = 2000) {
+  const [display, setDisplay] = useState("")
+  const [textIndex, setTextIndex] = useState(0)
+  const [charIndex, setCharIndex] = useState(0)
+  const [deleting, setDeleting] = useState(false)
+
+  useEffect(() => {
+    const current = texts[textIndex]
+    let timer: ReturnType<typeof setTimeout>
+
+    if (!deleting) {
+      if (charIndex < current.length) {
+        timer = setTimeout(() => setCharIndex((c) => c + 1), speed)
+        setDisplay(current.slice(0, charIndex + 1))
+      } else {
+        timer = setTimeout(() => setDeleting(true), pause)
+      }
+    } else {
+      if (charIndex > 0) {
+        timer = setTimeout(() => setCharIndex((c) => c - 1), deleteSpeed)
+        setDisplay(current.slice(0, charIndex - 1))
+      } else {
+        setDeleting(false)
+        setTextIndex((i) => (i + 1) % texts.length)
+      }
+    }
+
+    return () => clearTimeout(timer)
+  }, [charIndex, deleting, textIndex, texts, speed, deleteSpeed, pause])
+
+  return display
+}
+
+function useInView(threshold = 0.15) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect() } },
+      { threshold }
+    )
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [threshold])
+
+  return { ref, visible }
+}
+
+function useCounter(target: number, duration = 2000, start: boolean) {
+  const [count, setCount] = useState(0)
+  useEffect(() => {
+    if (!start) return
+    let startTime: number
+    let raf: number
+    const step = (ts: number) => {
+      if (!startTime) startTime = ts
+      const progress = Math.min((ts - startTime) / duration, 1)
+      const eased = 1 - Math.pow(1 - progress, 3)
+      setCount(Math.round(eased * target))
+      if (progress < 1) raf = requestAnimationFrame(step)
+    }
+    raf = requestAnimationFrame(step)
+    return () => cancelAnimationFrame(raf)
+  }, [target, duration, start])
+  return count
+}
+
+/* ---- Interactive Neural Network Background ---- */
+
+function NeuralNetworkBg() {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const mouseRef = useRef({ x: -9999, y: -9999 })
+  const mouseActiveRef = useRef(false)
+  const animRef = useRef<number>(0)
+  const mouseLeaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext("2d")
+    if (!ctx) return
+
+    let w = 0, h = 0
+    const dpr = Math.min(window.devicePixelRatio || 1, 2)
+
+    interface Node {
+      bx: number; by: number;  // base (grid) position
+      x: number; y: number;    // current position
+      vx: number; vy: number;
+      baseR: number;
+      pulsePhase: number;
+      pulseSpeed: number;
+    }
+
+    let nodes: Node[] = []
+    let connectionDist = 180
+    let mouseRadius = 350
+
+    function buildNodes() {
+      // Grid-based distribution: even spacing across screen
+      const spacing = 80
+      const cols = Math.ceil(w / spacing) + 1
+      const rows = Math.ceil(h / spacing) + 1
+      const total = cols * rows
+
+      nodes = []
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const bx = (c + 0.5) * spacing + (Math.random() - 0.5) * 20
+          const by = (r + 0.5) * spacing + (Math.random() - 0.5) * 20
+          nodes.push({
+            bx, by,
+            x: bx, y: by,
+            vx: 0, vy: 0,
+            baseR: 0.8 + Math.random() * 1.2,
+            pulsePhase: Math.random() * Math.PI * 2,
+            pulseSpeed: 0.003 + Math.random() * 0.008,
+          })
+        }
+      }
+      connectionDist = spacing * 2.2
+      mouseRadius = spacing * 4
+    }
+
+    const resize = () => {
+      const parent = canvas.parentElement
+      if (!parent) return
+      w = parent.clientWidth
+      h = parent.clientHeight
+      canvas.width = w * dpr
+      canvas.height = h * dpr
+      canvas.style.width = w + "px"
+      canvas.style.height = h + "px"
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      buildNodes()
+    }
+    resize()
+    window.addEventListener("resize", resize)
+
+    const handleMouse = (e: MouseEvent) => {
+      const rect = canvas.getBoundingClientRect()
+      mouseRef.current = { x: e.clientX - rect.left, y: e.clientY - rect.top }
+      mouseActiveRef.current = true
+      if (mouseLeaveTimerRef.current) {
+        clearTimeout(mouseLeaveTimerRef.current)
+        mouseLeaveTimerRef.current = null
+      }
+    }
+    const handleTouch = (e: TouchEvent) => {
+      if (e.touches.length > 0) {
+        const rect = canvas.getBoundingClientRect()
+        mouseRef.current = { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top }
+        mouseActiveRef.current = true
+      }
+    }
+    const handleLeave = () => {
+      mouseActiveRef.current = false
+      mouseRef.current = { x: -9999, y: -9999 }
+    }
+
+    canvas.addEventListener("mousemove", handleMouse)
+    canvas.addEventListener("touchmove", handleTouch, { passive: true })
+    canvas.addEventListener("mouseleave", handleLeave)
+
+    const animate = () => {
+      ctx.clearRect(0, 0, w, h)
+      const mouse = mouseRef.current
+      const mouseActive = mouseActiveRef.current
+
+      // Update nodes
+      for (let i = 0; i < nodes.length; i++) {
+        const n = nodes[i]
+
+        if (mouseActive) {
+          // Mouse attraction
+          const dx = mouse.x - n.x
+          const dy = mouse.y - n.y
+          const dist = Math.sqrt(dx * dx + dy * dy)
+          if (dist < mouseRadius && dist > 0) {
+            const force = 0.04 * (1 - dist / mouseRadius)
+            n.vx += dx * force * 0.005
+            n.vy += dy * force * 0.005
+          }
+          // Slight repulsion from other close nodes to prevent clumping
+          for (let j = 0; j < nodes.length; j++) {
+            if (j === i) continue
+            const o = nodes[j]
+            const ox = o.x - n.x
+            const oy = o.y - n.y
+            const odist = Math.sqrt(ox * ox + oy * oy)
+            if (odist < 20 && odist > 0) {
+              n.vx -= ox * 0.002
+              n.vy -= oy * 0.002
+            }
+          }
+        } else {
+          // Return to base position (spring)
+          n.vx += (n.bx - n.x) * 0.008
+          n.vy += (n.by - n.y) * 0.008
+        }
+
+        // Damping
+        n.vx *= 0.94
+        n.vy *= 0.94
+
+        // Move
+        n.x += n.vx
+        n.y += n.vy
+        n.pulsePhase += n.pulseSpeed
+      }
+
+      // Draw connections (layered: deep + light)
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const a = nodes[i], b = nodes[j]
+          const dx = a.x - b.x, dy = a.y - b.y
+          const dist = Math.sqrt(dx * dx + dy * dy)
+          if (dist < connectionDist) {
+            const t = 1 - dist / connectionDist
+            // Near mouse: brighter, thicker
+            let alpha = t * 0.2
+            let lineWidth = 0.5
+            if (mouseActive) {
+              const midDist = Math.sqrt(
+                Math.pow((a.x + b.x) / 2 - mouse.x, 2) +
+                Math.pow((a.y + b.y) / 2 - mouse.y, 2)
+              )
+              if (midDist < mouseRadius) {
+                const proximity = 1 - midDist / mouseRadius
+                alpha = t * 0.15 + proximity * 0.35
+                lineWidth = 0.5 + proximity * 1.5
+              }
+            }
+            ctx.strokeStyle = `rgba(80, 140, 220, ${alpha})`
+            ctx.lineWidth = lineWidth
+            ctx.beginPath()
+            ctx.moveTo(a.x, a.y)
+            ctx.lineTo(b.x, b.y)
+            ctx.stroke()
+          }
+        }
+      }
+
+      // Draw mouse-to-node connections
+      if (mouseActive) {
+        for (const n of nodes) {
+          const dx = mouse.x - n.x
+          const dy = mouse.y - n.y
+          const dist = Math.sqrt(dx * dx + dy * dy)
+          if (dist < mouseRadius) {
+            const alpha = (1 - dist / mouseRadius) * 0.3
+            ctx.strokeStyle = `rgba(10, 61, 98, ${alpha})`
+            ctx.lineWidth = 0.8 + (1 - dist / mouseRadius) * 1.2
+            ctx.beginPath()
+            ctx.moveTo(mouse.x, mouse.y)
+            ctx.lineTo(n.x, n.y)
+            ctx.stroke()
+          }
+        }
+
+        // Mouse hub glow
+        ctx.beginPath()
+        ctx.arc(mouse.x, mouse.y, 4, 0, Math.PI * 2)
+        ctx.fillStyle = "rgba(100, 160, 255, 0.5)"
+        ctx.fill()
+        // Outer ring pulse
+        const ringAlpha = 0.1 + Math.sin(Date.now() * 0.003) * 0.05
+        ctx.beginPath()
+        ctx.arc(mouse.x, mouse.y, 8, 0, Math.PI * 2)
+        ctx.strokeStyle = `rgba(100, 160, 255, ${ringAlpha})`
+        ctx.lineWidth = 1
+        ctx.stroke()
+      }
+
+      // Draw nodes
+      for (const n of nodes) {
+        const pulse = Math.sin(n.pulsePhase) * 0.5 + 0.5
+        const r = n.baseR + pulse * 1
+        const glow = n.baseR + pulse * 3
+
+        // Outer glow
+        ctx.beginPath()
+        ctx.arc(n.x, n.y, glow, 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(80, 140, 220, ${0.03 + pulse * 0.02})`
+        ctx.fill()
+        // Core
+        ctx.beginPath()
+        ctx.arc(n.x, n.y, r, 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(200, 220, 255, ${0.25 + pulse * 0.35})`
+        ctx.fill()
+      }
+
+      animRef.current = requestAnimationFrame(animate)
+    }
+
+    animRef.current = requestAnimationFrame(animate)
+
+    return () => {
+      cancelAnimationFrame(animRef.current)
+      window.removeEventListener("resize", resize)
+      canvas.removeEventListener("mousemove", handleMouse)
+      canvas.removeEventListener("touchmove", handleTouch)
+      canvas.removeEventListener("mouseleave", handleLeave)
+      if (mouseLeaveTimerRef.current) clearTimeout(mouseLeaveTimerRef.current)
+    }
+  }, [])
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0"
+    />
+  )
+}
+
+/* ---- Feature Card ---- */
+
+function FeatureCard({ icon: Icon, label, desc, index, color }: { icon: any; label: string; desc: string; index: number; color: string }) {
+  const { ref, visible } = useInView()
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        "group relative bg-white/80 backdrop-blur rounded-xl border border-gray-200 p-5 hover:shadow-lg hover:-translate-y-1 transition-all duration-300",
+        !visible && "opacity-0 translate-y-4",
+        visible && "animate-fade-in-up"
+      )}
+      style={{ animationDelay: `${index * 0.1}s` }}
+    >
+      <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center mb-3 transition-colors duration-300", color)}>
+        <Icon className="w-5 h-5 text-white" />
+      </div>
+      <h4 className="text-sm font-bold text-gray-900 mb-1">{label}</h4>
+      <p className="text-xs text-gray-500 leading-relaxed">{desc}</p>
+      <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+    </div>
+  )
+}
+
+/* ---- Stat Item ---- */
+
+function StatItem({ value, suffix, label, index, animate }: { value: number; suffix: string; label: string; index: number; animate: boolean }) {
+  const count = useCounter(value, 1500, animate)
+  return (
+    <div className="text-center group">
+      <div className="text-3xl md:text-4xl font-bold text-white transition-transform duration-300 group-hover:scale-110">
+        {count}{suffix}
+      </div>
+      <div className="text-xs text-white/60 mt-1 tracking-wider">{label}</div>
+    </div>
+  )
+}
+
+/* ---- Product Section ---- */
+
+function ProductSection({
+  title,
+  subtitle,
+  desc,
+  features,
+  accentColor,
+  accentBg,
+  icon: Icon,
+  href,
+  reversed,
+}: {
+  title: string;
+  subtitle: string;
+  desc: string;
+  features: { icon: any; label: string; desc: string }[];
+  accentColor: string;
+  accentBg: string;
+  icon: any;
+  href: string;
+  reversed?: boolean;
+}) {
+  const { ref, visible } = useInView()
+  const router = useRouter()
+
+  return (
+    <section ref={ref} className="py-16 md:py-20">
+      <div className={cn(
+        "grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center max-w-6xl mx-auto px-6",
+        !visible && "reveal-hidden"
+      )}>
+        {/* Left: Info */}
+        <div className={cn(reversed ? "lg:order-2" : "")}>
+          <div className={cn("inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium mb-4", accentBg, "text-gray-700")}>
+            <Icon className="w-3.5 h-3.5" />
+            {subtitle}
+          </div>
+          <h2 className={cn("text-2xl md:text-3xl font-bold mb-3", !visible && "opacity-0", visible && "animate-slide-left")}>
+            {title}
+          </h2>
+          <p className="text-sm text-gray-500 leading-relaxed mb-6">
+            {desc}
+          </p>
+          <button
+            onClick={() => router.push(href)}
+            className="group inline-flex items-center gap-2 text-sm font-medium transition-colors"
+          >
+            <span className="text-primary">进入系统</span>
+            <ArrowRight className="w-4 h-4 text-primary group-hover:translate-x-1 transition-transform" />
+          </button>
+        </div>
+
+        {/* Right: Feature grid */}
+        <div className={cn("grid grid-cols-2 gap-3", reversed ? "lg:order-1" : "")}>
+          {features.map((f, i) => (
+            <FeatureCard key={f.label} {...f} index={i} color={accentColor} />
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ---- Main Page ---- */
 
 export default function ProductsPage() {
   const router = useRouter()
   const [user, setUser] = useState<{ name: string; points: number } | null>(null)
   const [loading, setLoading] = useState(true)
-  const [enterLoading, setEnterLoading] = useState<string | null>(null)
+  const typewriterText = useTypewriter(taglines, 80, 40, 2500)
+  const [ipCount] = useState(() => 1000 + Math.floor(Math.random() * 1000))
+  const [counterStarted, setCounterStarted] = useState(false)
+  const stats = [
+    { value: ipCount, suffix: "+", label: "IP 矩阵" },
+    { value: 98, suffix: "项", label: "核心能力" },
+    { value: 28, suffix: "所", label: "学校接入" },
+  ]
+
+  useEffect(() => { setCounterStarted(true) }, [])
 
   useEffect(() => {
     fetch("/api/auth/me", { credentials: "include" })
@@ -44,20 +482,6 @@ export default function ProductsPage() {
       .catch(() => setLoading(false))
   }, [])
 
-  async function handleEnter(href: string) {
-    let resolved = href
-    if (href === "__edu_box__") {
-      const origin = window.location.origin
-      resolved = origin.replace(/:\d+$/, "") + ":3001"
-    }
-    if (resolved === "/" || resolved.startsWith("/")) {
-      if (user) { router.push(resolved); return }
-      router.push("/login")
-      return
-    }
-    window.open(resolved, "_blank")
-  }
-
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" })
     setUser(null)
@@ -67,109 +491,159 @@ export default function ProductsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background-subtle flex items-center justify-center">
-        <div className="text-sm text-gray-400">加载中...</div>
+      <div className="min-h-screen bg-[#0A1628] flex items-center justify-center">
+        <div className="w-3 h-3 rounded-full bg-white/40 animate-pulse" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-background-subtle">
-      {/* Header */}
-      <header className="border-b border-gray-200 bg-white">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Image src="/logo.png" alt="创世者Copilot" width={160} height={34} />
-          {user ? (
-            <div className="flex items-center gap-4">
-              <span className="text-xs text-gray-500">
-                {user.name} · <span className="text-primary font-medium">{user.points}</span> 积分
-              </span>
-              <button onClick={handleLogout} className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-red-500 font-medium">
-                <LogOut className="w-3.5 h-3.5" /> 退出
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-4">
-              <Link href="/login" className="text-sm text-gray-500 hover:text-gray-900 font-medium">
-                登录
-              </Link>
-              <Link href="/register" className="text-sm text-primary hover:underline font-medium">
-                注册
-              </Link>
-            </div>
-          )}
+    <div className="min-h-screen bg-[#F5F8FA]">
+      {/* ===== Header ===== */}
+      <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white/80 backdrop-blur-lg border-b border-gray-200/50">
+        <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
+          <Link href="/home" className="flex items-center gap-2">
+            <Image src="/logo.png" alt="创世者Copilot" width={140} height={30} className="object-contain" />
+          </Link>
+          <div className="flex items-center gap-4">
+            {user ? (
+              <>
+                <span className="text-xs text-gray-500 hidden sm:inline">
+                  {user.name} · <span className="text-primary font-medium">{user.points}</span> 积分
+                </span>
+                <button onClick={handleLogout} className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-red-500 font-medium transition-colors">
+                  <LogOut className="w-3.5 h-3.5" /> 退出
+                </button>
+              </>
+            ) : (
+              <>
+                <Link href="/login" className="text-xs text-gray-500 hover:text-gray-900 font-medium">登录</Link>
+                <Link href="/register" className="text-xs text-primary hover:underline font-medium">注册</Link>
+              </>
+            )}
+          </div>
         </div>
       </header>
 
-      {/* Content */}
-      <main className="max-w-5xl mx-auto px-6 py-16">
-        <div className="text-center mb-12">
-          <h1 className="text-3xl font-bold text-gray-900">创世者 Copilot</h1>
-          <p className="text-gray-500 mt-3">AI 驱动的内容生产与教育协同平台</p>
-        </div>
+      {/* ===== Hero ===== */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#060E1A] via-[#0A1628] to-[#060E1A]">
+        <NeuralNetworkBg />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-          {products.map((p) => {
-            const Icon = p.icon
-            return (
-              <div
-                key={p.id}
-                className="bg-white rounded-xl border border-gray-200 overflow-hidden card-hover group"
+        {/* Vignette overlay */}
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at center, transparent 30%, rgba(6,14,26,0.7) 100%)" }} />
+
+        <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">
+          <div className="animate-fade-in">
+            <Image src="/logo.png" alt="创世者Copilot" width={220} height={46} className="object-contain mx-auto mb-10 opacity-90" />
+          </div>
+
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-glow animate-fade-in delay-200">
+            <span className="bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent">
+              创世者 Copilot
+            </span>
+          </h1>
+
+          <div className="h-8 mb-10 animate-fade-in delay-500">
+            <span className="text-lg md:text-xl text-white/60 font-light inline-block tracking-wide">
+              {typewriterText}
+              <span className="inline-block w-0.5 h-5 bg-blue-400/60 ml-0.5 align-middle" style={{ animation: "blink 1s step-end infinite" }} />
+            </span>
+          </div>
+
+          <div className="animate-fade-in delay-700">
+            {user ? (
+              <button
+                onClick={() => router.push("/")}
+                className="group inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white px-10 py-3.5 rounded-full text-sm font-medium hover:shadow-lg hover:shadow-blue-500/25 hover:-translate-y-0.5 transition-all duration-300"
               >
-                {/* Banner */}
-                <div className={`h-2 bg-gradient-to-r ${p.color}`} />
-                <div className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center", p.lightBg)}>
-                      <Icon className="w-6 h-6 text-gray-700" />
-                    </div>
-                    <div>
-                      <h2 className="text-lg font-bold text-gray-900">{p.name}</h2>
-                      <p className="text-xs text-gray-500 mt-1">{p.desc}</p>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => handleEnter(p.href)}
-                    disabled={!!enterLoading}
-                    className="mt-4 flex items-center gap-1.5 text-sm text-primary font-medium hover:underline disabled:opacity-50"
-                  >
-                    进入
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                  </button>
-                </div>
+                进入工作台
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </button>
+            ) : (
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={() => router.push("/login")}
+                  className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-10 py-3.5 rounded-full text-sm font-medium hover:shadow-lg hover:shadow-blue-500/25 hover:-translate-y-0.5 transition-all duration-300"
+                >
+                  登录
+                </button>
+                <button
+                  onClick={() => router.push("/register")}
+                  className="border border-white/20 text-white/80 px-10 py-3.5 rounded-full text-sm font-medium hover:bg-white/10 hover:-translate-y-0.5 transition-all duration-300 backdrop-blur-sm"
+                >
+                  注册
+                </button>
               </div>
-            )
-          })}
+            )}
+          </div>
         </div>
 
-        {/* Auth buttons below cards */}
-        {!user && (
-          <div className="text-center mt-10">
-            <p className="text-sm text-gray-500 mb-4">登录后使用 AI 生成服务，积分制计费</p>
-            <div className="flex justify-center gap-3">
-              <button
-                onClick={() => router.push("/login")}
-                className="bg-primary hover:bg-primary-hover text-white px-8 py-2.5 rounded-lg text-sm font-medium transition-colors"
-              >
-                登录
-              </button>
-              <button
-                onClick={() => router.push("/register")}
-                className="border border-gray-200 text-gray-500 hover:bg-gray-50 px-8 py-2.5 rounded-lg text-sm font-medium transition-colors"
-              >
-                注册
-              </button>
-            </div>
+        {/* Scroll indicator */}
+        <div className="absolute bottom-8 animate-bounce-down text-white/30">
+          <div className="w-6 h-10 border-2 border-white/20 rounded-full flex justify-center pt-2">
+            <div className="w-1 h-2.5 bg-white/40 rounded-full" />
           </div>
-        )}
+        </div>
+      </section>
 
-        {user && (
-          <div className="text-center mt-10">
-            <p className="text-sm text-gray-500">已登录，点击上方产品卡片即可进入对应系统</p>
+      {/* ===== Stats Bar ===== */}
+      <section className="relative py-12 bg-[#0A1628]">
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0A3D62]/20 via-[#1B4332]/20 to-[#0A3D62]/20" />
+        <div className="relative max-w-4xl mx-auto px-6">
+          <div className="grid grid-cols-3 gap-8">
+            {stats.map((s, i) => (
+              <StatItem key={s.label} {...s} index={i} animate={counterStarted} />
+            ))}
           </div>
-        )}
-      </main>
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent" />
+      </section>
+
+      {/* ===== IP Content Workbench ===== */}
+      <section className="bg-white">
+        <ProductSection
+          title="IP 内容工作台"
+          subtitle="AI 内容引擎"
+          desc="从选题策划到文案生成，从知识库沉淀到 GEO 增长。AI 驱动的全链路内容生产平台，让你的 IP 内容更有结构、更有效率、更有策略。"
+          features={ipFeatures}
+          accentColor="bg-[#0A3D62]"
+          accentBg="bg-[#E8F1F5]"
+          icon={FileText}
+          href="/"
+        />
+      </section>
+
+      {/* Divider */}
+      <div className="max-w-6xl mx-auto px-6">
+        <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+      </div>
+
+      {/* ===== Edu Box ===== */}
+      <section className="bg-[#F5F8FA]">
+        <ProductSection
+          title="启明盒子"
+          subtitle="教育 AI 平台"
+          desc="面向教育场景的一站式 AI 协同平台。教案生成、作业管理、学情分析、研学项目全流程数字化，让教育管理更智能、更安全。"
+          features={eduFeatures}
+          accentColor="bg-[#1B4332]"
+          accentBg="bg-[#D8F3DC]"
+          icon={School}
+          href="http://111.228.45.216:3001"
+          reversed
+        />
+      </section>
+
+      {/* ===== Footer ===== */}
+      <footer className="bg-[#0A1628] text-white/40 py-8">
+        <div className="max-w-6xl mx-auto px-6 text-center">
+          <p className="text-xs">
+            创世者 Copilot · AI 驱动的内容生产与教育协同平台
+          </p>
+          <p className="text-xs mt-2 text-white/25">
+            Powered by 广西创世者科技有限公司
+          </p>
+        </div>
+      </footer>
     </div>
   )
 }

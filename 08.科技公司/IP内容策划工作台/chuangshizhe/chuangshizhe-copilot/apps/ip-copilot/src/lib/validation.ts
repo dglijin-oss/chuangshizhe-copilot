@@ -109,7 +109,7 @@ export const wikiPageSchema = z.object({
 })
 
 export const recompileSchema = z.object({
-  ipId: z.string().optional(),
+  ipId: z.string().optional().nullable(),
 })
 
 // Corpus schemas
