@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
-import { client, MODEL } from "@/lib/llm"
+import { proxyStreamHermes } from "@/lib/hermes"
 
 const SYSTEM_PROMPT = `你是一个智能内容采集助手，帮助用户从各大平台（B站、抖音、小红书、快手、YouTube、X、Instagram、微博、TikTok、Lemon8）提取和分析内容。
 
@@ -20,38 +20,11 @@ export async function POST(req: Request) {
 
   const { messages } = (await req.json()) as { messages: Array<{ role: string; content: string }> }
 
-  const stream = new ReadableStream({
-    async start(controller) {
-      const encoder = new TextEncoder()
-
-      try {
-        const res = await client.messages.create({
-          model: MODEL,
-          messages: [
-            { role: "user", content: SYSTEM_PROMPT },
-            ...messages.map((m) => ({
-              role: m.role as "user" | "assistant",
-              content: m.content,
-            })),
-          ],
-          max_tokens: 4000,
-          stream: true,
-        })
-
-        for await (const chunk of res) {
-          if (chunk.type === "content_block_delta" && chunk.delta.type === "text_delta") {
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "chunk", content: chunk.delta.text })}\n\n`))
-          }
-        }
-
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "done" })}\n\n`))
-        controller.close()
-      } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : "连接模型服务失败"
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "error", message })}\n\n`))
-        controller.close()
-      }
-    },
+  const stream = proxyStreamHermes({
+    messages: [
+      { role: "system", content: SYSTEM_PROMPT },
+      ...messages,
+    ],
   })
 
   return new NextResponse(stream, {
