@@ -28,7 +28,6 @@ export default function LogsPage() {
         {[
           { value: "", label: "全部" },
           { value: "ip-copilot", label: "IP 工作台" },
-          { value: "edu-box", label: "启明盒子" },
         ].map(opt => (
           <button key={opt.value} onClick={() => { setSystem(opt.value); setPage(1) }}
             className={`px-3 py-1.5 rounded-lg text-sm ${system === opt.value ? "bg-primary text-white" : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"}`}

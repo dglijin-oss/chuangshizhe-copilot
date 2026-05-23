@@ -23,13 +23,11 @@ const nextConfig: NextConfig = {
         "@chuangshizhe/database",
         "@chuangshizhe/database/client-core",
         "@chuangshizhe/database/client-ip",
-        "@chuangshizhe/database/client-edu",
         "@prisma/client",
         "@prisma/adapter-pg",
         prismaDir,
         `${prismaDir}/client-core`,
         `${prismaDir}/client-ip`,
-        `${prismaDir}/client-edu`,
       );
     }
     return config;

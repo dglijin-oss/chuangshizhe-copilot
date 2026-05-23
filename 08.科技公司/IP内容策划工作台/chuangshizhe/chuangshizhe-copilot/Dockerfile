@@ -16,11 +16,10 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV SKIP_ENV_VALIDATION=1
 
-# Generate all Prisma clients (need edu schema too for cross-references)
+# Generate all Prisma clients
 # Use full path since pnpm hoisted node_modules is at root
 RUN node /app/node_modules/prisma/build/index.js generate --schema=/app/packages/database/schema-core.prisma
 RUN node /app/node_modules/prisma/build/index.js generate --schema=/app/packages/database/schema-ip.prisma
-RUN node /app/node_modules/prisma/build/index.js generate --schema=/app/packages/database/schema-edu.prisma
 
 # Build IP Copilot
 RUN cd apps/ip-copilot && npx next build --webpack

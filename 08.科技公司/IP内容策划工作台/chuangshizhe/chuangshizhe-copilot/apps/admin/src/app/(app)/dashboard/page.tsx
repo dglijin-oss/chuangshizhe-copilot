@@ -1,9 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Users, FileText, GraduationCap, BookOpen, BarChart3 } from "lucide-react"
+import { Users, FileText, BarChart3 } from "lucide-react"
 
-const statIcons = [Users, FileText, GraduationCap, BookOpen, BarChart3]
+const statIcons = [Users, FileText, BarChart3]
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<Record<string, unknown>>({})
@@ -20,8 +20,6 @@ export default function DashboardPage() {
   const statCards = [
     { label: "用户总数", value: stats.totalUsers, icon: Users, color: "text-blue-600" },
     { label: "IP 总数", value: stats.totalIps, icon: FileText, color: "text-green-600" },
-    { label: "研学报名", value: stats.totalBookings, icon: GraduationCap, color: "text-purple-600" },
-    { label: "教案总数", value: stats.totalLessonPlans, icon: BookOpen, color: "text-orange-600" },
     { label: "积分池", value: stats.totalPoints, icon: BarChart3, color: "text-red-600" },
   ]
 
@@ -33,7 +31,6 @@ export default function DashboardPage() {
         {[
           { value: "all", label: "全部" },
           { value: "ip-copilot", label: "IP 内容工作台" },
-          { value: "edu-box", label: "启明盒子" },
         ].map(opt => (
           <button key={opt.value} onClick={() => setSystem(opt.value)}
             className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${system === opt.value ? "bg-primary text-white" : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"}`}
@@ -44,7 +41,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {statCards.map(({ label, value, icon: Icon, color }) => (
           <div key={label} className="bg-white rounded-xl border border-gray-200 p-5">
             <div className="flex items-center justify-between mb-3">

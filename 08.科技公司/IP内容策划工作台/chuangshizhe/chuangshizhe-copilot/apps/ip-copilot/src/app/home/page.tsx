@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { FileText, ArrowRight, LogOut, Brain, PenTool, Zap, BarChart3, BookOpen, ClipboardList, Users, TrendingUp } from "lucide-react"
+import { FileText, ArrowRight, LogOut, Brain, PenTool, BarChart3, BookOpen } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 
@@ -19,14 +19,6 @@ const ipFeatures = [
   { icon: BookOpen, label: "知识库编译", desc: "从素材到 Wiki，AI 自动沉淀知识" },
   { icon: BarChart3, label: "GEO 增长", desc: "AI 地图内容 + 搜索优化，全域获客" },
 ]
-
-// 教育系统暂不开放，后期独立部署
-// const eduFeatures = [
-//   { icon: PenTool, label: "AI 教案生成", desc: "按年级、科目一键生成结构化教案" },
-//   { icon: ClipboardList, label: "作业批改", desc: "AI 辅助批改 + 学情分析反馈" },
-//   { icon: Users, label: "研学管理", desc: "项目报备、安全文档、供应商全链路" },
-//   { icon: TrendingUp, label: "学情分析", desc: "学生画像、数据看板、成长追踪" },
-// ]
 
 const statsBase = [
   { value: 1500, suffix: "+", label: "IP 矩阵" },
@@ -611,28 +603,6 @@ export default function ProductsPage() {
           href="/"
         />
       </section>
-
-      {/* Divider */}
-      <div className="max-w-6xl mx-auto px-6">
-        <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
-      </div>
-
-      {/* ===== Edu Box (暂不开放，后期独立部署) ===== */}
-      {/*
-      <section className="bg-[#F5F8FA]">
-        <ProductSection
-          title="启明盒子"
-          subtitle="教育 AI 平台"
-          desc="面向教育场景的一站式 AI 协同平台。教案生成、作业管理、学情分析、研学项目全流程数字化，让教育管理更智能、更安全。"
-          features={eduFeatures}
-          accentColor="bg-[#1B4332]"
-          accentBg="bg-[#D8F3DC]"
-          icon={School}
-          href="http://111.228.45.216:3001"
-          reversed
-        />
-      </section>
-      */}
 
       {/* ===== Footer ===== */}
       <footer className="bg-[#0A1628] text-white/40 py-8">

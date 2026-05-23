@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# deploy.sh - 双容器部署（IP工作台 + 启明盒子）
+# deploy.sh - IP 内容工作台 + 统一管理平台部署
 set -e
 
 SERVER="root@111.228.45.216"
@@ -20,7 +20,7 @@ tar -czf "$ARCHIVE" --exclude='node_modules' --exclude='.next' --exclude='.git' 
 echo "=== 2/4 上传到服务器 ==="
 scp "$ARCHIVE" "$SERVER:$REMOTE_DIR/"
 
-echo "=== 3/4 远程构建双镜像 ==="
+echo "=== 3/4 远程构建镜像 ==="
 export VERSION
 ssh "$SERVER" << REMOTE
 cd /opt/app
@@ -34,17 +34,12 @@ echo "--- 构建 IP 内容工作台镜像 ---"
 docker build -t copilot-ip:$VERSION -f Dockerfile .
 docker tag copilot-ip:$VERSION copilot-ip:latest
 
-# 构建 启明盒子镜像
-echo "--- 构建 启明盒子镜像 ---"
-docker build -t copilot-edu:$VERSION -f Dockerfile.edu .
-docker tag copilot-edu:$VERSION copilot-edu:latest
-
 # 构建 统一管理平台镜像
 echo "--- 构建 统一管理平台镜像 ---"
 docker build -t copilot-admin:$VERSION -f Dockerfile.admin .
 docker tag copilot-admin:$VERSION copilot-admin:latest
 
-echo "三镜像构建完成"
+echo "双镜像构建完成"
 REMOTE
 
 echo "=== 4/4 启动双容器 ==="
@@ -61,18 +56,6 @@ docker run -d \
   -e NODE_ENV=production \
   copilot-ip:latest
 
-# === 启明盒子 ===
-docker stop copilot-edu 2>/dev/null || true
-docker rm copilot-edu 2>/dev/null || true
-docker run -d \
-  --name copilot-edu \
-  --restart always \
-  --network host \
-  -e DATABASE_URL="postgresql://chuangshizhe_user:Csj2026Secure%21@127.0.0.1:5432/chuangshizhe" \
-  -e ALIYUN_API_KEY="sk-sp-1698373d17b74e1bab3d7bccc171f556" \
-  -e NODE_ENV=production \
-  copilot-edu:latest
-
 # === 统一管理平台 ===
 docker stop copilot-admin 2>/dev/null || true
 docker rm copilot-admin 2>/dev/null || true
@@ -84,16 +67,14 @@ docker run -d \
   -e NODE_ENV=production \
   copilot-admin:latest
 
-echo "三容器已启动"
+echo "双容器已启动"
 REMOTE
 
 echo "=== 部署完成！版本: $VERSION ==="
 echo "IP 内容工作台: http://111.228.45.216:3000/home"
-echo "启明盒子:      http://111.228.45.216:3001"
 echo "统一管理后台:  http://111.228.45.216:3002"
 echo ""
 echo "查看日志:"
 echo "  IP工作台: ssh root@111.228.45.216 'docker logs -f copilot-ip'"
-echo "  启明盒子: ssh root@111.228.45.216 'docker logs -f copilot-edu'"
 echo "  管理后台: ssh root@111.228.45.216 'docker logs -f copilot-admin'"
 echo "回滚:       bash rollback.sh"

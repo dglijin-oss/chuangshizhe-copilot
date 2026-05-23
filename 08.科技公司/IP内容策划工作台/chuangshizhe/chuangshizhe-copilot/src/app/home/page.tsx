@@ -17,16 +17,6 @@ const products = [
     color: "from-[#0A3D62] to-[#3C6382]",
     lightBg: "bg-[#E8F1F5]",
   },
-  // 教育系统暂不开放，后期独立部署
-  // {
-  //   id: "edu-box",
-  //   name: "启明盒子",
-  //   desc: "教育 AI 协同平台，教案生成、作业管理、学情分析、研学项目管理一体化",
-  //   href: "__edu_box__",
-  //   icon: School,
-  //   color: "from-[#1B4332] to-[#2D6A4F]",
-  //   lightBg: "bg-[#D8F3DC]",
-  // },
 ]
 
 export default function ProductsPage() {

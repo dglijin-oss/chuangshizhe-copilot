@@ -17,7 +17,7 @@ model User {
   name        String?
   role        String   @default("user")
   points      Int      @default(110)
-  products    String[] @default([])  // 授权产品列表: ['ip-copilot', 'edu-box']
+  products    String[] @default([])  // 授权产品列表: ['ip-copilot']
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

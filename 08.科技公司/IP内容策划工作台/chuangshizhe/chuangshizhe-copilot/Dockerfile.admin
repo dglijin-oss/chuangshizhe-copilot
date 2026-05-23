@@ -20,7 +20,6 @@ ENV SKIP_ENV_VALIDATION=1
 
 RUN cd packages/database && npx prisma generate --schema=schema-core.prisma
 RUN cd packages/database && npx prisma generate --schema=schema-ip.prisma
-RUN cd packages/database && npx prisma generate --schema=schema-edu.prisma
 
 RUN cd apps/admin && npx next build --webpack
 
