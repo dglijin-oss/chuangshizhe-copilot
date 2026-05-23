@@ -39,13 +39,6 @@ const navGroups = [
     single: true,
   },
   {
-    id: "scrape",
-    label: "AI 智能采集",
-    icon: Download,
-    href: "/scrape",
-    single: true,
-  },
-  {
     id: "content",
     label: "内容生产",
     icon: FolderOpen,
@@ -73,6 +66,7 @@ const navGroups = [
     label: "账号资产",
     icon: BookOpen,
     children: [
+      { label: "AI 智能采集", href: "/scrape", icon: Download },
       { label: "账号知识库", href: "/assets/knowledge", icon: BookOpen },
       { label: "关键词库", href: "/assets/keywords", icon: List },
       { label: "接入配置", href: "/assets/integrations", icon: Link2 },

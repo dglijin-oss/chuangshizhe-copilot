@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { FileText, School, ArrowRight, LogOut } from "lucide-react"
+import { FileText, ArrowRight, LogOut } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 
@@ -17,15 +17,16 @@ const products = [
     color: "from-[#0A3D62] to-[#3C6382]",
     lightBg: "bg-[#E8F1F5]",
   },
-  {
-    id: "edu-box",
-    name: "启明盒子",
-    desc: "教育 AI 协同平台，教案生成、作业管理、学情分析、研学项目管理一体化",
-    href: "__edu_box__",
-    icon: School,
-    color: "from-[#1B4332] to-[#2D6A4F]",
-    lightBg: "bg-[#D8F3DC]",
-  },
+  // 教育系统暂不开放，后期独立部署
+  // {
+  //   id: "edu-box",
+  //   name: "启明盒子",
+  //   desc: "教育 AI 协同平台，教案生成、作业管理、学情分析、研学项目管理一体化",
+  //   href: "__edu_box__",
+  //   icon: School,
+  //   color: "from-[#1B4332] to-[#2D6A4F]",
+  //   lightBg: "bg-[#D8F3DC]",
+  // },
 ]
 
 export default function ProductsPage() {
@@ -105,10 +106,10 @@ export default function ProductsPage() {
       <main className="max-w-5xl mx-auto px-6 py-16">
         <div className="text-center mb-12">
           <h1 className="text-3xl font-bold text-gray-900">创世者 Copilot</h1>
-          <p className="text-gray-500 mt-3">AI 驱动的内容生产与教育协同平台</p>
+          <p className="text-gray-500 mt-3">AI 驱动的内容生产与策划平台</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+        <div className="grid grid-cols-1 gap-6 max-w-xl mx-auto">
           {products.map((p) => {
             const Icon = p.icon
             return (

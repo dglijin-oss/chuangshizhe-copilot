@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { FileText, School, ArrowRight, LogOut, Brain, PenTool, Zap, BarChart3, BookOpen, ClipboardList, Users, TrendingUp } from "lucide-react"
+import { FileText, ArrowRight, LogOut, Brain, PenTool, Zap, BarChart3, BookOpen, ClipboardList, Users, TrendingUp } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 
@@ -20,17 +20,17 @@ const ipFeatures = [
   { icon: BarChart3, label: "GEO 增长", desc: "AI 地图内容 + 搜索优化，全域获客" },
 ]
 
-const eduFeatures = [
-  { icon: PenTool, label: "AI 教案生成", desc: "按年级、科目一键生成结构化教案" },
-  { icon: ClipboardList, label: "作业批改", desc: "AI 辅助批改 + 学情分析反馈" },
-  { icon: Users, label: "研学管理", desc: "项目报备、安全文档、供应商全链路" },
-  { icon: TrendingUp, label: "学情分析", desc: "学生画像、数据看板、成长追踪" },
-]
+// 教育系统暂不开放，后期独立部署
+// const eduFeatures = [
+//   { icon: PenTool, label: "AI 教案生成", desc: "按年级、科目一键生成结构化教案" },
+//   { icon: ClipboardList, label: "作业批改", desc: "AI 辅助批改 + 学情分析反馈" },
+//   { icon: Users, label: "研学管理", desc: "项目报备、安全文档、供应商全链路" },
+//   { icon: TrendingUp, label: "学情分析", desc: "学生画像、数据看板、成长追踪" },
+// ]
 
 const statsBase = [
   { value: 1500, suffix: "+", label: "IP 矩阵" },
   { value: 98, suffix: "项", label: "核心能力" },
-  { value: 28, suffix: "所", label: "学校接入" },
 ]
 
 /* ---- Hooks ---- */
@@ -467,7 +467,6 @@ export default function ProductsPage() {
   const stats = [
     { value: ipCount, suffix: "+", label: "IP 矩阵" },
     { value: 98, suffix: "项", label: "核心能力" },
-    { value: 28, suffix: "所", label: "学校接入" },
   ]
 
   useEffect(() => { setCounterStarted(true) }, [])
@@ -618,7 +617,8 @@ export default function ProductsPage() {
         <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
       </div>
 
-      {/* ===== Edu Box ===== */}
+      {/* ===== Edu Box (暂不开放，后期独立部署) ===== */}
+      {/*
       <section className="bg-[#F5F8FA]">
         <ProductSection
           title="启明盒子"
@@ -632,12 +632,13 @@ export default function ProductsPage() {
           reversed
         />
       </section>
+      */}
 
       {/* ===== Footer ===== */}
       <footer className="bg-[#0A1628] text-white/40 py-8">
         <div className="max-w-6xl mx-auto px-6 text-center">
           <p className="text-xs">
-            创世者 Copilot · AI 驱动的内容生产与教育协同平台
+            创世者 Copilot · AI 驱动的内容生产与策划平台
           </p>
           <p className="text-xs mt-2 text-white/25">
             Powered by 广西创世者科技有限公司
