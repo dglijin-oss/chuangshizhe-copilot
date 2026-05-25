@@ -26,7 +26,10 @@ import {
   Coins,
   ChevronDown,
   ChevronUp,
-  Download,
+  Bot,
+  ImageIcon,
+  Video,
+  Users,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -66,10 +69,22 @@ const navGroups = [
     label: "账号资产",
     icon: BookOpen,
     children: [
-      { label: "AI 智能采集", href: "/scrape", icon: Download },
       { label: "账号知识库", href: "/assets/knowledge", icon: BookOpen },
       { label: "关键词库", href: "/assets/keywords", icon: List },
       { label: "接入配置", href: "/assets/integrations", icon: Link2 },
+    ],
+  },
+  {
+    id: "ai-assistant",
+    label: "AI 助手",
+    icon: Bot,
+    children: [
+      { label: "项目助手", href: "/ai-arsenal/project", icon: FolderKanban },
+      { label: "图片生成", href: "/ai-arsenal/image", icon: ImageIcon },
+      { label: "视频生成", href: "/ai-arsenal/video", icon: Video },
+      { label: "AI 小队", href: "/ai-arsenal/squad", icon: Users },
+      { label: "图片 Agent", href: "/ai-arsenal/image-agent", icon: ImageIcon },
+      { label: "视频 Agent", href: "/ai-arsenal/video-agent", icon: Video },
     ],
   },
   {
@@ -97,6 +112,7 @@ export function Sidebar({
     content: false,
     geo: false,
     assets: false,
+    "ai-assistant": false,
     account: false,
   })
 
