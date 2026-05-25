@@ -12,10 +12,8 @@ echo "=== 版本: $VERSION ==="
 
 echo "=== 1/4 打包代码 ==="
 rm -f "$ARCHIVE"
-tar -czf "$ARCHIVE" --exclude='node_modules' --exclude='.next' --exclude='.git' \
-  --exclude='deploy.sh' --exclude='rollback.sh' \
-  --exclude='docker-compose.yml' \
-  *
+# 使用 git archive 只打包已提交的代码，自动跳过本地文件/构建产物
+git archive --format=tar HEAD | gzip > "$ARCHIVE"
 
 echo "=== 2/4 上传到服务器 ==="
 scp "$ARCHIVE" "$SERVER:$REMOTE_DIR/"

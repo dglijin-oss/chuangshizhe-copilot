@@ -10,7 +10,7 @@ COPY packages/database/package.json ./packages/database/
 COPY packages/auth/package.json ./packages/auth/
 COPY packages/billing/package.json ./packages/billing/
 COPY apps/admin/package.json ./apps/admin/
-RUN pnpm install --frozen-lockfile
+RUN pnpm install
 
 FROM base AS builder
 WORKDIR /app

@@ -8,7 +8,7 @@ RUN echo "node-linker=hoisted" > .npmrc
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/database/package.json ./packages/database/
 COPY apps/ip-copilot/package.json ./apps/ip-copilot/
-RUN pnpm install --frozen-lockfile
+RUN pnpm install
 
 FROM base AS builder
 WORKDIR /app
