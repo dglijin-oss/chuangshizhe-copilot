@@ -157,8 +157,12 @@ function NeuralNetworkBg() {
     const resize = () => {
       const parent = canvas.parentElement
       if (!parent) return
-      w = parent.clientWidth
-      h = parent.clientHeight
+      const pw = parent.clientWidth
+      const ph = parent.clientHeight
+      if (!pw || !ph) return // skip if parent not rendered yet
+      if (pw === w && ph === h) return // skip if size unchanged
+      w = pw
+      h = ph
       canvas.width = w * dpr
       canvas.height = h * dpr
       canvas.style.width = w + "px"
@@ -168,6 +172,15 @@ function NeuralNetworkBg() {
     }
     resize()
     window.addEventListener("resize", resize)
+
+    // Watch parent size changes with ResizeObserver
+    const parent = canvas.parentElement
+    if (parent) {
+      const ro = new ResizeObserver(() => resize())
+      ro.observe(parent)
+      // cleanup added below
+      ;(canvas as any).__resizeObserver = ro
+    }
 
     const handleMouse = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect()
