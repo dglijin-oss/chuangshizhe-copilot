@@ -116,24 +116,33 @@ function NeuralNetworkBg() {
     const dpr = Math.min(window.devicePixelRatio || 1, 2)
 
     interface Node {
-      bx: number; by: number;  // base (grid) position
-      x: number; y: number;    // current position
+      bx: number; by: number;
+      x: number; y: number;
       vx: number; vy: number;
       baseR: number;
       pulsePhase: number;
       pulseSpeed: number;
     }
 
+    interface DataPulse {
+      a: Node; b: Node;
+      t: number;       // 0..1 progress along line
+      speed: number;   // how fast it moves
+      maxT: number;    // when to die
+      brightness: number;
+    }
+
     let nodes: Node[] = []
+    let pulses: DataPulse[] = []
+    let connections: [Node, Node][] = []
     let connectionDist = 180
     let mouseRadius = 350
+    let spawnTimer = 0
 
     function buildNodes() {
-      // Grid-based distribution: even spacing across screen
       const spacing = 80
       const cols = Math.ceil(w / spacing) + 1
       const rows = Math.ceil(h / spacing) + 1
-      const total = cols * rows
 
       nodes = []
       for (let r = 0; r < rows; r++) {
@@ -152,6 +161,8 @@ function NeuralNetworkBg() {
       }
       connectionDist = spacing * 2.2
       mouseRadius = spacing * 4
+      pulses = []
+      connections = []
     }
 
     const resize = () => {
@@ -254,7 +265,8 @@ function NeuralNetworkBg() {
         n.pulsePhase += n.pulseSpeed
       }
 
-      // Draw connections (layered: deep + light)
+      // Draw connections & collect active edges for pulse spawning
+      connections = []
       for (let i = 0; i < nodes.length; i++) {
         for (let j = i + 1; j < nodes.length; j++) {
           const a = nodes[i], b = nodes[j]
@@ -262,7 +274,6 @@ function NeuralNetworkBg() {
           const dist = Math.sqrt(dx * dx + dy * dy)
           if (dist < connectionDist) {
             const t = 1 - dist / connectionDist
-            // Near mouse: brighter, thicker
             let alpha = t * 0.2
             let lineWidth = 0.5
             if (mouseActive) {
@@ -274,6 +285,15 @@ function NeuralNetworkBg() {
                 const proximity = 1 - midDist / mouseRadius
                 alpha = t * 0.15 + proximity * 0.35
                 lineWidth = 0.5 + proximity * 1.5
+                // Collect connections near mouse for pulse spawning
+                if (Math.random() < 0.008) {
+                  connections.push([a, b])
+                }
+              }
+            } else {
+              // Ambient pulses on random connections
+              if (Math.random() < 0.001) {
+                connections.push([a, b])
               }
             }
             ctx.strokeStyle = `rgba(80, 140, 220, ${alpha})`
@@ -284,6 +304,61 @@ function NeuralNetworkBg() {
             ctx.stroke()
           }
         }
+      }
+
+      // Spawn new data pulses
+      spawnTimer++
+      if (spawnTimer % 3 === 0 && connections.length > 0) {
+        const [a, b] = connections[Math.floor(Math.random() * connections.length)]
+        pulses.push({
+          a, b,
+          t: 0,
+          speed: 0.008 + Math.random() * 0.015,
+          maxT: 0.7 + Math.random() * 0.3,
+          brightness: 0.6 + Math.random() * 0.4,
+        })
+      }
+
+      // Update & draw data pulses
+      for (let i = pulses.length - 1; i >= 0; i--) {
+        const p = pulses[i]
+        p.t += p.speed
+        if (p.t > p.maxT) {
+          pulses.splice(i, 1)
+          continue
+        }
+        const px = p.a.x + (p.b.x - p.a.x) * p.t
+        const py = p.a.y + (p.b.y - p.a.y) * p.t
+        const life = Math.sin((p.t / p.maxT) * Math.PI) // bell curve
+
+        // Trail
+        const trailLen = 12
+        for (let tt = 1; tt <= trailLen; tt++) {
+          const trailT = p.t - tt * 0.008
+          if (trailT < 0) break
+          const tx = p.a.x + (p.b.x - p.a.x) * trailT
+          const ty = p.a.y + (p.b.y - p.a.y) * trailT
+          const trailAlpha = (1 - tt / trailLen) * life * 0.15 * p.brightness
+          ctx.beginPath()
+          ctx.arc(tx, ty, 1, 0, Math.PI * 2)
+          ctx.fillStyle = `rgba(120, 180, 255, ${trailAlpha})`
+          ctx.fill()
+        }
+
+        // Head glow
+        const headR = 3 + life * 3
+        ctx.beginPath()
+        ctx.arc(px, py, headR * 2, 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(100, 170, 255, ${life * 0.08 * p.brightness})`
+        ctx.fill()
+        ctx.beginPath()
+        ctx.arc(px, py, headR, 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(180, 220, 255, ${life * 0.5 * p.brightness})`
+        ctx.fill()
+        ctx.beginPath()
+        ctx.arc(px, py, 1.5, 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(255, 255, 255, ${life * 0.9 * p.brightness})`
+        ctx.fill()
       }
 
       // Draw mouse-to-node connections
@@ -347,6 +422,8 @@ function NeuralNetworkBg() {
       canvas.removeEventListener("touchmove", handleTouch)
       canvas.removeEventListener("mouseleave", handleLeave)
       if (mouseLeaveTimerRef.current) clearTimeout(mouseLeaveTimerRef.current)
+      const ro = (canvas as any).__resizeObserver
+      if (ro) ro.disconnect()
     }
   }, [])
 
