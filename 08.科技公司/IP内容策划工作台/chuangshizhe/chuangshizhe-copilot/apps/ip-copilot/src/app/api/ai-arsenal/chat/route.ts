@@ -1,19 +1,15 @@
 import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
 import { prismaIp } from "@/lib/prisma"
-
-const API_KEY = process.env.ALIYUN_API_KEY!
-const API_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
+import { client } from "@/lib/llm"
 
 export async function POST(req: Request) {
   const user = await getSessionUser()
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 })
 
-  const { message, sessionId, model = "qwen3-max-2026-01-23", webSearch = false } = (await req.json()) as {
+  const { message, sessionId } = (await req.json()) as {
     message: string
     sessionId: string
-    model?: string
-    webSearch?: boolean
   }
 
   if (!message?.trim()) {
@@ -27,20 +23,12 @@ export async function POST(req: Request) {
     take: 10,
   })
 
-  // Build messages array
-  const messages: { role: string; content: string }[] = [
-    {
-      role: "system",
-      content: "你是创世者 Copilot 的项目助手，帮助用户进行项目协作、文案创作、策略分析等工作。回答专业、简洁、有建设性。",
-    },
-    ...history.reverse().map((m) => ({ role: m.role, content: m.content })),
-    { role: "user", content: message },
-  ]
-
-  // Add web search system hint if enabled
-  if (webSearch) {
-    messages[0].content += "\n\n如果用户的问题需要最新信息，可以基于已有知识给出建议。"
-  }
+  // Build messages array (Anthropic format — system is separate)
+  const anthropicMessages = history.reverse().map((m) => ({
+    role: m.role === "assistant" ? "assistant" : "user" as const,
+    content: m.content,
+  }))
+  anthropicMessages.push({ role: "user" as const, content: message })
 
   // Save user message first
   await prismaIp.chatMessage.create({
@@ -53,63 +41,20 @@ export async function POST(req: Request) {
       let fullContent = ""
 
       try {
-        const res = await fetch(API_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${API_KEY}`,
-          },
-          body: JSON.stringify({
-            model,
-            messages,
-            stream: true,
-          }),
+        const stream = await client.messages.create({
+          model: "qwen3-max-2026-01-23",
+          system: "你是创世者 Copilot 的项目助手，帮助用户进行项目协作、文案创作、策略分析等工作。回答专业、简洁、有建设性。",
+          messages: anthropicMessages,
+          max_tokens: 4000,
+          stream: true,
         })
 
-        if (!res.ok) {
-          const err = await res.text()
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "error", message: `API 错误: ${err}` })}\n\n`))
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "done" })}\n\n`))
-          controller.close()
-          return
-        }
-
-        const reader = res.body?.getReader()
-        if (!reader) {
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "error", message: "响应流不可用" })}\n\n`))
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "done" })}\n\n`))
-          controller.close()
-          return
-        }
-
-        const decoder = new TextDecoder()
-        let buffer = ""
-
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) break
-
-          buffer += decoder.decode(value, { stream: true })
-          const lines = buffer.split("\n")
-          buffer = lines.pop() || ""
-
-          for (const line of lines) {
-            const trimmed = line.trim()
-            if (!trimmed || trimmed === "data: [DONE]") continue
-            if (!trimmed.startsWith("data:")) continue
-
-            try {
-              const json = JSON.parse(trimmed.slice(5).trim())
-              const delta = json.choices?.[0]?.delta
-              if (delta?.content) {
-                fullContent += delta.content
-                controller.enqueue(
-                  encoder.encode(`data: ${JSON.stringify({ type: "chunk", content: delta.content })}\n\n`)
-                )
-              }
-            } catch {
-              // skip
-            }
+        for await (const chunk of stream) {
+          if (chunk.type === "content_block_delta" && chunk.delta?.type === "text_delta") {
+            fullContent += chunk.delta.text
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify({ type: "chunk", content: chunk.delta.text })}\n\n`)
+            )
           }
         }
 

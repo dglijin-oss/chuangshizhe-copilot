@@ -175,6 +175,20 @@ export default function ProjectAssistantPage() {
         return
       }
 
+      // Handle non-streaming error response
+      const contentType = res.headers.get("content-type")
+      if (contentType && contentType.includes("application/json")) {
+        const data = await res.json()
+        if (data.error) {
+          setMessages((prev) => [
+            ...prev,
+            { id: crypto.randomUUID(), role: "assistant", content: `❌ ${data.error}`, createdAt: new Date().toISOString() },
+          ])
+          setLoading(false)
+          return
+        }
+      }
+
       const reader = res.body?.getReader()
       if (!reader) {
         setLoading(false)
@@ -195,9 +209,11 @@ export default function ProjectAssistantPage() {
 
         for (const line of lines) {
           const trimmed = line.trim()
-          if (!trimmed || !trimmed.startsWith("data:")) continue
+          if (!trimmed || trimmed === "data: [DONE]" || !trimmed.startsWith("data:")) continue
           try {
-            const parsed = JSON.parse(trimmed.slice(5).trim())
+            const raw = trimmed.slice(5).trim()
+            if (!raw) continue
+            const parsed = JSON.parse(raw)
             if (parsed.type === "chunk") {
               fullContent += parsed.content
               setStreamingContent(fullContent)
@@ -212,7 +228,6 @@ export default function ProjectAssistantPage() {
               setLoading(false)
               setFileContent("")
               setFileName("")
-              // Update session list
               loadSessions()
               return
             } else if (parsed.type === "error") {
@@ -225,10 +240,19 @@ export default function ProjectAssistantPage() {
               return
             }
           } catch {
-            // skip
+            // skip malformed SSE lines
           }
         }
       }
+
+      // Stream ended without done signal — save whatever we collected
+      if (fullContent) {
+        setMessages((prev) => [
+          ...prev,
+          { id: crypto.randomUUID(), role: "assistant", content: fullContent, createdAt: new Date().toISOString() },
+        ])
+      }
+      setStreamingContent("")
     } catch {
       setMessages((prev) => [
         ...prev,
