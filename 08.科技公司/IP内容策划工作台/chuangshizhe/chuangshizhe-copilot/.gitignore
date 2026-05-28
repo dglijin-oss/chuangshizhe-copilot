@@ -53,3 +53,12 @@ next-env.d.ts
 # AI assistant sessions/caches
 .claude/
 .cladian/
+
+# dev database (SQLite, should not be committed)
+dev.db
+
+# npm lockfile (pnpm project)
+package-lock.json
+
+# any node_modules (should never be committed)
+**/node_modules/

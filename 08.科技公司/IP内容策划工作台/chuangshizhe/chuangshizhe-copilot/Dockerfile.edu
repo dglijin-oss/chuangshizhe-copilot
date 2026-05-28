@@ -7,10 +7,8 @@ RUN corepack enable && corepack prepare pnpm@9 --activate
 RUN echo "node-linker=hoisted" > .npmrc
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/database/package.json ./packages/database/
-COPY packages/auth/package.json ./packages/auth/
-COPY packages/billing/package.json ./packages/billing/
-COPY apps/admin/package.json ./apps/admin/
-RUN pnpm install
+COPY apps/edu-box/package.json ./apps/edu-box/
+RUN pnpm install --frozen-lockfile
 
 FROM base AS builder
 WORKDIR /app
@@ -18,10 +16,13 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV SKIP_ENV_VALIDATION=1
 
+# Generate all Prisma clients
 RUN cd packages/database && npx prisma generate --schema=schema-core.prisma
 RUN cd packages/database && npx prisma generate --schema=schema-ip.prisma
+RUN cd packages/database && npx prisma generate --schema=schema-edu.prisma
 
-RUN cd apps/admin && npx next build --webpack
+# Build Edu Box
+RUN cd apps/edu-box && npx next build --webpack
 
 FROM base AS runner
 WORKDIR /app
@@ -31,14 +32,14 @@ ENV SKIP_ENV_VALIDATION=1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/apps/admin/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/apps/admin/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/apps/admin/.next/static ./apps/admin/.next/static
+COPY --from=builder /app/apps/edu-box/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/apps/edu-box/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/edu-box/.next/static ./apps/edu-box/.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 
 USER nextjs
-EXPOSE 3002
-ENV PORT=3002
+EXPOSE 3001
+ENV PORT=3001
 ENV HOSTNAME="0.0.0.0"
 
-CMD ["node", "apps/admin/server.js"]
+CMD ["node", "apps/edu-box/server.js"]

@@ -35,6 +35,7 @@ RUN adduser --system --uid 1001 nextjs
 COPY --from=builder /app/apps/ip-copilot/public ./apps/ip-copilot/public
 COPY --from=builder --chown=nextjs:nodejs /app/apps/ip-copilot/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/ip-copilot/.next/static ./apps/ip-copilot/.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 
 USER nextjs
 EXPOSE 3000
