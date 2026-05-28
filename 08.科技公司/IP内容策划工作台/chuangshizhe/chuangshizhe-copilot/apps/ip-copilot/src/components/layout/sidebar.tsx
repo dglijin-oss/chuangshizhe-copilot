@@ -84,7 +84,7 @@ const navGroups = [
       { label: "项目助手", href: "/ai-arsenal/project", icon: FolderKanban },
       { label: "图片生成", href: "/ai-arsenal/image", icon: ImageIcon },
       { label: "视频生成", href: "/ai-arsenal/video", icon: Video },
-      { label: "AI 小队", href: "/ai-arsenal/squad", icon: Users },
+      { label: "AI智囊团", href: "/ai-arsenal/squad", icon: Users },
       { label: "图片 Agent", href: "/ai-arsenal/image-agent", icon: ImageIcon },
       { label: "视频 Agent", href: "/ai-arsenal/video-agent", icon: Video },
     ],

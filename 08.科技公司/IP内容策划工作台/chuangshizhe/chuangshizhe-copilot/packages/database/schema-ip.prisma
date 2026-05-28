@@ -231,10 +231,30 @@ model CompileEvent {
   createdAt DateTime @default(now())
 }
 
+model Agent {
+  @@schema("ip")
+  id           String   @id @default(cuid())
+  name         String   // 八智破局官
+  icon         String   // 智
+  tagline      String   // 八位智者复盘破局
+  description  String   // 适合重大决策...
+  systemPrompt String   // 完整 system prompt
+  quickPrompts Json     // ["我现在公司增长卡住了...", ...]
+  themeColor   String   // #B8860B
+  order        Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  sessions     ChatSession[]
+
+  @@index([isActive])
+}
+
 model AccountMemory {
   @@schema("ip")
   id          String   @id @default(cuid())
   userId      String
+  agentId     String?  // null = 项目助手, 非null = 对应智能体
   ipId        String?
   ip          Ip?      @relation(fields: [ipId], references: [id])
   category    String
@@ -243,6 +263,7 @@ model AccountMemory {
   createdAt   DateTime @default(now())
 
   @@index([userId])
+  @@index([agentId])
   @@index([ipId])
 }
 
@@ -282,13 +303,16 @@ model ChatSession {
   @@schema("ip")
   id        String   @id @default(cuid())
   userId    String
+  agentId   String?  // null = 项目助手, 非null = 对应智能体
   title     String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  agent     Agent?   @relation(fields: [agentId], references: [id])
   messages  ChatMessage[]
 
   @@index([userId])
+  @@index([agentId])
 }
 
 model ChatMessage {

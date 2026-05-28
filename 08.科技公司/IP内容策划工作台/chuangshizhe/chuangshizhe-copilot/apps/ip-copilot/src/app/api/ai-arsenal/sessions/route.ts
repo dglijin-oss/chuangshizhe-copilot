@@ -7,8 +7,11 @@ export async function GET(req: Request) {
     const user = await getSessionUser()
     if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 })
 
+    const { searchParams } = new URL(req.url)
+    const agentId = searchParams.get("agentId") || undefined
+
     const sessions = await prismaIp.chatSession.findMany({
-      where: { userId: user.id },
+      where: { userId: user.id, agentId },
       orderBy: { updatedAt: "desc" },
       take: 50,
     })
@@ -30,13 +33,13 @@ export async function POST(req: Request) {
     const user = await getSessionUser()
     if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 })
 
-    const { title } = (await req.json()) as { title?: string }
+    const { title, agentId } = (await req.json()) as { title?: string; agentId?: string }
 
     const session = await prismaIp.chatSession.create({
-      data: { userId: user.id, title: title || "新对话" },
+      data: { userId: user.id, title: title || "新对话", agentId: agentId || null },
     })
 
-    return NextResponse.json({ session: { id: session.id, title: session.title, updatedAt: session.updatedAt } })
+    return NextResponse.json({ session: { id: session.id, title: session.title, updatedAt: session.updatedAt, agentId: session.agentId } })
   } catch (err: any) {
     return NextResponse.json({ error: "创建对话失败" }, { status: 500 })
   }
