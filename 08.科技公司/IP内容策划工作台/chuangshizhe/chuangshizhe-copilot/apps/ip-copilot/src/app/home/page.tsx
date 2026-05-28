@@ -206,6 +206,7 @@ export default function ProductsPage() {
   const stats = [
     { value: ipCount, suffix: "+", label: "IP 矩阵" },
     { value: 98, suffix: "项", label: "核心能力" },
+    { value: 39, suffix: "+", label: "智能体" },
   ]
 
   useEffect(() => { setCounterStarted(true) }, [])
