@@ -67,6 +67,7 @@ export default function ProjectAssistantPage() {
   const [showNewSessionModal, setShowNewSessionModal] = useState(false)
   const [newSessionTitle, setNewSessionTitle] = useState("")
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
+  const [createError, setCreateError] = useState("")
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -74,44 +75,71 @@ export default function ProjectAssistantPage() {
 
   /* Load sessions */
   const loadSessions = useCallback(async () => {
-    const res = await fetch("/api/ai-arsenal/sessions")
-    const data = await res.json()
-    setSessions(data.sessions || [])
+    try {
+      const res = await fetch("/api/ai-arsenal/sessions", { credentials: "include" })
+      if (!res.ok) return
+      const data = await res.json()
+      setSessions(data.sessions || [])
+    } catch {
+      // silently ignore — user may not be logged in yet
+    }
   }, [])
 
   /* Load capabilities */
   const loadCapabilities = useCallback(async () => {
-    const res = await fetch("/api/ai-arsenal/capabilities")
-    const data = await res.json()
-    if (data.capabilities) setCapabilities(data.capabilities)
+    try {
+      const res = await fetch("/api/ai-arsenal/capabilities", { credentials: "include" })
+      if (!res.ok) return
+      const data = await res.json()
+      if (data.capabilities) setCapabilities(data.capabilities)
+    } catch {
+      // silently ignore
+    }
   }, [])
 
   /* Load session messages */
   const loadSession = useCallback(async (id: string) => {
-    setActiveSessionId(id)
-    setMessages([])
-    setStreamingContent("")
-    const res = await fetch(`/api/ai-arsenal/sessions/${id}`)
-    const data = await res.json()
-    if (data.messages) setMessages(data.messages)
+    try {
+      setActiveSessionId(id)
+      setMessages([])
+      setStreamingContent("")
+      const res = await fetch(`/api/ai-arsenal/sessions/${id}`, { credentials: "include" })
+      if (!res.ok) return
+      const data = await res.json()
+      if (data.messages) setMessages(data.messages)
+    } catch {
+      // silently ignore
+    }
   }, [])
 
   /* Create new session */
   const createSession = useCallback(async (title: string) => {
-    const res = await fetch("/api/ai-arsenal/sessions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title }),
-    })
-    const data = await res.json()
-    if (data.session) {
-      setSessions((prev) => [data.session, ...prev])
-      loadSession(data.session.id)
+    setCreateError("")
+    try {
+      const res = await fetch("/api/ai-arsenal/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ title }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setCreateError(data.error || "创建失败")
+        return
+      }
+      const data = await res.json()
+      if (data.session) {
+        setSessions((prev) => [data.session, ...prev])
+        loadSession(data.session.id)
+      }
+    } catch {
+      setCreateError("网络请求失败")
     }
   }, [loadSession])
 
   const openNewSessionModal = () => {
     setNewSessionTitle("")
+    setCreateError("")
     setShowNewSessionModal(true)
   }
 
@@ -124,7 +152,7 @@ export default function ProjectAssistantPage() {
   /* Delete session */
   const deleteSession = useCallback(
     async (id: string) => {
-      await fetch(`/api/ai-arsenal/sessions/${id}`, { method: "DELETE" })
+      await fetch(`/api/ai-arsenal/sessions/${id}`, { method: "DELETE", credentials: "include" })
       setSessions((prev) => prev.filter((s) => s.id !== id))
       if (activeSessionId === id) {
         setActiveSessionId(null)
@@ -160,6 +188,7 @@ export default function ProjectAssistantPage() {
       const res = await fetch("/api/ai-arsenal/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           message: fullMessage,
           sessionId: activeSessionId,
@@ -276,6 +305,7 @@ export default function ProjectAssistantPage() {
 
     const res = await fetch("/api/ai-arsenal/upload", {
       method: "POST",
+      credentials: "include",
       body: formData,
     })
     const data = await res.json()
@@ -293,6 +323,7 @@ export default function ProjectAssistantPage() {
     await fetch("/api/ai-arsenal/capabilities", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify(next),
     })
   }
@@ -654,6 +685,9 @@ export default function ProjectAssistantPage() {
               </button>
             </div>
             <p className="text-xs text-gray-400 mb-4">为当前项目起一个名字，方便后续查找</p>
+            {createError && (
+              <p className="text-xs text-red-500 mb-3">{createError}</p>
+            )}
             <input
               type="text"
               value={newSessionTitle}

@@ -59,6 +59,7 @@ export async function POST(req: NextRequest) {
 
     return res
   } catch (err: any) {
+    console.error("Login error:", err)
     return NextResponse.json({ error: "登录失败" }, { status: 500 })
   }
 }

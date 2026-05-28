@@ -1,5 +1,5 @@
-import { PrismaClient as PrismaClientCore } from "@chuangshizhe/database/client-core"
-import { PrismaClient as PrismaClientIp } from "@chuangshizhe/database/client-ip"
+import { PrismaClient as PrismaClientCore } from "@chuangshizhe/database/client-core/client"
+import { PrismaClient as PrismaClientIp } from "@chuangshizhe/database/client-ip/client"
 import { PrismaPg } from "@prisma/adapter-pg"
 import "@/lib/env"
 
