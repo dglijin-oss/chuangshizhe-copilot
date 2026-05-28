@@ -1,78 +1,147 @@
 #!/usr/bin/env bash
-# deploy.sh - IP 内容工作台 + 统一管理平台部署
+# deploy.sh - PM2 部署脚本 (无需 Docker)
 set -e
 
 SERVER="root@111.228.45.216"
-REMOTE_DIR="/opt/app"
-ARCHIVE="copilot.tar.gz"
+REMOTE_DIR="/opt/chuangshizhe-copilot"
+BUILD_DIR="/tmp/chuangshizhe_build"
 
 VERSION="v$(git log -1 --format=%h)-$(date +%m%d%H%M)"
 
-echo "=== 版本: $VERSION ==="
-
-echo "=== 1/4 打包代码 ==="
-rm -f "$ARCHIVE"
-# 使用 git archive 只打包已提交的代码，自动跳过本地文件/构建产物
-git archive --format=tar HEAD | gzip > "$ARCHIVE"
-
-echo "=== 2/4 上传到服务器 ==="
-scp "$ARCHIVE" "$SERVER:$REMOTE_DIR/"
-
-echo "=== 3/4 远程构建镜像 ==="
-export VERSION
-ssh "$SERVER" << REMOTE
-cd /opt/app
-rm -rf chuangshizhe_build
-mkdir chuangshizhe_build
-tar -xzf copilot.tar.gz -C chuangshizhe_build/
-cd chuangshizhe_build
-
-# 构建 IP 内容工作台镜像
-echo "--- 构建 IP 内容工作台镜像 ---"
-docker build -t copilot-ip:$VERSION -f Dockerfile .
-docker tag copilot-ip:$VERSION copilot-ip:latest
-
-# 构建 统一管理平台镜像
-echo "--- 构建 统一管理平台镜像 ---"
-docker build -t copilot-admin:$VERSION -f Dockerfile.admin .
-docker tag copilot-admin:$VERSION copilot-admin:latest
-
-echo "双镜像构建完成"
-REMOTE
-
-echo "=== 4/4 启动双容器 ==="
-ssh "$SERVER" << 'REMOTE'
-# === IP 内容工作台 ===
-docker stop copilot-ip 2>/dev/null || true
-docker rm copilot-ip 2>/dev/null || true
-docker run -d \
-  --name copilot-ip \
-  --restart always \
-  --network host \
-  -e DATABASE_URL="postgresql://chuangshizhe_user:Csj2026Secure%21@127.0.0.1:5432/chuangshizhe" \
-  -e ALIYUN_API_KEY="sk-sp-1698373d17b74e1bab3d7bccc171f556" \
-  -e NODE_ENV=production \
-  copilot-ip:latest
-
-# === 统一管理平台 ===
-docker stop copilot-admin 2>/dev/null || true
-docker rm copilot-admin 2>/dev/null || true
-docker run -d \
-  --name copilot-admin \
-  --restart always \
-  --network host \
-  -e DATABASE_URL="postgresql://chuangshizhe_user:Csj2026Secure%21@127.0.0.1:5432/chuangshizhe" \
-  -e NODE_ENV=production \
-  copilot-admin:latest
-
-echo "双容器已启动"
-REMOTE
-
-echo "=== 部署完成！版本: $VERSION ==="
-echo "IP 内容工作台: http://111.228.45.216:3000/home"
-echo "统一管理后台:  http://111.228.45.216:3002"
+echo "=========================================="
+echo "  创世者 Copilot - PM2 部署"
+echo "  版本: $VERSION"
+echo "  目标: $SERVER:$REMOTE_DIR"
+echo "=========================================="
 echo ""
-echo "查看日志:"
-echo "  IP工作台: ssh root@111.228.45.216 'docker logs -f copilot-ip'"
-echo "  管理后台: ssh root@111.228.45.216 'docker logs -f copilot-admin'"
-echo "回滚:       bash rollback.sh"
+
+# === 1/5 打包代码 ===
+echo ">>> 1/5 打包代码"
+ARCHIVE="copilot_deploy.tar.gz"
+rm -f "$ARCHIVE"
+git archive --format=tar HEAD | gzip > "$ARCHIVE"
+echo "    $(du -h "$ARCHIVE" | cut -f1)"
+echo ""
+
+# === 2/5 上传 ===
+echo ">>> 2/5 上传到服务器"
+ssh "$SERVER" "mkdir -p $BUILD_DIR"
+scp "$ARCHIVE" "$SERVER:$BUILD_DIR/code.tar.gz"
+echo "    上传完成"
+echo ""
+
+# === 3/5 部署到目标目录 ===
+echo ">>> 3/5 部署代码 (保留 .env 和 node_modules)"
+ssh "$SERVER" << REMOTE
+set -e
+
+# 备份旧 .env 文件
+if [ -f $REMOTE_DIR/.env ]; then
+  cp $REMOTE_DIR/.env /tmp/deploy_env_backup.env
+  echo "  已备份 .env"
+fi
+
+# 清理旧代码
+cd $REMOTE_DIR
+# 删除除了 .env, .env.production, node_modules 之外的所有文件/目录
+find . -maxdepth 1 -not -name '.' \
+  -not -name '.env' -not -name '.env.production' \
+  -not -name 'node_modules' \
+  -exec rm -rf {} +
+
+# 解压新代码
+tar -xzf $BUILD_DIR/code.tar.gz -C $REMOTE_DIR/
+
+# 恢复 .env 文件
+if [ -f /tmp/deploy_env_backup.env ]; then
+  cp /tmp/deploy_env_backup.env $REMOTE_DIR/.env
+  rm /tmp/deploy_env_backup.env
+  echo "  已恢复 .env"
+fi
+
+# 清理上传的临时文件
+rm -rf $BUILD_DIR
+
+echo "  代码就绪"
+REMOTE
+echo ""
+
+# === 4/5 安装依赖 + 构建 ===
+echo ">>> 4/5 安装依赖 + 构建 (可能需要 3-5 分钟)"
+ssh "$SERVER" << 'REMOTE'
+set -e
+cd /opt/chuangshizhe-copilot
+
+echo "  [pnpm install]"
+pnpm install --frozen-lockfile
+echo "  依赖安装完成"
+
+echo ""
+echo "  [Prisma 生成]"
+cd packages/database
+npx prisma generate --schema=schema-core.prisma 2>&1 | tail -1
+npx prisma generate --schema=schema-ip.prisma 2>&1 | tail -1
+npx prisma generate --schema=schema-edu.prisma 2>&1 | tail -1
+cd ../..
+
+echo ""
+echo "  [构建 ip-copilot]"
+cd apps/ip-copilot
+pnpm build 2>&1 | tail -3
+cd ../..
+
+echo ""
+echo "  [构建 admin]"
+cd apps/admin
+pnpm build 2>&1 | tail -3
+cd ../..
+
+echo ""
+echo "  [构建 edu-box]"
+cd apps/edu-box
+pnpm build 2>&1 | tail -3
+cd ../..
+
+echo ""
+echo "  所有应用构建完成"
+REMOTE
+echo ""
+
+# === 5/5 PM2 重启 ===
+echo ">>> 5/5 PM2 重启"
+ssh "$SERVER" << 'REMOTE'
+set -e
+cd /opt/chuangshizhe-copilot
+
+mkdir -p /var/log/pm2
+
+echo "  [停止旧进程]"
+pm2 delete ip-copilot 2>/dev/null || true
+pm2 delete admin 2>/dev/null || true
+pm2 delete edu-box 2>/dev/null || true
+sleep 2
+
+echo "  [启动新进程]"
+pm2 start ecosystem.config.js
+pm2 save
+
+sleep 3
+echo ""
+echo "  [状态]"
+pm2 list
+REMOTE
+
+echo ""
+echo "=========================================="
+echo "  部署完成！版本: $VERSION"
+echo "=========================================="
+echo "  IP 内容工作台: http://111.228.45.216:3000/home"
+echo "  研学 Edu Box:   http://111.228.45.216:3001"
+echo "  统一管理后台:   http://111.228.45.216:3002"
+echo ""
+echo "  日志: ssh $SERVER 'pm2 logs'"
+echo "  状态: ssh $SERVER 'pm2 status'"
+echo "=========================================="
+
+# 清理本地
+rm -f "$ARCHIVE"
