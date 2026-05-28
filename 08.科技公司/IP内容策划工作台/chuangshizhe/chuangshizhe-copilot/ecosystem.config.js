@@ -3,8 +3,8 @@ module.exports = {
     {
       name: "ip-copilot",
       cwd: "/opt/chuangshizhe-copilot/apps/ip-copilot",
-      script: "pnpm",
-      args: "start",
+      script: "npx",
+      args: "next start",
       env: {
         NODE_ENV: "production",
         PORT: "3000",
@@ -20,8 +20,8 @@ module.exports = {
     {
       name: "admin",
       cwd: "/opt/chuangshizhe-copilot/apps/admin",
-      script: "pnpm",
-      args: "start",
+      script: "npx",
+      args: "next start",
       env: {
         NODE_ENV: "production",
         PORT: "3002",
@@ -32,23 +32,6 @@ module.exports = {
       max_memory_restart: "1G",
       error_file: "/var/log/pm2/admin-error.log",
       out_file: "/var/log/pm2/admin-out.log",
-      merge_logs: true,
-    },
-    {
-      name: "edu-box",
-      cwd: "/opt/chuangshizhe-copilot/apps/edu-box",
-      script: "pnpm",
-      args: "start",
-      env: {
-        NODE_ENV: "production",
-        PORT: "3001",
-        HOSTNAME: "0.0.0.0",
-      },
-      instances: 1,
-      autorestart: true,
-      max_memory_restart: "1G",
-      error_file: "/var/log/pm2/edu-box-error.log",
-      out_file: "/var/log/pm2/edu-box-out.log",
       merge_logs: true,
     },
   ],

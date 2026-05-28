@@ -81,7 +81,6 @@ echo "  [Prisma 生成]"
 cd packages/database
 npx prisma generate --schema=schema-core.prisma 2>&1 | tail -1
 npx prisma generate --schema=schema-ip.prisma 2>&1 | tail -1
-npx prisma generate --schema=schema-edu.prisma 2>&1 | tail -1
 cd ../..
 
 echo ""
@@ -93,12 +92,6 @@ cd ../..
 echo ""
 echo "  [构建 admin]"
 cd apps/admin
-pnpm build 2>&1 | tail -3
-cd ../..
-
-echo ""
-echo "  [构建 edu-box]"
-cd apps/edu-box
 pnpm build 2>&1 | tail -3
 cd ../..
 
@@ -118,7 +111,6 @@ mkdir -p /var/log/pm2
 echo "  [停止旧进程]"
 pm2 delete ip-copilot 2>/dev/null || true
 pm2 delete admin 2>/dev/null || true
-pm2 delete edu-box 2>/dev/null || true
 sleep 2
 
 echo "  [启动新进程]"
@@ -136,7 +128,6 @@ echo "=========================================="
 echo "  部署完成！版本: $VERSION"
 echo "=========================================="
 echo "  IP 内容工作台: http://111.228.45.216:3000/home"
-echo "  研学 Edu Box:   http://111.228.45.216:3001"
 echo "  统一管理后台:   http://111.228.45.216:3002"
 echo ""
 echo "  日志: ssh $SERVER 'pm2 logs'"
