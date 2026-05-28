@@ -84,8 +84,8 @@ npx prisma generate --schema=schema-ip.prisma 2>&1 | tail -1
 cd ../..
 
 echo ""
-echo "  [构建] turbo build (从 monorepo 根目录)"
-pnpm run build 2>&1 | tail -10
+echo "  [构建] turbo build (仅 ip-copilot + admin)"
+pnpm turbo run build --filter=@chuangshizhe/ip-copilot --filter=admin 2>&1 | tail -10
 
 echo ""
 echo "  所有应用构建完成"
