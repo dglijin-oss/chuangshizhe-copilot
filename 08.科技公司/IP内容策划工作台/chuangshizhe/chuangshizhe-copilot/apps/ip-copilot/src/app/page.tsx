@@ -6,6 +6,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { Sidebar } from "@/components/layout/sidebar"
+import { MobileNav } from "@/components/layout/mobile-nav"
 import { QuestionnaireModal } from "@/components/layout/questionnaire-modal"
 
 export default function HomePage() {
@@ -113,11 +114,17 @@ export default function HomePage() {
 
   return (
     <div className="flex h-screen bg-background-subtle">
+      {/* Mobile navigation */}
+      <MobileNav
+        user={{ name: user.name, points: user.points, role: user.role }}
+        onLogout={handleLogout}
+      />
+
       <div className="hidden md:block">
         <Sidebar user={{ name: user.name, points: user.points, role: user.role }} onLogout={handleLogout} />
       </div>
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-6 flex-shrink-0">
+        <header className="hidden md:flex h-14 bg-white border-b border-gray-200 items-center justify-between px-4 md:px-6 flex-shrink-0">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-title">工作区</span>
           </div>
@@ -127,7 +134,7 @@ export default function HomePage() {
             </span>
           </div>
         </header>
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1 overflow-auto md:pt-0 pt-[56px] pb-16 md:pb-0">
           <div className="p-4 md:p-6">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-2 h-2 rounded-full bg-primary" />

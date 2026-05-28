@@ -13,6 +13,8 @@ import {
   Loader2,
   ChevronDown,
   X,
+  ArrowLeft,
+  Menu,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -64,6 +66,7 @@ export default function ProjectAssistantPage() {
   const [showModelMenu, setShowModelMenu] = useState(false)
   const [showNewSessionModal, setShowNewSessionModal] = useState(false)
   const [newSessionTitle, setNewSessionTitle] = useState("")
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -313,21 +316,41 @@ export default function ProjectAssistantPage() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] bg-[#faf8f4]">
+    <div className="flex md:h-[calc(100vh-4rem)] h-[calc(100vh-8rem)] bg-[#faf8f4] relative">
+      {/* Mobile sidebar backdrop */}
+      {mobileSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-30 md:hidden"
+          onClick={() => setMobileSidebarOpen(false)}
+        />
+      )}
+
       {/* ===== Left: Session List ===== */}
-      <div className="w-[320px] border-r border-gray-200 bg-white flex flex-col flex-shrink-0">
+      <div className={cn(
+        "w-[320px] border-r border-gray-200 bg-white flex flex-col flex-shrink-0 z-40 md:z-auto",
+        "fixed md:relative inset-y-0 left-0 transform transition-transform duration-200 md:translate-x-0",
+        mobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
         {/* Header */}
         <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
           <div>
             <h1 className="text-base font-bold text-title">项目助手</h1>
             <p className="text-[11px] text-gray-400 mt-0.5">项目协作对话 · 已连接知识库</p>
           </div>
-          <button
-            onClick={openNewSessionModal}
-            className="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center hover:bg-amber-200 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setMobileSidebarOpen(false)}
+              className="md:hidden w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={openNewSessionModal}
+              className="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center hover:bg-amber-200 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* Session list */}
@@ -344,7 +367,7 @@ export default function ProjectAssistantPage() {
                   ? "bg-amber-50 text-amber-800"
                   : "hover:bg-gray-50 text-gray-600"
               )}
-              onClick={() => loadSession(session.id)}
+              onClick={() => { loadSession(session.id); setMobileSidebarOpen(false) }}
             >
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium truncate">{session.title}</p>
@@ -400,6 +423,12 @@ export default function ProjectAssistantPage() {
           <>
             {/* Capability badges */}
             <div className="relative px-6 pt-4 pb-2 flex items-center gap-3 flex-wrap z-10">
+              <button
+                onClick={() => setMobileSidebarOpen(true)}
+                className="md:hidden p-2 -ml-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
                   <span className="text-xs font-bold text-amber-700">项</span>
@@ -488,7 +517,7 @@ export default function ProjectAssistantPage() {
             </div>
 
             {/* Input bar */}
-            <div className="relative z-10 border-t border-gray-200 bg-white px-6 py-4">
+            <div className="relative z-10 border-t border-gray-200 bg-white px-6 py-4 md:pb-4 pb-safe-bottom">
               {/* File indicator */}
               {fileContent && (
                 <div className="mb-3 flex items-center gap-2 px-3 py-2 bg-amber-50 rounded-lg text-xs text-amber-700">
@@ -614,7 +643,7 @@ export default function ProjectAssistantPage() {
       {/* New session modal */}
       {showNewSessionModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-[420px] p-6">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[420px] mx-4 p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-base font-bold text-title">新建项目对话</h3>
               <button

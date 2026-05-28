@@ -104,9 +104,11 @@ const navGroups = [
 export function Sidebar({
   user,
   onLogout,
+  className,
 }: {
   user: { name: string; points: number; role?: string }
   onLogout: () => void
+  className?: string
 }) {
   const isAdmin = user.role === "admin"
   const pathname = usePathname()
@@ -131,7 +133,8 @@ export function Sidebar({
     <div
       className={cn(
         "bg-gray-50 border-r border-gray-200 h-screen flex flex-col flex-shrink-0 transition-all duration-200",
-        sidebarCollapsed ? "w-[64px]" : "w-[240px]"
+        sidebarCollapsed ? "w-[64px]" : "w-[240px]",
+        className
       )}
     >
       {/* Logo + Toggle */}
