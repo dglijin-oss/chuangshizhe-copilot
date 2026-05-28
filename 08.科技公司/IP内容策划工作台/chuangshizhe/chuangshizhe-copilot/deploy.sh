@@ -75,7 +75,7 @@ cd /opt/chuangshizhe-copilot
 echo "  [pnpm install]"
 # Hoist all deps to root node_modules (matches Docker .npmrc config)
 echo "node-linker=hoisted" > .npmrc
-pnpm install --frozen-lockfile
+pnpm install
 echo "  依赖安装完成"
 
 echo ""
