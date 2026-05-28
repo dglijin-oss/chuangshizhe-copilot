@@ -78,6 +78,7 @@ echo "  依赖安装完成"
 
 echo ""
 echo "  [Prisma 生成]"
+export SKIP_ENV_VALIDATION=1
 cd packages/database
 npx prisma generate --schema=schema-core.prisma 2>&1 | tail -1
 npx prisma generate --schema=schema-ip.prisma 2>&1 | tail -1
