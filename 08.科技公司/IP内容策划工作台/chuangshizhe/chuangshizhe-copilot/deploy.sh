@@ -73,6 +73,8 @@ set -e
 cd /opt/chuangshizhe-copilot
 
 echo "  [pnpm install]"
+# Hoist all deps to root node_modules (matches Docker .npmrc config)
+echo "node-linker=hoisted" > .npmrc
 pnpm install --frozen-lockfile
 echo "  依赖安装完成"
 
@@ -84,8 +86,10 @@ npx prisma generate --schema=schema-ip.prisma 2>&1 | tail -1
 cd ../..
 
 echo ""
-echo "  [构建] turbo build (仅 ip-copilot + admin)"
-pnpm turbo run build --filter=@chuangshizhe/ip-copilot --filter=admin 2>&1 | tail -10
+echo "  [构建] 构建 ip-copilot + admin (webpack)"
+# Build from root to resolve workspace package paths correctly
+cd apps/ip-copilot && pnpm build --webpack 2>&1 | tail -5 && cd ../..
+cd apps/admin && pnpm build --webpack 2>&1 | tail -5 && cd ../..
 
 echo ""
 echo "  所有应用构建完成"
