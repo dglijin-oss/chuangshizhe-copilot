@@ -347,7 +347,7 @@ export default function ProjectAssistantPage() {
   }
 
   return (
-    <div className="flex md:h-[calc(100vh-4rem)] h-[calc(100vh-8rem)] bg-[#faf8f4] relative">
+    <div className="flex md:h-[calc(100vh-4rem)] h-[calc(100vh-7.5rem)] bg-[#faf8f4] relative">
       {/* Mobile sidebar backdrop */}
       {mobileSidebarOpen && (
         <div
@@ -358,7 +358,7 @@ export default function ProjectAssistantPage() {
 
       {/* ===== Left: Session List ===== */}
       <div className={cn(
-        "w-[320px] border-r border-gray-200 bg-white flex flex-col flex-shrink-0 z-40 md:z-auto",
+        "w-full md:w-[320px] border-r border-gray-200 bg-white flex flex-col flex-shrink-0 z-40 md:z-auto",
         "fixed md:relative inset-y-0 left-0 transform transition-transform duration-200 md:translate-x-0",
         mobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
@@ -409,7 +409,7 @@ export default function ProjectAssistantPage() {
                   e.stopPropagation()
                   deleteSession(session.id)
                 }}
-                className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition-all p-1"
+                className="text-gray-300 hover:text-red-500 transition-all p-1 opacity-100 md:opacity-0 md:group-hover:opacity-100"
               >
                 <Trash2 className="w-3 h-3" />
               </button>
@@ -452,24 +452,31 @@ export default function ProjectAssistantPage() {
           </div>
         ) : (
           <>
-            {/* Capability badges */}
-            <div className="relative px-6 pt-4 pb-2 flex items-center gap-3 flex-wrap z-10">
-              <button
-                onClick={() => setMobileSidebarOpen(true)}
-                className="md:hidden p-2 -ml-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
-              >
-                <Menu className="w-5 h-5" />
-              </button>
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
-                  <span className="text-xs font-bold text-amber-700">项</span>
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-title">项目助手</p>
-                  <p className="text-[10px] text-gray-400">项目协作对话 · 已连接知识库</p>
+            {/* Capability bar */}
+            <div className="relative px-4 md:px-6 pt-3 md:pt-4 pb-2 z-10">
+              {/* Mobile: two-row layout (hamburger+title + scrollable badges) */}
+              <div className="md:hidden flex items-center justify-between mb-2">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setMobileSidebarOpen(true)}
+                    className="p-2 -ml-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                  >
+                    <Menu className="w-5 h-5" />
+                  </button>
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
+                      <span className="text-xs font-bold text-amber-700">项</span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-title leading-tight">项目助手</p>
+                      <p className="text-[10px] text-gray-400 leading-tight">项目协作 · 已连接知识库</p>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-1.5 ml-auto">
+
+              {/* Scrollable capability badges on mobile */}
+              <div className="flex md:hidden overflow-x-auto -mx-4 px-4 gap-1.5">
                 <CapabilityBadge
                   icon={<BookOpen className="w-3 h-3" />}
                   label="知识库已连接"
@@ -495,10 +502,55 @@ export default function ProjectAssistantPage() {
                   onToggle={() => toggleCapability("webSearch")}
                 />
               </div>
+
+              {/* Desktop: single-row layout */}
+              <div className="hidden md:flex items-center gap-3 flex-wrap">
+                <button
+                  onClick={() => setMobileSidebarOpen(true)}
+                  className="p-2 -ml-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+                >
+                  <Menu className="w-5 h-5" />
+                </button>
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
+                    <span className="text-xs font-bold text-amber-700">项</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-title">项目助手</p>
+                    <p className="text-[10px] text-gray-400">项目协作对话 · 已连接知识库</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 ml-auto">
+                  <CapabilityBadge
+                    icon={<BookOpen className="w-3 h-3" />}
+                    label="知识库已连接"
+                    active={capabilities.knowledgeBase}
+                    onToggle={() => toggleCapability("knowledgeBase")}
+                  />
+                  <CapabilityBadge
+                    icon={<Brain className="w-3 h-3" />}
+                    label="长期记忆"
+                    active={capabilities.longTermMemory}
+                    onToggle={() => toggleCapability("longTermMemory")}
+                  />
+                  <CapabilityBadge
+                    icon={<FileText className="w-3 h-3" />}
+                    label="可读文件"
+                    active={capabilities.fileUpload}
+                    onToggle={() => toggleCapability("fileUpload")}
+                  />
+                  <CapabilityBadge
+                    icon={<Globe className="w-3 h-3" />}
+                    label="可联网搜索"
+                    active={capabilities.webSearch}
+                    onToggle={() => toggleCapability("webSearch")}
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Messages area */}
-            <div className="relative flex-1 overflow-y-auto px-6 py-4 z-10">
+            <div className="relative flex-1 overflow-y-auto px-4 md:px-6 py-3 md:py-4 z-10">
               {messages.length === 0 && !streamingContent ? (
                 <div className="max-w-lg mx-auto mt-12">
                   <div className="bg-white border border-amber-200 rounded-2xl p-6 shadow-sm">
@@ -548,7 +600,7 @@ export default function ProjectAssistantPage() {
             </div>
 
             {/* Input bar */}
-            <div className="relative z-10 border-t border-gray-200 bg-white px-6 py-4 md:pb-4 pb-safe-bottom">
+            <div className="relative z-50 border-t border-gray-200 bg-white px-4 md:px-6 py-3 md:pb-4 pb-safe-bottom">
               {/* File indicator */}
               {fileContent && (
                 <div className="mb-3 flex items-center gap-2 px-3 py-2 bg-amber-50 rounded-lg text-xs text-amber-700">
@@ -563,7 +615,117 @@ export default function ProjectAssistantPage() {
                 </div>
               )}
 
-              <div className="max-w-2xl mx-auto flex items-end gap-2">
+              {/* Mobile: two-row layout */}
+              <div className="md:hidden flex flex-col gap-2 max-w-full mx-auto">
+                {/* Tool row */}
+                <div className="flex items-center gap-2">
+                  {/* Model selector */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowModelMenu((v) => !v)}
+                      className="flex items-center gap-1 px-2.5 py-2 border border-gray-200 rounded-lg text-[11px] text-gray-600 hover:border-gray-300 transition-colors bg-white"
+                    >
+                      <span className="max-w-[60px] truncate">{MODELS.find((m) => m.value === model)?.label || model}</span>
+                      <ChevronDown className="w-3 h-3" />
+                    </button>
+                    {showModelMenu && (
+                      <div className="absolute bottom-full mb-2 left-0 bg-white border border-gray-200 rounded-xl shadow-lg py-1 min-w-[140px] z-20">
+                        {MODELS.map((m) => (
+                          <button
+                            key={m.value}
+                            onClick={() => { setModel(m.value); setShowModelMenu(false); }}
+                            className={cn(
+                              "w-full text-left px-3 py-2 text-xs transition-colors",
+                              model === m.value ? "bg-amber-50 text-amber-700" : "text-gray-600 hover:bg-gray-50"
+                            )}
+                          >
+                            {m.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* File upload */}
+                  {capabilities.fileUpload && (
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="p-2 border border-gray-200 rounded-lg text-gray-400 hover:text-amber-600 hover:border-amber-300 transition-colors bg-white"
+                    >
+                      <FileUp className="w-4 h-4" />
+                    </button>
+                  )}
+
+                  {/* Web search toggle */}
+                  {capabilities.webSearch && (
+                    <button
+                      onClick={() => toggleCapability("webSearch")}
+                      className={cn(
+                        "p-2 border rounded-lg transition-colors bg-white",
+                        capabilities.webSearch
+                          ? "border-amber-300 text-amber-600 bg-amber-50"
+                          : "border-gray-200 text-gray-400 hover:text-gray-600"
+                      )}
+                      title="联网搜索"
+                    >
+                      <Globe className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Input row */}
+                <div className="flex items-end gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf,.docx,.doc,.pptx,.ppt,.txt,.md,.csv,.xlsx,.xls"
+                    className="hidden"
+                    onChange={handleFileUpload}
+                  />
+
+                  <textarea
+                    ref={inputRef}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault()
+                        handleSend()
+                      }
+                    }}
+                    placeholder="输入消息..."
+                    rows={1}
+                    className="flex-1 resize-none px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 bg-white max-h-32"
+                    style={{ minHeight: "44px" }}
+                  />
+
+                  <button
+                    onClick={handleSend}
+                    disabled={loading || !input.trim()}
+                    className={cn(
+                      "px-4 py-3 rounded-xl text-sm font-medium transition-all whitespace-nowrap flex items-center gap-1.5 flex-shrink-0 touch-manipulation",
+                      loading || !input.trim()
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-amber-500 text-white hover:bg-amber-600"
+                    )}
+                    style={{ pointerEvents: loading || !input.trim() ? "none" : "auto" }}
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        <span className="ml-1">发送</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Desktop: single-row layout */}
+              <div className="hidden md:flex max-w-2xl mx-auto items-end gap-2">
                 {/* Model selector */}
                 <div className="relative">
                   <button
