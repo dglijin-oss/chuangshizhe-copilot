@@ -6,7 +6,32 @@ import { Copy, RefreshCw, Sparkles, Check, ArrowLeft, Wand2, Save, BookOpen, QrC
 import { cn } from "@/lib/utils"
 import { useAiGeneration } from "@/hooks/use-ai-generation"
 
-// Rewrite presets for each section
+/**
+ * 复制文本到剪贴板。优先用 Clipboard API，HTTP 环境降级到 execCommand。
+ */
+const copyToClipboard = async (text: string): Promise<boolean> => {
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text)
+      return true
+    } catch { /* fall through to execCommand fallback */ }
+  }
+  const ta = document.createElement("textarea")
+  ta.value = text
+  ta.style.position = "fixed"
+  ta.style.left = "-9999px"
+  document.body.appendChild(ta)
+  ta.select()
+  try {
+    document.execCommand("copy")
+    return true
+  } catch {
+    return false
+  } finally {
+    document.body.removeChild(ta)
+  }
+}
+
 const rewritePresets: Record<string, { label: string; prompt: string }[]> = {
   titleHook: [
     { label: "更抓人", prompt: "把标题和钩子改得更有冲突、更想点开，但不要标题党，不要虚构事实。" },
@@ -157,17 +182,15 @@ export default function ItemResultPage() {
       "",
       tipsText,
     ].join("\n")
-    try {
-      await navigator.clipboard.writeText(full)
+    const ok = await copyToClipboard(full)
+    if (ok) {
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
-    } catch { /* ignore */ }
+    }
   }
 
   const handleCopy = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text)
-    } catch { /* ignore */ }
+    await copyToClipboard(text)
   }
 
   const handleSaveToKnowledge = async () => {
