@@ -17,6 +17,8 @@ import {
   Menu,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 
 /* ---- Types ---- */
 
@@ -575,7 +577,11 @@ export default function ProjectAssistantPage() {
                             : "bg-white border border-gray-200 rounded-bl-sm shadow-sm"
                         )}
                       >
+                      {msg.role === "user" ? (
                         <div className="whitespace-pre-wrap">{msg.content}</div>
+                      ) : (
+                        <ReactMarkdown className="chat-markdown" remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+                      )}
                       </div>
                     </div>
                   ))}
@@ -584,7 +590,7 @@ export default function ProjectAssistantPage() {
                   {streamingContent && (
                     <div className="flex justify-start">
                       <div className="max-w-[85%] bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-4 py-3 text-sm leading-relaxed shadow-sm">
-                        <div className="whitespace-pre-wrap">{streamingContent}</div>
+                        <ReactMarkdown className="chat-markdown" remarkPlugins={[remarkGfm]}>{streamingContent}</ReactMarkdown>
                         <div className="flex items-center gap-1 mt-2">
                           <div className="animate-pulse w-1.5 h-1.5 bg-amber-500 rounded-full" />
                           <div className="animate-pulse w-1.5 h-1.5 bg-amber-500 rounded-full" style={{ animationDelay: "0.15s" }} />

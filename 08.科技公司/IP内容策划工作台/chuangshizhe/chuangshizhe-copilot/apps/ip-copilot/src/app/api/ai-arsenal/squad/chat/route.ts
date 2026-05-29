@@ -2,15 +2,18 @@ import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
 import { prismaIp } from "@/lib/prisma"
 import { client } from "@/lib/llm"
+import { fetchKnowledgeContext } from "@/lib/knowledge"
+import { webSearch } from "@/lib/web-search"
 
 export async function POST(req: Request) {
   const user = await getSessionUser()
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 })
 
-  const { message, sessionId, model } = (await req.json()) as {
+  const { message, sessionId, model, webSearch: doWebSearch } = (await req.json()) as {
     message: string
     sessionId: string
     model?: string
+    webSearch?: boolean
   }
 
   if (!message?.trim()) {
@@ -29,6 +32,23 @@ export async function POST(req: Request) {
   let systemPrompt = "你是创世者 Copilot 的 AI 智能体助手。"
   if (session.agent?.systemPrompt) {
     systemPrompt = session.agent.systemPrompt
+  }
+
+  // Inject knowledge context: AccountMemory + WikiPage
+  const knowledge = await fetchKnowledgeContext(user.id, session.agent?.ipId || null)
+  if (knowledge.memories && knowledge.memories !== "无") {
+    systemPrompt += `\n\n## 账号记忆（必须严格遵守）\n${knowledge.memories}`
+  }
+  if (knowledge.wikiPages && knowledge.wikiPages !== "无") {
+    systemPrompt += `\n\n## IP 知识库参考\n${knowledge.wikiPages}`
+  }
+
+  // Web search: fetch results and inject into system prompt
+  if (doWebSearch) {
+    const searchResults = await webSearch(message, 3)
+    if (searchResults) {
+      systemPrompt += `\n\n## 联网搜索结果（参考用，可能不完全相关）\n${searchResults}`
+    }
   }
 
   // Fetch session messages for context (last 10)

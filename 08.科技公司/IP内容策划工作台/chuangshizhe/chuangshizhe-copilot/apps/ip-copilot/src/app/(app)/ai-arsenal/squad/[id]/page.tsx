@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { Plus, Send, FileUp, Loader2, ChevronDown, X, ArrowLeft } from "lucide-react"
+import { Plus, Send, FileUp, Loader2, ChevronDown, X, ArrowLeft, Globe } from "lucide-react"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 import { cn } from "@/lib/utils"
 
 const MODELS = [
@@ -44,6 +46,7 @@ export default function SquadChatPage({ params }: { params: Promise<{ id: string
   const [newSessionTitle, setNewSessionTitle] = useState("")
   const [fileContent, setFileContent] = useState<string>("")
   const [fileName, setFileName] = useState<string>("")
+  const [webSearch, setWebSearch] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -164,6 +167,7 @@ export default function SquadChatPage({ params }: { params: Promise<{ id: string
           message: fullMessage,
           sessionId: activeSessionId,
           model,
+          webSearch,
         }),
       })
 
@@ -248,7 +252,7 @@ export default function SquadChatPage({ params }: { params: Promise<{ id: string
     } finally {
       setLoading(false)
     }
-  }, [input, loading, activeSessionId, model, fileContent, fileName, loadSessions])
+  }, [input, loading, activeSessionId, model, webSearch, fileContent, fileName, loadSessions])
 
   /* Scroll to bottom */
   useEffect(() => {
@@ -414,7 +418,11 @@ export default function SquadChatPage({ params }: { params: Promise<{ id: string
                         )}
                         style={msg.role === "user" ? { backgroundColor: themeColor } : {}}
                       >
+                      {msg.role === "user" ? (
                         <div className="whitespace-pre-wrap">{msg.content}</div>
+                      ) : (
+                        <ReactMarkdown className="chat-markdown" remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+                      )}
                       </div>
                     </div>
                   ))}
@@ -423,7 +431,7 @@ export default function SquadChatPage({ params }: { params: Promise<{ id: string
                   {streamingContent && (
                     <div className="flex justify-start">
                       <div className="max-w-[85%] bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-4 py-3 text-sm leading-relaxed shadow-sm">
-                        <div className="whitespace-pre-wrap">{streamingContent}</div>
+                        <ReactMarkdown className="chat-markdown" remarkPlugins={[remarkGfm]}>{streamingContent}</ReactMarkdown>
                         <div className="flex items-center gap-1 mt-2">
                           <div className="animate-pulse w-1.5 h-1.5 rounded-full" style={{ backgroundColor: themeColor }} />
                           <div className="animate-pulse w-1.5 h-1.5 rounded-full" style={{ backgroundColor: themeColor, animationDelay: "0.15s" }} />
@@ -488,6 +496,20 @@ export default function SquadChatPage({ params }: { params: Promise<{ id: string
                   className="p-2.5 border border-gray-200 rounded-xl text-gray-400 hover:text-amber-600 hover:border-amber-300 transition-colors bg-white"
                 >
                   <FileUp className="w-4 h-4" />
+                </button>
+
+                {/* Web search toggle */}
+                <button
+                  onClick={() => setWebSearch(!webSearch)}
+                  className={cn(
+                    "p-2.5 border rounded-xl transition-colors bg-white",
+                    webSearch
+                      ? "border-amber-300 text-amber-600 bg-amber-50"
+                      : "border-gray-200 text-gray-400 hover:text-amber-600 hover:border-amber-300"
+                  )}
+                  title={webSearch ? "已开启联网搜索" : "开启联网搜索"}
+                >
+                  <Globe className="w-4 h-4" />
                 </button>
 
                 <input

@@ -33,12 +33,13 @@ async function extractText(file: File): Promise<string> {
     }
     case "xlsx":
     case "xls": {
-      const { read } = await import("xlsx")
+      const { read, utils } = await import("xlsx")
       const wb = read(bytes, { type: "buffer", cellText: true })
       return wb.SheetNames.map((name) => {
         const sheet = wb.Sheets[name]
         if (!sheet) return ""
-        return `## ${name}\n${sheet["!data"] ? "" : ""}`
+        const csv = utils.sheet_to_csv(sheet, { FS: "\t", blankrows: false })
+        return `## ${name}\n${csv}`
       }).join("\n")
     }
     default:
