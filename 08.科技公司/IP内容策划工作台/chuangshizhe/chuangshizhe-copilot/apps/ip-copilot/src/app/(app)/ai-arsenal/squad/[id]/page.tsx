@@ -140,7 +140,25 @@ export default function SquadChatPage({ params }: { params: Promise<{ id: string
   /* Send message */
   const handleSend = useCallback(async () => {
     const content = input.trim()
-    if (!content || loading || !activeSessionId) return
+    if (!content || loading) return
+
+    // Auto-create session if none exists
+    let currentSessionId = activeSessionId
+    if (!currentSessionId) {
+      const sessionName = content.length > 30 ? content.slice(0, 30) + "…" : content
+      const res = await fetch("/api/ai-arsenal/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ title: sessionName, agentId }),
+      })
+      if (!res.ok) return
+      const data = await res.json()
+      if (!data.session) return
+      currentSessionId = data.session.id
+      setSessions((prev) => [data.session, ...prev])
+      setActiveSessionId(data.session.id)
+    }
 
     const userMsg: ChatMessage = {
       id: crypto.randomUUID(),
@@ -165,7 +183,7 @@ export default function SquadChatPage({ params }: { params: Promise<{ id: string
         credentials: "include",
         body: JSON.stringify({
           message: fullMessage,
-          sessionId: activeSessionId,
+          sessionId: currentSessionId,
           model,
           webSearch,
         }),
@@ -252,7 +270,7 @@ export default function SquadChatPage({ params }: { params: Promise<{ id: string
     } finally {
       setLoading(false)
     }
-  }, [input, loading, activeSessionId, model, webSearch, fileContent, fileName, loadSessions])
+  }, [input, loading, activeSessionId, model, webSearch, fileContent, fileName, loadSessions, agentId])
 
   /* Scroll to bottom */
   useEffect(() => {
@@ -359,37 +377,53 @@ export default function SquadChatPage({ params }: { params: Promise<{ id: string
           </div>
         </div>
 
-        {!activeSessionId ? (
-          /* Empty state with welcome card */
-          <div className="relative flex-1 flex items-center justify-center">
-            <div className="max-w-lg mx-auto px-6">
-              <div
-                className="bg-white border rounded-2xl p-8 shadow-sm"
-                style={{ borderColor: themeBorder }}
-              >
-                <h3 className="text-lg font-bold text-[#2d2a26] mb-3">{agent.name}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed mb-6">{agent.description}</p>
-                <div className="space-y-2">
-                  {agent.quickPrompts.map((prompt, i) => (
-                    <button
-                      key={i}
-                      onClick={() => {
-                        setInput(prompt)
-                        inputRef.current?.focus()
-                      }}
-                      className="w-full text-left px-4 py-3 rounded-xl text-sm bg-white border border-gray-200 hover:border-gray-300 transition-colors text-gray-700"
-                    >
-                      {prompt}
-                    </button>
-                  ))}
+        {/* Content area: welcome card OR messages */}
+        <div className="relative flex-1 flex flex-col z-10 overflow-hidden">
+          {!activeSessionId ? (
+            <div className="flex-1 flex items-center justify-center overflow-y-auto">
+              <div className="max-w-lg mx-auto px-6">
+                <div
+                  className="bg-white border rounded-2xl p-8 shadow-sm"
+                  style={{ borderColor: themeBorder }}
+                >
+                  <h3 className="text-lg font-bold text-[#2d2a26] mb-3">{agent.name}</h3>
+                  <p className="text-sm text-gray-500 leading-relaxed mb-6">{agent.description}</p>
+                  <div className="space-y-2">
+                    {agent.quickPrompts.map((prompt, i) => (
+                      <button
+                        key={i}
+                        onClick={async () => {
+                          setInput(prompt)
+                          if (!activeSessionId) {
+                            // Auto-create session and send
+                            const sessionName = prompt.length > 30 ? prompt.slice(0, 30) + "…" : prompt
+                            const res = await fetch("/api/ai-arsenal/sessions", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              credentials: "include",
+                              body: JSON.stringify({ title: sessionName, agentId }),
+                            })
+                            if (res.ok) {
+                              const data = await res.json()
+                              if (data.session) {
+                                setSessions((prev) => [data.session, ...prev])
+                                setActiveSessionId(data.session.id)
+                              }
+                            }
+                          }
+                          setTimeout(() => handleSend(), 100)
+                        }}
+                        className="w-full text-left px-4 py-3 rounded-xl text-sm bg-white border border-gray-200 hover:border-gray-300 transition-colors text-gray-700"
+                      >
+                        {prompt}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ) : (
-          <>
-            {/* Messages area */}
-            <div className="relative flex-1 overflow-y-auto px-6 py-4 z-10">
+          ) : (
+            <div className="flex-1 overflow-y-auto px-6 py-4">
               {messages.length === 0 && !streamingContent ? (
                 <div className="max-w-lg mx-auto mt-12">
                   <div
@@ -445,138 +479,138 @@ export default function SquadChatPage({ params }: { params: Promise<{ id: string
                 </div>
               )}
             </div>
+          )}
 
-            {/* Input bar */}
-            <div className="relative z-10 border-t border-gray-200 bg-white px-6 py-4">
-              {/* File indicator */}
-              {fileContent && (
-                <div className="mb-3 flex items-center gap-2 px-3 py-2 rounded-lg text-xs" style={{ backgroundColor: themeBg, color: themeColor }}>
-                  <FileUp className="w-3.5 h-3.5 flex-shrink-0" />
-                  <span className="truncate">{fileName}</span>
-                  <button onClick={() => { setFileContent(""); setFileName(""); }} className="ml-auto opacity-50 hover:opacity-100">
-                    ×
-                  </button>
-                </div>
-              )}
-
-              <div className="max-w-2xl mx-auto flex items-end gap-2">
-                {/* Model selector */}
-                <div className="relative">
-                  <button
-                    onClick={() => setShowModelMenu((v) => !v)}
-                    className="flex items-center gap-1.5 px-3 py-2.5 border border-gray-200 rounded-xl text-xs text-gray-600 hover:border-gray-300 transition-colors bg-white"
-                  >
-                    {MODELS.find((m) => m.value === model)?.label || model}
-                    <ChevronDown className="w-3 h-3" />
-                  </button>
-                  {showModelMenu && (
-                    <div className="absolute bottom-full mb-2 left-0 bg-white border border-gray-200 rounded-xl shadow-lg py-1 min-w-[140px] z-20">
-                      {MODELS.map((m) => (
-                        <button
-                          key={m.value}
-                          onClick={() => { setModel(m.value); setShowModelMenu(false); }}
-                          className={cn(
-                            "w-full text-left px-3 py-2 text-xs transition-colors",
-                            model === m.value
-                              ? "text-white"
-                              : "text-gray-600 hover:bg-gray-50"
-                          )}
-                          style={model === m.value ? { backgroundColor: themeColor } : {}}
-                        >
-                          {m.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* File upload */}
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="p-2.5 border border-gray-200 rounded-xl text-gray-400 hover:text-amber-600 hover:border-amber-300 transition-colors bg-white"
-                >
-                  <FileUp className="w-4 h-4" />
-                </button>
-
-                {/* Web search toggle */}
-                <button
-                  onClick={() => setWebSearch(!webSearch)}
-                  className={cn(
-                    "p-2.5 border rounded-xl transition-colors bg-white",
-                    webSearch
-                      ? "border-amber-300 text-amber-600 bg-amber-50"
-                      : "border-gray-200 text-gray-400 hover:text-amber-600 hover:border-amber-300"
-                  )}
-                  title={webSearch ? "已开启联网搜索" : "开启联网搜索"}
-                >
-                  <Globe className="w-4 h-4" />
-                </button>
-
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".pdf,.docx,.doc,.pptx,.ppt,.txt,.md,.csv,.xlsx,.xls"
-                  className="hidden"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0]
-                    if (!file) return
-                    const formData = new FormData()
-                    formData.append("files", file)
-                    const res = await fetch("/api/ai-arsenal/upload", { method: "POST", credentials: "include", body: formData })
-                    const data = await res.json()
-                    if (data.files?.[0]?.text) {
-                      setFileContent(data.files[0].text)
-                      setFileName(data.files[0].fileName)
-                    }
-                    if (fileInputRef.current) fileInputRef.current.value = ""
-                  }}
-                />
-
-                {/* Text input */}
-                <textarea
-                  ref={inputRef}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault()
-                      handleSend()
-                    }
-                  }}
-                  placeholder="输入消息，可以引用已上传文件或打开联网搜索"
-                  rows={1}
-                  className="flex-1 resize-none px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 bg-white max-h-32"
-                  style={{ "--tw-ring-color": themeColor } as React.CSSProperties}
-                />
-
-                {/* Send button */}
-                <button
-                  onClick={handleSend}
-                  disabled={loading || !input.trim()}
-                  className={cn(
-                    "px-5 py-3 rounded-xl text-sm font-medium transition-all whitespace-nowrap flex items-center gap-1.5",
-                    loading || !input.trim()
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "text-white hover:opacity-90"
-                  )}
-                  style={loading || !input.trim() ? {} : { backgroundColor: themeColor }}
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      生成中
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-4 h-4" />
-                      发送
-                    </>
-                  )}
+          {/* Input bar — always visible */}
+          <div className="relative z-10 border-t border-gray-200 bg-white px-6 py-4 flex-shrink-0">
+            {/* File indicator */}
+            {fileContent && (
+              <div className="mb-3 flex items-center gap-2 px-3 py-2 rounded-lg text-xs" style={{ backgroundColor: themeBg, color: themeColor }}>
+                <FileUp className="w-3.5 h-3.5 flex-shrink-0" />
+                <span className="truncate">{fileName}</span>
+                <button onClick={() => { setFileContent(""); setFileName(""); }} className="ml-auto opacity-50 hover:opacity-100">
+                  ×
                 </button>
               </div>
+            )}
+
+            <div className="max-w-2xl mx-auto flex items-end gap-2">
+              {/* Model selector */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowModelMenu((v) => !v)}
+                  className="flex items-center gap-1.5 px-3 py-2.5 border border-gray-200 rounded-xl text-xs text-gray-600 hover:border-gray-300 transition-colors bg-white"
+                >
+                  {MODELS.find((m) => m.value === model)?.label || model}
+                  <ChevronDown className="w-3 h-3" />
+                </button>
+                {showModelMenu && (
+                  <div className="absolute bottom-full mb-2 left-0 bg-white border border-gray-200 rounded-xl shadow-lg py-1 min-w-[140px] z-20">
+                    {MODELS.map((m) => (
+                      <button
+                        key={m.value}
+                        onClick={() => { setModel(m.value); setShowModelMenu(false); }}
+                        className={cn(
+                          "w-full text-left px-3 py-2 text-xs transition-colors",
+                          model === m.value
+                            ? "text-white"
+                            : "text-gray-600 hover:bg-gray-50"
+                        )}
+                        style={model === m.value ? { backgroundColor: themeColor } : {}}
+                      >
+                        {m.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* File upload */}
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="p-2.5 border border-gray-200 rounded-xl text-gray-400 hover:text-amber-600 hover:border-amber-300 transition-colors bg-white"
+              >
+                <FileUp className="w-4 h-4" />
+              </button>
+
+              {/* Web search toggle */}
+              <button
+                onClick={() => setWebSearch(!webSearch)}
+                className={cn(
+                  "p-2.5 border rounded-xl transition-colors bg-white",
+                  webSearch
+                    ? "border-amber-300 text-amber-600 bg-amber-50"
+                    : "border-gray-200 text-gray-400 hover:text-amber-600 hover:border-amber-300"
+                )}
+                title={webSearch ? "已开启联网搜索" : "开启联网搜索"}
+              >
+                <Globe className="w-4 h-4" />
+              </button>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.docx,.doc,.pptx,.ppt,.txt,.md,.csv,.xlsx,.xls"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0]
+                  if (!file) return
+                  const formData = new FormData()
+                  formData.append("files", file)
+                  const res = await fetch("/api/ai-arsenal/upload", { method: "POST", credentials: "include", body: formData })
+                  const data = await res.json()
+                  if (data.files?.[0]?.text) {
+                    setFileContent(data.files[0].text)
+                    setFileName(data.files[0].fileName)
+                  }
+                  if (fileInputRef.current) fileInputRef.current.value = ""
+                }}
+              />
+
+              {/* Text input */}
+              <textarea
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault()
+                    handleSend()
+                  }
+                }}
+                placeholder="输入消息，可以引用已上传文件或打开联网搜索"
+                rows={1}
+                className="flex-1 resize-none px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 bg-white max-h-32"
+                style={{ "--tw-ring-color": themeColor } as React.CSSProperties}
+              />
+
+              {/* Send button */}
+              <button
+                onClick={handleSend}
+                disabled={loading || !input.trim()}
+                className={cn(
+                  "px-5 py-3 rounded-xl text-sm font-medium transition-all whitespace-nowrap flex items-center gap-1.5",
+                  loading || !input.trim()
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "text-white hover:opacity-90"
+                )}
+                style={loading || !input.trim() ? {} : { backgroundColor: themeColor }}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    生成中
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    发送
+                  </>
+                )}
+              </button>
             </div>
-          </>
-        )}
+          </div>
+        </div>
       </div>
 
       {/* New session modal */}
