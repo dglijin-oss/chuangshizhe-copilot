@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma'
+import { prismaIp as prisma } from '@/lib/prisma'
 import { deductPoints as coreDeductPoints } from '@/lib/billing'
 import type { SkillId } from './types'
 
