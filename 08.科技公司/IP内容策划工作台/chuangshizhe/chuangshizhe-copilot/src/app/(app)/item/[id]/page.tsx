@@ -349,7 +349,7 @@ export default function ItemResultPage() {
             <span className="text-sm font-bold text-title">{item?.plan?.ip?.name || "创世者Copilot"}</span>
           </div>
           <div className="flex items-center gap-4 md:gap-6">
-            <button onClick={() => router.push("/")} className="text-xs text-muted hover:text-primary transition-colors">工作台</button>
+            <button onClick={() => router.push("/dashboard")} className="text-xs text-muted hover:text-primary transition-colors">工作台</button>
             <button onClick={() => router.push(`/ip/${item?.plan?.ip?.id}/profile`)} className="text-xs text-muted hover:text-primary transition-colors">IP 知识库</button>
             <button onClick={() => router.push(`/ip/${item?.plan?.ip?.id}/weekly-plan`)} className="text-xs text-muted hover:text-primary transition-colors">返回周策划</button>
             <button className="text-xs text-primary font-medium hover:text-primary-hover transition-colors">加微信</button>

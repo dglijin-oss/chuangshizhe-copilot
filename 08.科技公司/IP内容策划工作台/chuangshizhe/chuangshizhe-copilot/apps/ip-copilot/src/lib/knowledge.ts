@@ -32,16 +32,16 @@ export async function fetchKnowledgeContext(
     trust_asset: "信任资产",
   }
 
-  // Parallel fetch all 4 independent queries
+  // Parallel fetch all 4 independent queries (exclude soft-deleted)
   const [ipMemories, accountMemories, ipWikiPages, accountWikiPages] = await Promise.all([
     ipId
-      ? prismaIp.accountMemory.findMany({ where: { userId, ipId }, orderBy: { createdAt: "desc" } })
+      ? prismaIp.accountMemory.findMany({ where: { userId, ipId, deletedAt: null }, orderBy: { createdAt: "desc" } })
       : Promise.resolve([]),
-    prismaIp.accountMemory.findMany({ where: { userId, ipId: null }, orderBy: { createdAt: "desc" } }),
+    prismaIp.accountMemory.findMany({ where: { userId, ipId: null, deletedAt: null }, orderBy: { createdAt: "desc" } }),
     ipId
-      ? prismaIp.wikiPage.findMany({ where: { userId, ipId }, orderBy: { updatedAt: "desc" } })
+      ? prismaIp.wikiPage.findMany({ where: { userId, ipId, deletedAt: null }, orderBy: { updatedAt: "desc" } })
       : Promise.resolve([]),
-    prismaIp.wikiPage.findMany({ where: { userId, ipId: null }, orderBy: { updatedAt: "desc" } }),
+    prismaIp.wikiPage.findMany({ where: { userId, ipId: null, deletedAt: null }, orderBy: { updatedAt: "desc" } }),
   ])
 
   // Format AccountMemory as structured text for prompt injection

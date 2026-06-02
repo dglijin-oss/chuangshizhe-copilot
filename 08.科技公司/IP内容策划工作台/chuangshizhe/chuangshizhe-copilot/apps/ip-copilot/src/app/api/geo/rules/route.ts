@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
 import { prismaIp } from "@/lib/prisma"
+import { softDelete } from "@/lib/soft-delete"
 
 // GET /api/geo/rules - list user's generation rules
 export async function GET() {
@@ -8,7 +9,7 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 })
 
   const rules = await prismaIp.generationRule.findMany({
-    where: { userId: user.id },
+    where: softDelete({ userId: user.id }),
     orderBy: { createdAt: "desc" },
   })
 
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
   return NextResponse.json({ rule })
 }
 
-// DELETE /api/geo/rules/[id]
+// DELETE /api/geo/rules/[id] - soft delete
 export async function DELETE(req: Request) {
   const user = await getSessionUser()
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 })
@@ -48,6 +49,9 @@ export async function DELETE(req: Request) {
   const id = searchParams.get("id")
   if (!id) return NextResponse.json({ error: "ID 必填" }, { status: 400 })
 
-  await prismaIp.generationRule.delete({ where: { id, userId: user.id } })
+  await prismaIp.generationRule.update({
+    where: { id, userId: user.id },
+    data: { deletedAt: new Date() },
+  })
   return NextResponse.json({ success: true })
 }

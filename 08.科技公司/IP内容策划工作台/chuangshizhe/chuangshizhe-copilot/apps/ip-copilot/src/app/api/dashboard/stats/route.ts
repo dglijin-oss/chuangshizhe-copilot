@@ -9,8 +9,9 @@ export async function GET() {
 
   const now = new Date()
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+  const activeIp = { deletedAt: null }
 
-  // Parallel fetch all stats
+  // Parallel fetch all stats (exclude soft-deleted records)
   const [
     articleTotal,
     articleRecent7d,
@@ -24,30 +25,35 @@ export async function GET() {
     dailyArticles,
   ] = await Promise.all([
     // 已生成文案总数
-    prismaIp.geoArticle.count({ where: { userId: user.id } }),
+    prismaIp.geoArticle.count({ where: { userId: user.id, deletedAt: null } }),
     // 近7天生成文案
-    prismaIp.geoArticle.count({ where: { userId: user.id, createdAt: { gte: sevenDaysAgo } } }),
+    prismaIp.geoArticle.count({ where: { userId: user.id, deletedAt: null, createdAt: { gte: sevenDaysAgo } } }),
     // 周策划总数
-    prismaIp.weeklyPlan.count({ where: { userId: user.id } }),
+    prismaIp.weeklyPlan.count({ where: { userId: user.id, deletedAt: null } }),
     // IP 账号总数
-    prismaIp.ip.count({ where: { userId: user.id } }),
+    prismaIp.ip.count({ where: { userId: user.id, deletedAt: null } }),
     // IP 无策划（没有 weeklyPlan 的 IP）
     prismaIp.ip.count({
-      where: { userId: user.id, weeklyPlans: { none: {} } },
+      where: { ...activeIp, userId: user.id, weeklyPlans: { none: { deletedAt: null } } },
     }),
     // 发布包数量
-    prismaIp.publishRecord.count({ where: { userId: user.id } }),
+    prismaIp.publishRecord.count({ where: { userId: user.id, deletedAt: null } }),
     // 知识库条目
-    prismaIp.knowledgeBase.count({ where: { userId: user.id } }),
+    prismaIp.knowledgeBase.count({ where: { userId: user.id, deletedAt: null } }),
     // 近7天生成记录数
     prismaCore.generationLog.count({ where: { userId: user.id, createdAt: { gte: sevenDaysAgo } } }),
     // IP 列表带计数
     prismaIp.ip.findMany({
-      where: { userId: user.id },
+      where: { userId: user.id, deletedAt: null },
       orderBy: { createdAt: "desc" },
       take: 10,
       include: {
-        _count: { select: { weeklyPlans: true, geoArticles: true } },
+        _count: {
+          select: {
+            weeklyPlans: { where: { deletedAt: null } },
+            geoArticles: { where: { deletedAt: null } },
+          },
+        },
       },
     }),
     // 每日生成记录数（近7天）— 用作产出趋势

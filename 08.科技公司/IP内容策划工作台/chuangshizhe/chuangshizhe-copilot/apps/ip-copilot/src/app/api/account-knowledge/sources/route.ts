@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
 import { prismaIp } from "@/lib/prisma"
 import { parseBody, knowledgeSourceSchema } from "@/lib/validation"
+import { softDelete } from "@/lib/soft-delete"
 
 // GET /api/account-knowledge/sources - list sources
 export async function GET(req: Request) {
@@ -11,7 +12,7 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const sourceType = searchParams.get("sourceType")
 
-  const where: any = { userId: user.id }
+  const where: any = softDelete({ userId: user.id })
   if (sourceType) where.sourceType = sourceType
 
   const sources = await prismaIp.knowledgeSource.findMany({
@@ -52,7 +53,7 @@ export async function POST(req: Request) {
   return NextResponse.json({ source })
 }
 
-// DELETE /api/account-knowledge/sources - delete source
+// DELETE /api/account-knowledge/sources - soft delete source
 export async function DELETE(req: Request) {
   const user = await getSessionUser()
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 })
@@ -62,8 +63,9 @@ export async function DELETE(req: Request) {
 
   if (!id) return NextResponse.json({ error: "缺少 id" }, { status: 400 })
 
-  await prismaIp.knowledgeSource.delete({
+  await prismaIp.knowledgeSource.update({
     where: { id, userId: user.id },
+    data: { deletedAt: new Date() },
   })
 
   return NextResponse.json({ success: true })

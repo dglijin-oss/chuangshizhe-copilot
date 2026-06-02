@@ -16,6 +16,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     phone: string
     role: string
     points: number
+    products: string[]
     hasQuestionnaire: boolean
   } | null>(null)
   const [loading, setLoading] = useState(true)

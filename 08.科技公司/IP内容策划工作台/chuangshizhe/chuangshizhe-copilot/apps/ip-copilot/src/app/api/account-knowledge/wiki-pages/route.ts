@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
 import { prismaIp } from "@/lib/prisma"
 import { parseBody, wikiPageSchema } from "@/lib/validation"
+import { softDelete } from "@/lib/soft-delete"
 
 // GET /api/account-knowledge/wiki-pages - list wiki pages
 export async function GET(req: Request) {
@@ -11,12 +12,12 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const category = searchParams.get("category")
 
-  const where: any = { userId: user.id }
+  const where: any = softDelete({ userId: user.id })
   if (category) where.category = category
 
   const pages = await prismaIp.wikiPage.findMany({
     where,
-    include: { source: { select: { title: true, sourceType: true } } },
+    include: { source: { select: { title: true, sourceType: true, deletedAt: false } } },
     orderBy: { updatedAt: "desc" },
   })
 
@@ -63,8 +64,14 @@ export async function PUT(req: Request) {
 
   if (!id) return NextResponse.json({ error: "缺少 id" }, { status: 400 })
 
+  // Verify ownership (exclude soft-deleted)
+  const existing = await prismaIp.wikiPage.findFirst({
+    where: softDelete({ id, userId: user.id }),
+  })
+  if (!existing) return NextResponse.json({ error: "页面不存在" }, { status: 404 })
+
   const page = await prismaIp.wikiPage.update({
-    where: { id, userId: user.id },
+    where: { id },
     data: {
       ...(title && { title }),
       ...(content !== undefined && { content }),
@@ -82,7 +89,7 @@ export async function PUT(req: Request) {
   return NextResponse.json({ page })
 }
 
-// DELETE /api/account-knowledge/wiki-pages - delete wiki page
+// DELETE /api/account-knowledge/wiki-pages - soft delete wiki page
 export async function DELETE(req: Request) {
   const user = await getSessionUser()
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 })
@@ -97,7 +104,8 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: "页面不存在" }, { status: 404 })
   }
 
-  await prismaIp.wikiPage.delete({ where: { id } })
+  // Soft delete
+  await prismaIp.wikiPage.update({ where: { id }, data: { deletedAt: new Date() } })
 
   await prismaIp.compileEvent.create({
     data: {

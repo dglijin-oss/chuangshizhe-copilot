@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
 import { prismaIp } from "@/lib/prisma"
 import { parseBody, corpusFeedSchema } from "@/lib/validation"
+import { softDelete } from "@/lib/soft-delete"
 
 // GET /api/corpus-feed - list feeds for an IP
 export async function GET(req: Request) {
@@ -11,7 +12,7 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const ipId = searchParams.get("ipId")
 
-  const where: any = { userId: user.id }
+  const where: any = softDelete({ userId: user.id })
   if (ipId) where.ipId = ipId
 
   const feeds = await prismaIp.corpusFeed.findMany({
@@ -44,7 +45,7 @@ export async function POST(req: Request) {
   return NextResponse.json({ feed })
 }
 
-// DELETE /api/corpus-feed - delete a feed
+// DELETE /api/corpus-feed - soft delete a feed
 export async function DELETE(req: Request) {
   const user = await getSessionUser()
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 })
@@ -58,6 +59,6 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: "语料不存在" }, { status: 404 })
   }
 
-  await prismaIp.corpusFeed.delete({ where: { id } })
+  await prismaIp.corpusFeed.update({ where: { id }, data: { deletedAt: new Date() } })
   return NextResponse.json({ success: true })
 }

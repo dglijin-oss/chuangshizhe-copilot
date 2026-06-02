@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
 import { prismaIp } from "@/lib/prisma"
+import { softDelete } from "@/lib/soft-delete"
 
 // GET /api/geo/articles - list all GEO articles for current user
 export async function GET(req: Request) {
@@ -12,13 +13,13 @@ export async function GET(req: Request) {
   const limit = parseInt(searchParams.get("limit") || "20")
 
   const articles = await prismaIp.geoArticle.findMany({
-    where: { userId: user.id },
+    where: softDelete({ userId: user.id }),
     orderBy: { createdAt: "desc" },
     skip: (page - 1) * limit,
     take: limit,
   })
 
-  const total = await prismaIp.geoArticle.count({ where: { userId: user.id } })
+  const total = await prismaIp.geoArticle.count({ where: softDelete({ userId: user.id }) })
 
   return NextResponse.json({ articles, total, page, limit })
 }
@@ -60,12 +61,17 @@ export async function PATCH(req: Request) {
 
   const { content, status } = await req.json()
 
-  const article = await prismaIp.geoArticle.update({
-    where: { id, userId: user.id },
+  const result = await prismaIp.geoArticle.updateMany({
+    where: softDelete({ id, userId: user.id }),
     data: {
       ...(content !== undefined && { content }),
       ...(status !== undefined && { status }),
     },
+  })
+  if (result.count === 0) return NextResponse.json({ error: "文章不存在" }, { status: 404 })
+
+  const article = await prismaIp.geoArticle.findFirst({
+    where: softDelete({ id, userId: user.id }),
   })
 
   return NextResponse.json({ article })

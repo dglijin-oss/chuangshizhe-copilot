@@ -40,7 +40,7 @@ export default function AdminIpDetailPage() {
   const [activeTab, setActiveTab] = useState<"profile" | "articles" | "plans">("profile")
 
   useEffect(() => {
-    if (role !== "admin") { router.push("/") }
+    if (role !== "admin") { router.push("/dashboard") }
     fetch(`/api/admin/ip-users/${params.userId}/ips/${params.ipId}`, { credentials: "include" })
       .then(res => res.json())
       .then(data => { setIp(data.ip); setLoading(false) })

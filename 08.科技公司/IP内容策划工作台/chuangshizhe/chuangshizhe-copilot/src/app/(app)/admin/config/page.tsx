@@ -17,7 +17,7 @@ export default function AdminConfigPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    if (role !== "admin") { router.push("/") }
+    if (role !== "admin") { router.push("/dashboard") }
     Promise.all([
       fetch("/api/admin/config", { credentials: "include" }).then(r => r.json()),
       fetch("/api/admin/payment-config", { credentials: "include" }).then(r => r.json()).catch(() => ({})),

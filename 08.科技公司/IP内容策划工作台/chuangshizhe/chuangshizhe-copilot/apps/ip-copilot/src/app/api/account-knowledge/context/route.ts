@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
 import { prismaIp } from "@/lib/prisma"
 import { parseBody, contextSchema } from "@/lib/validation"
+import { softDelete } from "@/lib/soft-delete"
 
 // POST /api/account-knowledge/context - inject knowledge context for AI generation
 // Used by GEO article generation, IP content generation, and agent chat
@@ -15,7 +16,7 @@ export async function POST(req: Request) {
 
   // Always include overview
   const overview = await prismaIp.wikiPage.findFirst({
-    where: { userId: user.id, category: "overview" },
+    where: softDelete({ userId: user.id, category: "overview" }),
     select: { title: true, content: true, category: true },
   })
 
@@ -32,15 +33,15 @@ export async function POST(req: Request) {
   if (ipId) {
     const [ipPage, ipTrustAssets, ipSources] = await Promise.all([
       prismaIp.wikiPage.findFirst({
-        where: { userId: user.id, category: "ip_subpage", ipId },
+        where: softDelete({ userId: user.id, category: "ip_subpage", ipId }),
         select: { title: true, content: true },
       }),
       prismaIp.wikiPage.findMany({
-        where: { userId: user.id, category: "trust_asset", ipId },
+        where: softDelete({ userId: user.id, category: "trust_asset", ipId }),
         select: { title: true, content: true },
       }),
       prismaIp.knowledgeSource.findMany({
-        where: { userId: user.id, ipId },
+        where: softDelete({ userId: user.id, ipId }),
         select: { title: true, content: true, sourceType: true },
         take: 10,
       }),
@@ -53,12 +54,12 @@ export async function POST(req: Request) {
     // For account-level requests, include all trust assets and sources
     const [allTrustAssets, allSources] = await Promise.all([
       prismaIp.wikiPage.findMany({
-        where: { userId: user.id, category: "trust_asset" },
+        where: softDelete({ userId: user.id, category: "trust_asset" }),
         select: { title: true, content: true },
         take: 20,
       }),
       prismaIp.knowledgeSource.findMany({
-        where: { userId: user.id },
+        where: softDelete({ userId: user.id }),
         select: { title: true, content: true, sourceType: true },
         take: 20,
       }),

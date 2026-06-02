@@ -17,7 +17,7 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (role !== "admin") { router.push("/") }
+    if (role !== "admin") { router.push("/dashboard") }
     fetch("/api/admin/stats")
       .then(res => res.json())
       .then(data => {

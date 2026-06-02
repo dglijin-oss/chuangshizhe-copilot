@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
 import { prismaIp } from "@/lib/prisma"
+import { softDelete } from "@/lib/soft-delete"
 
 // GET /api/assets/keywords - list keyword groups with keywords
 export async function GET() {
@@ -8,13 +9,13 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 })
 
   const groups = await prismaIp.keywordGroup.findMany({
-    where: { userId: user.id },
-    include: { keywords: true },
+    where: softDelete({ userId: user.id }),
+    include: { keywords: { where: { deletedAt: null } } },
     orderBy: { createdAt: "desc" },
   })
 
   const hotKeywords = await prismaIp.keyword.findMany({
-    where: { userId: user.id, isHot: true },
+    where: { userId: user.id, isHot: true, deletedAt: null },
     orderBy: { createdAt: "desc" },
     take: 50,
   })
@@ -53,7 +54,7 @@ export async function POST(req: Request) {
   return NextResponse.json({ error: "无效类型" }, { status: 400 })
 }
 
-// DELETE /api/assets/keywords
+// DELETE /api/assets/keywords - soft delete
 export async function DELETE(req: Request) {
   const user = await getSessionUser()
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 })
@@ -65,9 +66,9 @@ export async function DELETE(req: Request) {
   if (!id || !type) return NextResponse.json({ error: "参数不完整" }, { status: 400 })
 
   if (type === "group") {
-    await prismaIp.keywordGroup.delete({ where: { id, userId: user.id } })
+    await prismaIp.keywordGroup.update({ where: { id, userId: user.id }, data: { deletedAt: new Date() } })
   } else {
-    await prismaIp.keyword.delete({ where: { id, userId: user.id } })
+    await prismaIp.keyword.update({ where: { id, userId: user.id }, data: { deletedAt: new Date() } })
   }
 
   return NextResponse.json({ success: true })

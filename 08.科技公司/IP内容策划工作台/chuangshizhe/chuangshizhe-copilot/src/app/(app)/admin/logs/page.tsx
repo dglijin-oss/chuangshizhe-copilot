@@ -28,7 +28,7 @@ export default function AdminLogsPage() {
   const [search, setSearch] = useState("")
 
   useEffect(() => {
-    if (role !== "admin") { router.push("/") }
+    if (role !== "admin") { router.push("/dashboard") }
     fetch("/api/admin/logs", { credentials: "include" })
       .then(res => res.json())
       .then(data => { setLogs(data.logs || []); setLoading(false) })

@@ -6,10 +6,13 @@ import Image from "next/image"
 import { Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
+import { StickFigures } from "@/components/stick-figures"
 
 export default function LoginPage() {
   const router = useRouter()
   const [showPw, setShowPw] = useState(false)
+  const [phoneFocused, setPhoneFocused] = useState(false)
+  const [pwFocused, setPwFocused] = useState(false)
   const [form, setForm] = useState({ phone: "", password: "" })
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
@@ -29,8 +32,7 @@ export default function LoginPage() {
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error || "登录失败"); return }
-      // Force a full page navigation to ensure cookies are set before the next request
-      window.location.href = "/home"
+      window.location.href = "/dashboard"
     } catch {
       setError("网络错误，请稍后重试")
     } finally {
@@ -42,8 +44,8 @@ export default function LoginPage() {
     <div className="min-h-screen bg-background-subtle flex items-center justify-center">
       <div className="flex gap-12 items-start max-w-3xl w-full px-6">
         {/* Left branding */}
-        <div className="flex-1 bg-primary-light rounded-2xl p-10 min-h-[400px] flex flex-col justify-between">
-          <div>
+        <div className="flex-1 bg-primary-light rounded-2xl min-h-[480px] flex flex-col relative">
+          <div className="p-10 pb-0 relative z-10">
             <Image src="/logo.png" alt="创世者Copilot" width={180} height={38} className="mb-8" />
             <span className="text-xs text-primary font-medium">IP 内容工作台</span>
             <h1 className="text-2xl font-bold mt-3 leading-snug">
@@ -53,6 +55,10 @@ export default function LoginPage() {
               登录后继续管理 IP 档案、周策划和完整发布包。
             </p>
           </div>
+          <StickFigures
+            phoneFocused={phoneFocused}
+            passwordFocused={pwFocused}
+          />
         </div>
 
         {/* Right login form */}
@@ -70,6 +76,8 @@ export default function LoginPage() {
                 placeholder="请输入手机号"
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                onFocus={() => setPhoneFocused(true)}
+                onBlur={() => setPhoneFocused(false)}
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
               />
             </div>
@@ -81,6 +89,8 @@ export default function LoginPage() {
                   placeholder="请输入密码"
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  onFocus={() => setPwFocused(true)}
+                  onBlur={() => setPwFocused(false)}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm pr-8 focus:outline-none focus:border-primary"
                 />
                 <button

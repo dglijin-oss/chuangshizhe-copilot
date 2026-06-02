@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
 import { prismaIp } from "@/lib/prisma"
 import { parseBody, updateIpSchema } from "@/lib/validation"
+import { softDelete } from "@/lib/soft-delete"
 
 // GET /api/ip/[id] - get single IP
 export async function GET(
@@ -13,8 +14,8 @@ export async function GET(
 
   const { id } = await params
 
-  const ip = await prismaIp.ip.findUnique({
-    where: { id, userId: user.id },
+  const ip = await prismaIp.ip.findFirst({
+    where: softDelete({ id, userId: user.id }),
   })
   if (!ip) return NextResponse.json({ error: "IP 不存在" }, { status: 404 })
 
@@ -92,7 +93,7 @@ export async function PATCH(
   return NextResponse.json({ ip })
 }
 
-// DELETE /api/ip/[id] - delete IP and all related content
+// DELETE /api/ip/[id] - soft delete IP and all related content
 export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -107,17 +108,20 @@ export async function DELETE(
     return NextResponse.json({ error: "IP 不存在" }, { status: 404 })
   }
 
+  const now = new Date()
+
   try {
     await prismaIp.$transaction([
-      // WeeklyPlan items cascade via onDelete: Cascade on WeeklyPlanItem → planId
-      prismaIp.weeklyPlan.deleteMany({ where: { ipId: id } }),
-      prismaIp.knowledgeSource.deleteMany({ where: { ipId: id } }),
-      prismaIp.wikiPage.deleteMany({ where: { ipId: id } }),
-      prismaIp.accountMemory.deleteMany({ where: { ipId: id } }),
-      prismaIp.corpusFeed.deleteMany({ where: { ipId: id } }),
-      prismaIp.geoArticle.deleteMany({ where: { ipId: id } }),
-      prismaIp.knowledgeBase.deleteMany({ where: { ipId: id } }),
-      prismaIp.ip.delete({ where: { id } }),
+      // Soft delete all related records
+      prismaIp.weeklyPlan.updateMany({ where: { ipId: id }, data: { deletedAt: now } }),
+      prismaIp.knowledgeSource.updateMany({ where: { ipId: id }, data: { deletedAt: now } }),
+      prismaIp.wikiPage.updateMany({ where: { ipId: id }, data: { deletedAt: now } }),
+      prismaIp.accountMemory.updateMany({ where: { ipId: id }, data: { deletedAt: now } }),
+      prismaIp.corpusFeed.updateMany({ where: { ipId: id }, data: { deletedAt: now } }),
+      prismaIp.geoArticle.updateMany({ where: { ipId: id }, data: { deletedAt: now } }),
+      prismaIp.knowledgeBase.updateMany({ where: { ipId: id }, data: { deletedAt: now } }),
+      // Soft delete the IP itself
+      prismaIp.ip.update({ where: { id }, data: { deletedAt: now } }),
     ])
     return NextResponse.json({ success: true })
   } catch (err) {

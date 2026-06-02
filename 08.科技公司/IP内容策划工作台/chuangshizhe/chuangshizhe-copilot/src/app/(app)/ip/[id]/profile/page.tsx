@@ -428,7 +428,7 @@ export default function IpProfilePage() {
               周策划
             </button>
             <button
-              onClick={() => router.push("/")}
+              onClick={() => router.push("/dashboard")}
               className="text-xs text-muted hover:text-primary transition-colors"
             >
               工作台

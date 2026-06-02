@@ -1,5 +1,5 @@
 import { cookies } from "next/headers"
-import { prismaCore } from "./prisma"
+import { prisma } from "./prisma"
 import { randomBytes } from "crypto"
 import bcrypt from "bcryptjs"
 
@@ -31,7 +31,7 @@ export async function createSession(userId: string): Promise<string> {
   const expiresAt = new Date()
   expiresAt.setDate(expiresAt.getDate() + SESSION_DAYS)
 
-  await prismaCore.session.create({
+  await prisma.session.create({
     data: { token, userId, expiresAt },
   })
 
@@ -43,7 +43,7 @@ export async function getSessionUser() {
   const token = cookieStore.get(SESSION_COOKIE)?.value
   if (!token) return null
 
-  const session = await prismaCore.session.findUnique({
+  const session = await prisma.session.findUnique({
     where: { token },
     include: { user: true },
   })
@@ -57,6 +57,6 @@ export async function deleteSession() {
   const cookieStore = await cookies()
   const token = cookieStore.get(SESSION_COOKIE)?.value
   if (token) {
-    await prismaCore.session.deleteMany({ where: { token } })
+    await prisma.session.deleteMany({ where: { token } })
   }
 }

@@ -47,7 +47,7 @@ export default function PublishArchivePage() {
       <nav className="bg-white border-b border-gray-200 px-4 md:px-6 py-3">
         <div className="max-w-6xl mx-auto flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-4">
-            <button onClick={() => router.push("/")} className="text-xs text-muted hover:text-primary transition-colors">← 返回</button>
+            <button onClick={() => router.push("/dashboard")} className="text-xs text-muted hover:text-primary transition-colors">← 返回</button>
             <span className="text-xs text-gray-400">创世者Copilot 工作台</span>
             <span className="text-sm font-bold">发布归档</span>
           </div>

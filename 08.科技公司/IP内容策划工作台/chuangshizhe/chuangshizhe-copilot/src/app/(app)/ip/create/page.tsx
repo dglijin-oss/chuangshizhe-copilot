@@ -110,7 +110,7 @@ export default function CreateIpPage() {
           <h2 className="text-lg font-bold mb-2">IP 档案创建成功！</h2>
           <p className="text-sm text-muted mb-6">{form.name}</p>
           <div className="flex justify-center gap-3 flex-wrap">
-            <button onClick={() => router.push("/")} className="border border-gray-200 text-muted px-5 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
+            <button onClick={() => router.push("/dashboard")} className="border border-gray-200 text-muted px-5 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
               返回首页
             </button>
             <button

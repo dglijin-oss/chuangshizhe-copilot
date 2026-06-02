@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
 import { prismaIp } from "@/lib/prisma"
+import { softDelete } from "@/lib/soft-delete"
 
 // GET /api/geo/publish - list publish records
 export async function GET() {
@@ -8,7 +9,7 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 })
 
   const records = await prismaIp.publishRecord.findMany({
-    where: { userId: user.id },
+    where: softDelete({ userId: user.id }),
     orderBy: { createdAt: "desc" },
     include: { geoArticle: true },
     take: 50,

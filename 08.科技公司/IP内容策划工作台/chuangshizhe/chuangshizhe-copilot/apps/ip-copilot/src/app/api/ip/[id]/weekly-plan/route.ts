@@ -6,6 +6,7 @@ import { fetchKnowledgeContext } from "@/lib/knowledge"
 import { deductPoints } from "@/lib/billing"
 import { logGeneration } from "@/lib/logging"
 import { parseBody, weeklyPlanGenerateSchema, weeklyPlanSaveSchema } from "@/lib/validation"
+import { softDelete } from "@/lib/soft-delete"
 
 // GET /api/ip/[id]/weekly-plan - get latest weekly plan for this IP
 export async function GET(
@@ -18,7 +19,7 @@ export async function GET(
   const { id } = await params
 
   const plan = await prismaIp.weeklyPlan.findFirst({
-    where: { ipId: id, userId: user.id },
+    where: softDelete({ ipId: id, userId: user.id }),
     orderBy: { createdAt: "desc" },
     include: { items: { orderBy: { createdAt: "asc" } } },
   })
@@ -37,8 +38,8 @@ export async function POST(
   const { id } = await params
   const { userDirection } = parseBody(weeklyPlanGenerateSchema, await req.json())
 
-  const ip = await prismaIp.ip.findUnique({
-    where: { id, userId: user.id },
+  const ip = await prismaIp.ip.findFirst({
+    where: softDelete({ id, userId: user.id }),
   })
   if (!ip) return NextResponse.json({ error: "IP 不存在" }, { status: 404 })
 
@@ -180,7 +181,7 @@ export async function PUT(
 
   // Update the latest weekly plan for this IP
   const latestPlan = await prismaIp.weeklyPlan.findFirst({
-    where: { ipId: id, userId: user.id },
+    where: softDelete({ ipId: id, userId: user.id }),
     orderBy: { createdAt: "desc" },
   })
   if (!latestPlan) return NextResponse.json({ error: "没有找到周策划" }, { status: 404 })

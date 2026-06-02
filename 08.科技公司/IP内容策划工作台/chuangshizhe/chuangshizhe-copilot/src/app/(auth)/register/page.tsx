@@ -6,11 +6,14 @@ import Image from "next/image"
 import { Eye, EyeOff, RefreshCw } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
+import { StickFigures } from "@/components/stick-figures"
 
 export default function RegisterPage() {
   const router = useRouter()
   const [showPw, setShowPw] = useState(false)
   const [showPw2, setShowPw2] = useState(false)
+  const [phoneFocused, setPhoneFocused] = useState(false)
+  const [pwFocused, setPwFocused] = useState(false)
   const [form, setForm] = useState({ name: "", phone: "", password: "", password2: "" })
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
@@ -55,13 +58,12 @@ export default function RegisterPage() {
       const data = await res.json()
       if (!res.ok) {
         setError(data.error || "注册失败")
-        // If captcha error, refresh captcha
         if (data.error?.includes("验证码")) {
           fetchCaptcha()
         }
         return
       }
-      window.location.href = "/home"
+      window.location.href = "/dashboard"
     } catch {
       setError("网络错误，请稍后重试")
     } finally {
@@ -72,8 +74,8 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-background-subtle flex items-center justify-center">
       <div className="flex gap-12 items-start max-w-3xl w-full px-6">
-        <div className="flex-1 bg-primary-light rounded-2xl p-10 min-h-[400px] flex flex-col justify-between">
-          <div>
+        <div className="flex-1 bg-primary-light rounded-2xl min-h-[480px] flex flex-col relative">
+          <div className="p-10 pb-0 relative z-10">
             <Image src="/logo.png" alt="创世者Copilot" width={180} height={38} className="mb-8" />
             <span className="text-xs text-primary font-medium">IP 内容工作台</span>
             <h1 className="text-2xl font-bold mt-3 leading-snug">
@@ -83,6 +85,10 @@ export default function RegisterPage() {
               注册即可获得 110 积分，立即开始使用 AI 生成服务。
             </p>
           </div>
+          <StickFigures
+            phoneFocused={phoneFocused}
+            passwordFocused={pwFocused}
+          />
         </div>
 
         <form onSubmit={onSubmit} className="w-[340px] bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
@@ -109,6 +115,8 @@ export default function RegisterPage() {
                 placeholder="请输入手机号"
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                onFocus={() => setPhoneFocused(true)}
+                onBlur={() => setPhoneFocused(false)}
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
               />
             </div>
@@ -120,6 +128,8 @@ export default function RegisterPage() {
                   placeholder="请设置密码（至少6位）"
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  onFocus={() => setPwFocused(true)}
+                  onBlur={() => setPwFocused(false)}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm pr-8 focus:outline-none focus:border-primary"
                 />
                 <button
@@ -139,6 +149,8 @@ export default function RegisterPage() {
                   placeholder="请再次输入密码"
                   value={form.password2}
                   onChange={(e) => setForm({ ...form, password2: e.target.value })}
+                  onFocus={() => setPwFocused(true)}
+                  onBlur={() => setPwFocused(false)}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm pr-8 focus:outline-none focus:border-primary"
                 />
                 <button

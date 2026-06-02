@@ -1,0 +1,22 @@
+export default {
+  id: 'xuanxue',
+  name: '玄学工作室',
+  icon: 'Sparkles',
+  description: '八字、六爻、奇门、紫微等十大玄学技能一站式平台',
+  version: '1.0.0',
+  enabled: true,
+  requiredProducts: ['xuanxue'],
+  dbSchema: 'xuanxue',
+  pricing: {
+    bazi: { points: 10, name: '八字排盘' },
+    liuyao: { points: 10, name: '六爻占卜' },
+    qimen: { points: 10, name: '奇门遁甲' },
+    meihua: { points: 10, name: '梅花易数' },
+    qizheng: { points: 10, name: '七政四余' },
+    ziwei: { points: 10, name: '紫微斗数' },
+    liuren: { points: 10, name: '大六壬' },
+    taiyi: { points: 10, name: '太乙神数' },
+    fengshui: { points: 10, name: '风水堪舆' },
+    'ze-ri': { points: 10, name: '择日学' },
+  },
+}

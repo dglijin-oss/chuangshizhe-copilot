@@ -18,7 +18,7 @@ export default function AdminPointsPage() {
   const [search, setSearch] = useState("")
 
   useEffect(() => {
-    if (role !== "admin") { router.push("/") }
+    if (role !== "admin") { router.push("/dashboard") }
     fetch("/api/admin/users")
       .then(res => res.json())
       .then(data => { setUsers(data.users || []); setLoading(false) })

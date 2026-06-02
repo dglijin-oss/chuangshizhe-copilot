@@ -32,6 +32,7 @@ export default function KnowledgeBasePage() {
   const [importText, setImportText] = useState("")
   const [analyzing, setAnalyzing] = useState(false)
   const [analysisResult, setAnalysisResult] = useState<any>(null)
+  const [uploadProgress, setUploadProgress] = useState<{ pending: number; done: number } | null>(null)
 
   // Sources tab state
   const [sourceQuery, setSourceQuery] = useState("")
@@ -550,24 +551,55 @@ export default function KnowledgeBasePage() {
                       if (!file) return
                       if (!importTitle) setImportTitle(file.name)
                       setAnalyzing(true)
+                      setUploadProgress({ pending: 1, done: 0 })
                       try {
+                        // Step 1: Upload file (async — saves to temp dir)
                         const formData = new FormData()
                         formData.append("files", file)
-                        const res = await fetch("/api/corpus-feed/upload", {
+                        const uploadRes = await fetch("/api/corpus-feed/upload", {
                           method: "POST",
                           body: formData,
                         })
-                        const data = await res.json()
-                        if (data.files?.[0]?.text) {
-                          setImportText(data.files[0].text)
-                        } else if (data.files?.[0]?.error) {
-                          setImportText("")
-                          alert(data.files[0].error)
+                        const uploadData = await uploadRes.json()
+                        if (!uploadData.feeds?.[0]?.id) {
+                          alert(uploadData.error || "上传失败")
+                          setAnalyzing(false)
+                          setUploadProgress(null)
+                          return
+                        }
+
+                        const feedId = uploadData.feeds[0].id
+
+                        // Step 2: Trigger processing
+                        await fetch("/api/corpus-feed/process", { method: "POST" })
+
+                        // Step 3: Poll for completion
+                        let attempts = 0
+                        const maxAttempts = 30
+                        while (attempts < maxAttempts) {
+                          await new Promise(r => setTimeout(r, 500))
+                          const statusRes = await fetch(`/api/corpus-feed/process?id=${feedId}`)
+                          const statusData = await statusRes.json()
+                          const feed = statusData.feeds?.[0]
+                          if (feed?.status === "analyzed") {
+                            setImportText(feed.content || "")
+                            setUploadProgress({ pending: 1, done: 1 })
+                            break
+                          }
+                          if (feed?.status === "error") {
+                            alert(`文件处理失败：${feed.suggestion || "未知错误"}`)
+                            break
+                          }
+                          attempts++
+                        }
+                        if (attempts >= maxAttempts) {
+                          alert("文件处理超时，请刷新后重试")
                         }
                       } catch {
                         alert("文件上传失败")
                       } finally {
                         setAnalyzing(false)
+                        setUploadProgress(null)
                       }
                     }} />
                   </label>

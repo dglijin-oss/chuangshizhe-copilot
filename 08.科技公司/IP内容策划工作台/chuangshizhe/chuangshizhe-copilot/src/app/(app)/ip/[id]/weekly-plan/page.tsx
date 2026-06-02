@@ -255,7 +255,7 @@ export default function WeeklyPlanPage() {
                 </button>
                 <span className="text-xs text-gray-200">·</span>
                 <button
-                  onClick={() => router.push("/")}
+                  onClick={() => router.push("/dashboard")}
                   className="text-xs text-muted hover:text-primary transition-colors"
                 >
                   工作台

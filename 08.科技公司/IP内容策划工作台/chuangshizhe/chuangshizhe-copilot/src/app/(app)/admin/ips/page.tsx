@@ -22,7 +22,7 @@ export default function AdminIpsPage() {
   const [search, setSearch] = useState("")
 
   useEffect(() => {
-    if (role !== "admin") { router.push("/") }
+    if (role !== "admin") { router.push("/dashboard") }
     fetch("/api/admin/ip-users", { credentials: "include" })
       .then(res => res.json())
       .then(data => { setUsers(data.users || []); setLoading(false) })

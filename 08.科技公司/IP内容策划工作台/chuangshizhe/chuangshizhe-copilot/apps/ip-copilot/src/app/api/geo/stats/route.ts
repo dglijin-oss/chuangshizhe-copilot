@@ -7,23 +7,26 @@ export async function GET() {
   const user = await getSessionUser()
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 })
 
+  const whereArticle = { userId: user.id, deletedAt: null }
+  const wherePublish = { userId: user.id, deletedAt: null }
+
   const [totalArticles, publishedCount, totalViews, totalAiQuotes, totalConsultations] = await Promise.all([
-    prismaIp.geoArticle.count({ where: { userId: user.id } }),
-    prismaIp.publishRecord.count({ where: { userId: user.id, status: "published" } }),
-    prismaIp.publishRecord.aggregate({ where: { userId: user.id }, _sum: { views: true } }),
-    prismaIp.publishRecord.aggregate({ where: { userId: user.id }, _sum: { aiQuotes: true } }),
-    prismaIp.publishRecord.aggregate({ where: { userId: user.id }, _sum: { consultations: true } }),
+    prismaIp.geoArticle.count({ where: whereArticle }),
+    prismaIp.publishRecord.count({ where: { ...wherePublish, status: "published" } }),
+    prismaIp.publishRecord.aggregate({ where: wherePublish, _sum: { views: true } }),
+    prismaIp.publishRecord.aggregate({ where: wherePublish, _sum: { aiQuotes: true } }),
+    prismaIp.publishRecord.aggregate({ where: wherePublish, _sum: { consultations: true } }),
   ])
 
   const platformStats = await prismaIp.publishRecord.groupBy({
     by: ["platform"],
-    where: { userId: user.id },
+    where: wherePublish,
     _count: { id: true },
   })
 
   const typeStats = await prismaIp.geoArticle.groupBy({
     by: ["articleType"],
-    where: { userId: user.id },
+    where: whereArticle,
     _count: { id: true },
   })
 

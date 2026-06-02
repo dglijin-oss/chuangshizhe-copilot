@@ -8,6 +8,7 @@ type UserContextType = {
   phone: string
   role: string
   points: number
+  products: string[]  // 已开通的产品权限
   hasQuestionnaire: boolean
   refresh: () => Promise<void>
 }

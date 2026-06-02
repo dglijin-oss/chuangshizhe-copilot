@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
 import { prismaIp } from "@/lib/prisma"
 import { parseBody, createMemorySchema, updateMemorySchema } from "@/lib/validation"
+import { softDelete } from "@/lib/soft-delete"
 
 const categoryLabels: Record<string, string> = {
   fact_correction: "事实纠错",
@@ -18,7 +19,7 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const ipId = searchParams.get("ipId")
 
-  const where: any = { userId: user.id }
+  const where: any = softDelete({ userId: user.id })
   if (ipId) where.ipId = ipId
 
   const memories = await prismaIp.accountMemory.findMany({
@@ -48,7 +49,7 @@ export async function POST(req: Request) {
   return NextResponse.json({ memory })
 }
 
-// DELETE /api/account-memory - delete a memory
+// DELETE /api/account-memory - soft delete a memory
 export async function DELETE(req: Request) {
   const user = await getSessionUser()
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 })
@@ -62,7 +63,7 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: "记忆不存在" }, { status: 404 })
   }
 
-  await prismaIp.accountMemory.delete({ where: { id } })
+  await prismaIp.accountMemory.update({ where: { id }, data: { deletedAt: new Date() } })
   return NextResponse.json({ success: true })
 }
 
@@ -77,7 +78,7 @@ export async function PUT(req: Request) {
 
   const { content, category } = parseBody(updateMemorySchema, await req.json())
 
-  const memory = await prismaIp.accountMemory.findUnique({ where: { id } })
+  const memory = await prismaIp.accountMemory.findFirst({ where: softDelete({ id, userId: user.id }) })
   if (!memory || memory.userId !== user.id) {
     return NextResponse.json({ error: "记忆不存在" }, { status: 404 })
   }

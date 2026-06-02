@@ -13,6 +13,9 @@ const globalForPrisma = globalThis as unknown as {
 export const prismaCore = globalForPrisma.prismaCore || new PrismaClientCore({ adapter })
 export const prismaIp = globalForPrisma.prismaIp || new PrismaClientIp({ adapter })
 
+// Alias for convenience — prismaIp has User + all app models
+export const prisma = prismaIp
+
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prismaCore = prismaCore
   globalForPrisma.prismaIp = prismaIp

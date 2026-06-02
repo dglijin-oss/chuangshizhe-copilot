@@ -166,7 +166,49 @@ export default function ProjectAssistantPage() {
   /* Send message */
   const handleSend = useCallback(async () => {
     const content = input.trim()
-    if (!content || loading || !activeSessionId) return
+    if (!content || loading) return
+
+    // Auto-create session if none exists
+    let currentSessionId = activeSessionId
+    if (!currentSessionId) {
+      const sessionName = content.length > 30 ? content.slice(0, 30) + "…" : content
+      try {
+        const res = await fetch("/api/ai-arsenal/sessions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ title: sessionName }),
+        })
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}))
+          setMessages((prev) => [
+            ...prev,
+            { id: crypto.randomUUID(), role: "assistant", content: `❌ 创建对话失败：${data.error || "未知错误"}`, createdAt: new Date().toISOString() },
+          ])
+          setLoading(false)
+          return
+        }
+        const data = await res.json()
+        if (!data.session) {
+          setMessages((prev) => [
+            ...prev,
+            { id: crypto.randomUUID(), role: "assistant", content: "❌ 创建对话失败，请重试", createdAt: new Date().toISOString() },
+          ])
+          setLoading(false)
+          return
+        }
+        currentSessionId = data.session.id
+        setSessions((prev) => [data.session, ...prev])
+        setActiveSessionId(data.session.id)
+      } catch {
+        setMessages((prev) => [
+          ...prev,
+          { id: crypto.randomUUID(), role: "assistant", content: "❌ 网络请求失败，创建对话出错", createdAt: new Date().toISOString() },
+        ])
+        setLoading(false)
+        return
+      }
+    }
 
     const userMsg: ChatMessage = {
       id: crypto.randomUUID(),
@@ -192,7 +234,7 @@ export default function ProjectAssistantPage() {
         credentials: "include",
         body: JSON.stringify({
           message: fullMessage,
-          sessionId: activeSessionId,
+          sessionId: currentSessionId,
           model,
           webSearch: capabilities.webSearch,
         }),
@@ -294,7 +336,7 @@ export default function ProjectAssistantPage() {
     } finally {
       setLoading(false)
     }
-  }, [input, loading, activeSessionId, model, capabilities.webSearch, fileContent, fileName, loadSessions])
+  }, [input, loading, model, capabilities.webSearch, fileContent, fileName, loadSessions])
 
   /* Handle file upload */
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {

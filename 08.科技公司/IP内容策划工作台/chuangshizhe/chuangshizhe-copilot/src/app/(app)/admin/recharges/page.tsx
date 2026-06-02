@@ -26,7 +26,7 @@ export default function AdminRechargesPage() {
   const [search, setSearch] = useState("")
 
   useEffect(() => {
-    if (role !== "admin") { router.push("/") }
+    if (role !== "admin") { router.push("/dashboard") }
     fetch("/api/admin/recharges", { credentials: "include" })
       .then(res => res.json())
       .then(data => { setRecharges(data.recharges || []); setLoading(false) })

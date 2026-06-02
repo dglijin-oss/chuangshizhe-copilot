@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { getSessionUser } from "@/lib/auth"
 import { prismaIp } from "@/lib/prisma"
 import { parseBody, searchSchema } from "@/lib/validation"
+import { softDelete } from "@/lib/soft-delete"
 
 // POST /api/account-knowledge/search - search across wiki pages and sources
 export async function POST(req: Request) {
@@ -13,23 +14,23 @@ export async function POST(req: Request) {
   // Search wiki pages and sources using ILIKE (PostgreSQL)
   const [wikiPages, sources] = await Promise.all([
     prismaIp.wikiPage.findMany({
-      where: {
+      where: softDelete({
         userId: user.id,
         OR: [
           { title: { contains: query, mode: "insensitive" } },
           { content: { contains: query, mode: "insensitive" } },
         ],
-      },
+      }),
       take: 20,
     }),
     prismaIp.knowledgeSource.findMany({
-      where: {
+      where: softDelete({
         userId: user.id,
         OR: [
           { title: { contains: query, mode: "insensitive" } },
           { content: { contains: query, mode: "insensitive" } },
         ],
-      },
+      }),
       take: 20,
     }),
   ])

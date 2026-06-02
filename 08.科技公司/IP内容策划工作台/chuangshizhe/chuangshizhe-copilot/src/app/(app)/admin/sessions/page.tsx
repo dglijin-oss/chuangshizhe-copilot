@@ -20,7 +20,7 @@ export default function AdminSessionsPage() {
   const [search, setSearch] = useState("")
 
   useEffect(() => {
-    if (role !== "admin") { router.push("/") }
+    if (role !== "admin") { router.push("/dashboard") }
     fetch("/api/admin/sessions", { credentials: "include" })
       .then(res => res.json())
       .then(data => { setSessions(data.sessions || []); setLoading(false) })

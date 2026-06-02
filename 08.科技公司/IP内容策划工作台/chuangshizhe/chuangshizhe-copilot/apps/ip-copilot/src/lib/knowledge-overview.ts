@@ -1,16 +1,16 @@
 import { prismaIp } from "./prisma"
 
 export async function updateOverview(userId: string) {
-  // Gather live stats
+  // Gather live stats (exclude soft-deleted)
   const [questionnaire, ipCount, allIps, trustAssets, sourceCount, wikiPageCount, ipSubpageCount] =
     await Promise.all([
       prismaIp.questionnaire.findFirst({ where: { userId, submitted: true } }),
-      prismaIp.ip.count({ where: { userId } }),
-      prismaIp.ip.findMany({ where: { userId }, select: { id: true, name: true, targetClients: true } }),
-      prismaIp.wikiPage.findMany({ where: { userId, category: "trust_asset" } }),
-      prismaIp.knowledgeSource.count({ where: { userId } }),
-      prismaIp.wikiPage.count({ where: { userId } }),
-      prismaIp.wikiPage.count({ where: { userId, category: "ip_subpage" } }),
+      prismaIp.ip.count({ where: { userId, deletedAt: null } }),
+      prismaIp.ip.findMany({ where: { userId, deletedAt: null }, select: { id: true, name: true, targetClients: true } }),
+      prismaIp.wikiPage.findMany({ where: { userId, category: "trust_asset", deletedAt: null } }),
+      prismaIp.knowledgeSource.count({ where: { userId, deletedAt: null } }),
+      prismaIp.wikiPage.count({ where: { userId, deletedAt: null } }),
+      prismaIp.wikiPage.count({ where: { userId, category: "ip_subpage", deletedAt: null } }),
     ])
 
   let companyName = "待补充公司名称"
@@ -65,7 +65,7 @@ export async function updateOverview(userId: string) {
 
   // Upsert overview
   const existing = await prismaIp.wikiPage.findFirst({
-    where: { userId, category: "overview" },
+    where: { userId, category: "overview", deletedAt: null },
   })
 
   let page
@@ -87,7 +87,7 @@ export async function updateOverview(userId: string) {
 
   // Ensure each IP has exactly one wiki subpage and one knowledge source (auto-sync + dedup)
   const fullIps = await prismaIp.ip.findMany({
-    where: { userId },
+    where: { userId, deletedAt: null },
     select: { id: true, name: true, founderName: true, founderTraits: true, industry: true, products: true, targetClients: true, accountGoals: true, contentBan: true, contentMixFlow: true, contentMixPersona: true, contentMixProduct: true },
   })
 
@@ -108,27 +108,27 @@ export async function updateOverview(userId: string) {
       `- 产品型: ${ip.contentMixProduct || 1}`,
     ].filter(Boolean).join("\n")
 
-    // Parallel fetch existing wiki pages and sources for this IP
+    // Parallel fetch existing wiki pages and sources for this IP (exclude soft-deleted)
     const [existingWikis, existingSources] = await Promise.all([
       prismaIp.wikiPage.findMany({
-        where: { userId, ipId: ip.id, category: "ip_subpage" },
+        where: { userId, ipId: ip.id, category: "ip_subpage", deletedAt: null },
         orderBy: { updatedAt: "desc" },
       }),
       prismaIp.knowledgeSource.findMany({
-        where: { userId, ipId: ip.id, sourceType: "ip_profile" },
+        where: { userId, ipId: ip.id, sourceType: "ip_profile", deletedAt: null },
         orderBy: { updatedAt: "desc" },
       }),
     ])
 
-    // Dedup: keep newest, delete rest
+    // Dedup: keep newest, soft delete rest
     if (existingWikis.length > 1) {
       const toDelete = existingWikis.slice(1).map((w: any) => w.id)
-      await prismaIp.wikiPage.deleteMany({ where: { id: { in: toDelete } } })
+      await prismaIp.wikiPage.updateMany({ where: { id: { in: toDelete } }, data: { deletedAt: new Date() } })
     }
 
     if (existingSources.length > 1) {
       const toDelete = existingSources.slice(1).map((s: any) => s.id)
-      await prismaIp.knowledgeSource.deleteMany({ where: { id: { in: toDelete } } })
+      await prismaIp.knowledgeSource.updateMany({ where: { id: { in: toDelete } }, data: { deletedAt: new Date() } })
     }
 
     const latestWiki = existingWikis[0]

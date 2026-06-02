@@ -10,11 +10,12 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const ipId = searchParams.get("ipId")
 
-  // Fetch all weekly plan items with generationStatus "done"
+  // Fetch all weekly plan items with generationStatus "done" (exclude soft-deleted plans)
   const items = await prismaIp.weeklyPlanItem.findMany({
     where: {
       plan: {
         userId: user.id,
+        deletedAt: null,
         ...(ipId && { ipId }),
       },
       generationStatus: "done",

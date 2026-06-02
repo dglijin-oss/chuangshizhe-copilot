@@ -24,7 +24,7 @@ export default function AdminUserIpsPage() {
   const [search, setSearch] = useState("")
 
   useEffect(() => {
-    if (role !== "admin") { router.push("/") }
+    if (role !== "admin") { router.push("/dashboard") }
     fetch(`/api/admin/ip-users/${params.userId}/ips`, { credentials: "include" })
       .then(res => res.json())
       .then(data => {
