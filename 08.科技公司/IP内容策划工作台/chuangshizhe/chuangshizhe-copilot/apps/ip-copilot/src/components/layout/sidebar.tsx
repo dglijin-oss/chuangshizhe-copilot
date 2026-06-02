@@ -27,18 +27,6 @@ import {
   ChevronDown,
   ChevronUp,
   Download,
-  Sparkles,
-  CalendarDays,
-  CircleDot,
-  Flower2,
-  Compass,
-  Star,
-  Orbit,
-  Waves,
-  Zap,
-  Mountain,
-  CalendarCheck,
-  History,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -94,25 +82,6 @@ const navGroups = [
       { label: "个人中心", href: "/account/profile", icon: User },
     ],
   },
-  {
-    id: "xuanxue",
-    label: "玄学工作室",
-    icon: Sparkles,
-    children: [
-      { label: "玄学首页", href: "/xuanxue", icon: Sparkles },
-      { label: "八字排盘", href: "/xuanxue/bazi", icon: CalendarDays },
-      { label: "六爻纳甲", href: "/xuanxue/liuyao", icon: CircleDot },
-      { label: "梅花易数", href: "/xuanxue/meihua", icon: Flower2 },
-      { label: "奇门遁甲", href: "/xuanxue/qimen", icon: Compass },
-      { label: "紫微斗数", href: "/xuanxue/ziwei", icon: Star },
-      { label: "七政四余", href: "/xuanxue/qizheng", icon: Orbit },
-      { label: "大六壬", href: "/xuanxue/liuren", icon: Waves },
-      { label: "太乙神数", href: "/xuanxue/taiyi", icon: Zap },
-      { label: "风水堪舆", href: "/xuanxue/fengshui", icon: Mountain },
-      { label: "择日学", href: "/xuanxue/ze-ri", icon: CalendarCheck },
-      { label: "占卜历史", href: "/xuanxue/history", icon: History },
-    ],
-  },
 ]
 
 export function Sidebar({
@@ -129,7 +98,6 @@ export function Sidebar({
     geo: false,
     assets: false,
     account: false,
-    xuanxue: false,
   })
 
   const toggle = (id: string) => {
