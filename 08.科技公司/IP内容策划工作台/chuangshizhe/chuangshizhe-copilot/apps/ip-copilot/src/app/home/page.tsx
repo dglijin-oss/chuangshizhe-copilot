@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { FileText, ArrowRight, LogOut, Brain, PenTool, BarChart3, BookOpen } from "lucide-react"
+import { FileText, ArrowRight, LogOut, Brain, PenTool, BarChart3, BookOpen, Sparkles } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 
@@ -18,6 +18,13 @@ const ipFeatures = [
   { icon: Brain, label: "智能周策划", desc: "流量型 / 人设型 / 产品型结构化排期" },
   { icon: BookOpen, label: "知识库编译", desc: "从素材到 Wiki，AI 自动沉淀知识" },
   { icon: BarChart3, label: "GEO 增长", desc: "AI 地图内容 + 搜索优化，全域获客" },
+]
+
+const xuanxueFeatures = [
+  { icon: Sparkles, label: "十大玄学技能", desc: "八字、六爻、奇门、紫微、风水等一站式平台" },
+  { icon: Brain, label: "智能排盘", desc: "自动排盘分析，五行大运、十神格局" },
+  { icon: BarChart3, label: "占卜记录", desc: "每次占卜自动存档，随时查看历史" },
+  { icon: BookOpen, label: "积分计费", desc: "按次扣费，统一走积分系统，灵活可控" },
 ]
 
 /* ---- Hooks ---- */
@@ -355,6 +362,21 @@ export default function ProductsPage() {
           accentBg="bg-[#E8F1F5]"
           icon={FileText}
           href="/"
+        />
+      </section>
+
+      {/* ===== Xuanxue Module ===== */}
+      <section className="bg-linear-to-b from-white to-gray-50">
+        <ProductSection
+          title="玄学工作室"
+          subtitle="传统绝学"
+          desc="八字排盘、六爻纳甲、奇门遁甲、紫微斗数、风水堪舆等十大传统绝学。一键排盘，智能分析，积分计费，让玄学触手可及。"
+          features={xuanxueFeatures}
+          accentColor="bg-purple-600"
+          accentBg="bg-purple-50"
+          icon={Sparkles}
+          href="/xuanxue"
+          reversed
         />
       </section>
 
