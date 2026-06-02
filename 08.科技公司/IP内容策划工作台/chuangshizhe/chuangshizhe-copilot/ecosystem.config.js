@@ -10,7 +10,7 @@ module.exports = {
         PORT: "3000",
         HOSTNAME: "0.0.0.0",
         DATABASE_URL: "postgresql://chuangshizhe_user:Csj2026Secure!@111.228.45.216:5432/chuangshizhe",
-        ALIYUN_API_KEY: "sk-sp-1698373d17b74e1bab3d7bccc171f556",
+        ALIYUN_API_KEY: "sk-sp-1fc4713d28464b50b8192309019f279c",
         OPENCLAW_API_URL: "http://127.0.0.1:18789",
         OPENCLAW_API_KEY: "exb65abpkt72xenkzjsfectwmrmjes33",
         HERMES_API_URL: "http://127.0.0.1:9119",

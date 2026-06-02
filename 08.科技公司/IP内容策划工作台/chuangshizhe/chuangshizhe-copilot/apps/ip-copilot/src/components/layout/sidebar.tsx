@@ -24,8 +24,6 @@ import {
   FolderKanban,
   KeyRound,
   Coins,
-  ChevronDown,
-  ChevronUp,
   Bot,
   ImageIcon,
   Video,
@@ -82,9 +80,9 @@ const navGroups = [
     icon: Bot,
     children: [
       { label: "项目助手", href: "/ai-arsenal/project", icon: FolderKanban },
+      { label: "AI智囊团", href: "/ai-arsenal/squad", icon: Users },
       { label: "图片生成", href: "/ai-arsenal/image", icon: ImageIcon },
       { label: "视频生成", href: "/ai-arsenal/video", icon: Video },
-      { label: "AI智囊团", href: "/ai-arsenal/squad", icon: Users },
       { label: "图片 Agent", href: "/ai-arsenal/image-agent", icon: ImageIcon },
       { label: "视频 Agent", href: "/ai-arsenal/video-agent", icon: Video },
     ],
@@ -113,16 +111,8 @@ export function Sidebar({
   const isAdmin = user.role === "admin"
   const pathname = usePathname()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const [groupCollapsed, setGroupCollapsed] = useState<Record<string, boolean>>({
-    content: true,
-    geo: true,
-    assets: true,
-    "ai-assistant": true,
-    account: true,
-  })
 
   const toggleSidebar = () => setSidebarCollapsed((v) => !v)
-  const toggleGroup = (id: string) => setGroupCollapsed((prev) => ({ ...prev, [id]: !prev[id] }))
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/"
@@ -157,7 +147,7 @@ export function Sidebar({
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-2 px-2 overflow-y-auto">
+      <nav className="flex-1 py-2 px-2 overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         {navGroups.map((group) => {
           if (group.single) {
             if (sidebarCollapsed) {
@@ -198,14 +188,14 @@ export function Sidebar({
           }
 
           const GroupIcon = group.icon!
-          const isGroupOpen = !groupCollapsed[group.id] && !sidebarCollapsed
           const hasActiveChild = group.children!.some((c) => isActive(c.href))
 
+          // Collapsed state: show group icon as button linking to first child
           if (sidebarCollapsed) {
             return (
               <div key={group.id} className="flex justify-center mb-1 group relative">
-                <button
-                  onClick={() => toggleGroup(group.id)}
+                <Link
+                  href={group.children![0].href}
                   className={cn(
                     "w-10 h-10 rounded-lg flex items-center justify-center transition-colors",
                     hasActiveChild
@@ -214,82 +204,51 @@ export function Sidebar({
                   )}
                 >
                   <GroupIcon className="w-4 h-4" />
-                </button>
-                {/* Tooltip */}
+                </Link>
                 <span className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">
                   {group.label}
                 </span>
-                {/* Popover for children */}
-                {groupCollapsed[group.id] === false && (
-                  <div className="absolute left-full ml-2 top-0 bg-white border border-gray-200 rounded-xl shadow-lg py-1 min-w-[140px] z-40">
-                    {group.children!.map((child) => {
-                      const ChildIcon = child.icon
-                      return (
-                        <Link
-                          key={child.href}
-                          href={child.href}
-                          className={cn(
-                            "flex items-center gap-2 px-3 py-2 text-xs transition-colors",
-                            isActive(child.href)
-                              ? "bg-primary/10 text-primary"
-                              : "text-gray-600 hover:bg-gray-50"
-                          )}
-                        >
-                          <ChildIcon className="w-3.5 h-3.5" />
-                          <span>{child.label}</span>
-                        </Link>
-                      )
-                    })}
-                  </div>
-                )}
               </div>
             )
           }
 
+          // Expanded state: group header (clickable but always expanded) + all children directly visible
           return (
-            <div key={group.id} className="mb-1">
-              <button
-                onClick={() => toggleGroup(group.id)}
+            <div key={group.id} className="mb-2">
+              {/* Group header - always visible with blue background */}
+              <div
                 className={cn(
-                  "w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors",
+                  "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium mb-1",
                   hasActiveChild
                     ? "bg-primary text-white"
-                    : "text-gray-500 hover:bg-gray-200"
+                    : "bg-primary/80 text-white/90"
                 )}
               >
-                <div className="flex items-center gap-2.5">
-                  <GroupIcon className="w-4 h-4" />
-                  <span>{group.label}</span>
-                </div>
-                {isGroupOpen ? (
-                  <ChevronUp className="w-3.5 h-3.5" />
-                ) : (
-                  <ChevronDown className="w-3.5 h-3.5" />
-                )}
-              </button>
+                <GroupIcon className="w-4 h-4" />
+                <span>{group.label}</span>
+              </div>
 
-              {isGroupOpen && (
-                <div className="ml-4 mt-1 space-y-0.5">
-                  {group.children!.map((child) => {
-                    const ChildIcon = child.icon
-                    return (
-                      <Link
-                        key={child.href}
-                        href={child.href}
-                        className={cn(
-                          "flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-colors",
-                          isActive(child.href)
-                            ? "bg-primary-mid/20 text-primary"
-                            : "text-gray-500 hover:bg-gray-200"
-                        )}
-                      >
-                        <ChildIcon className="w-3.5 h-3.5" />
-                        <span>{child.label}</span>
-                      </Link>
-                    )
-                  })}
-                </div>
-              )}
+              {/* All children, always visible - no collapse */}
+              <div className="ml-2 space-y-0.5">
+                {group.children!.map((child) => {
+                  const ChildIcon = child.icon
+                  return (
+                    <Link
+                      key={child.href}
+                      href={child.href}
+                      className={cn(
+                        "flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-colors",
+                        isActive(child.href)
+                          ? "bg-primary text-white"
+                          : "text-gray-500 hover:bg-gray-200"
+                      )}
+                    >
+                      <ChildIcon className="w-3.5 h-3.5" />
+                      <span>{child.label}</span>
+                    </Link>
+                  )
+                })}
+              </div>
             </div>
           )
         })}

@@ -19,7 +19,7 @@ export const loginSchema = z.object({
 })
 
 export const registerSchema = z.object({
-  phone: z.string().min(1, "手机号不能为空"),
+  phone: z.string().regex(/^1[3-9]\d{9}$/, "请输入正确的11位手机号"),
   password: z.string().min(6, "密码至少6位"),
   name: z.string().min(1, "姓名不能为空"),
 })

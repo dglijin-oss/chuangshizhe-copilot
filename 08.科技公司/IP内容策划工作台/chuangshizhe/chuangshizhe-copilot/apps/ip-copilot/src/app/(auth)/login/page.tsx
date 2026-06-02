@@ -6,6 +6,7 @@ import Image from "next/image"
 import { Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
+import LoginCharacters from "@/components/login-characters"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -13,8 +14,10 @@ export default function LoginPage() {
   const [form, setForm] = useState({ phone: "", password: "" })
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [focusField, setFocusField] = useState<"none" | "account" | "password">("none")
 
   const canSubmit = form.phone && form.password
+  const passwordVisible = showPw
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -29,7 +32,6 @@ export default function LoginPage() {
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error || "登录失败"); return }
-      // Force a full page navigation to ensure cookies are set before the next request
       window.location.href = "/home"
     } catch {
       setError("网络错误，请稍后重试")
@@ -41,9 +43,10 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-background-subtle flex items-center justify-center">
       <div className="flex gap-12 items-start max-w-3xl w-full px-6">
-        {/* Left branding */}
-        <div className="flex-1 bg-primary-light rounded-2xl p-10 min-h-[400px] flex flex-col justify-between">
-          <div>
+        {/* Left panel */}
+        <div className="flex-1 bg-primary-light rounded-2xl min-h-[480px] flex flex-col relative">
+          {/* Upper: branding */}
+          <div className="p-10 pb-0 relative z-10">
             <Image src="/logo.png" alt="创世者Copilot" width={180} height={38} className="mb-8" />
             <span className="text-xs text-primary font-medium">IP 内容工作台</span>
             <h1 className="text-2xl font-bold mt-3 leading-snug">
@@ -53,9 +56,17 @@ export default function LoginPage() {
               登录后继续管理 IP 档案、周策划和完整发布包。
             </p>
           </div>
+
+          {/* Lower: characters */}
+          <div className="flex-1 flex items-end justify-center pb-6 relative overflow-visible min-h-[200px]">
+            <LoginCharacters
+              passwordVisible={passwordVisible}
+              focusField={focusField}
+            />
+          </div>
         </div>
 
-        {/* Right login form */}
+        {/* Right: login form */}
         <form onSubmit={onSubmit} className="w-[340px] bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
           <h2 className="text-base font-bold mb-1">欢迎回来</h2>
           <p className="text-xs text-muted mb-5">登录后可使用 AI 生成服务，积分制计费。</p>
@@ -70,6 +81,8 @@ export default function LoginPage() {
                 placeholder="请输入手机号"
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                onFocus={() => setFocusField("account")}
+                onBlur={() => setFocusField("none")}
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
               />
             </div>
@@ -81,6 +94,8 @@ export default function LoginPage() {
                   placeholder="请输入密码"
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  onFocus={() => setFocusField("password")}
+                  onBlur={() => setFocusField("none")}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm pr-8 focus:outline-none focus:border-primary"
                 />
                 <button

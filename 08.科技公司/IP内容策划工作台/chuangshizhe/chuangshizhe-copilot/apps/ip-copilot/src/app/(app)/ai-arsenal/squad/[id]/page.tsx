@@ -2,14 +2,13 @@
 
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { Plus, Send, FileUp, Loader2, ChevronDown, X, ArrowLeft, Globe } from "lucide-react"
+import { Plus, Send, FileUp, Loader2, ChevronDown, X, ArrowLeft, Globe, BookOpen, Brain, FileText } from "lucide-react"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { cn } from "@/lib/utils"
 
 const MODELS = [
   { value: "qwen3-max-2026-01-23", label: "Qwen3 Max" },
-  { value: "qwen-plus", label: "Qwen Plus" },
 ]
 
 interface Agent {
@@ -47,14 +46,20 @@ export default function SquadChatPage({ params }: { params: Promise<{ id: string
   const [fileContent, setFileContent] = useState<string>("")
   const [fileName, setFileName] = useState<string>("")
   const [webSearch, setWebSearch] = useState(false)
+  const [capabilities, setCapabilities] = useState({
+    knowledgeBase: true,
+    longTermMemory: false,
+    fileUpload: true,
+    webSearch: false,
+  })
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Get agent ID from params
+  // Get agent ID from params (decode in case it's URL-encoded)
   useEffect(() => {
-    params.then((p) => setAgentId(p.id))
+    params.then((p) => setAgentId(decodeURIComponent(p.id)))
   }, [params])
 
   // Load agent detail
@@ -85,6 +90,30 @@ export default function SquadChatPage({ params }: { params: Promise<{ id: string
       // ignore
     }
   }, [agentId])
+
+  // Load capabilities
+  const loadCapabilities = useCallback(async () => {
+    try {
+      const res = await fetch("/api/ai-arsenal/capabilities", { credentials: "include" })
+      if (!res.ok) return
+      const data = await res.json()
+      if (data.capabilities) setCapabilities(data.capabilities)
+    } catch {
+      // ignore
+    }
+  }, [])
+
+  // Toggle capability
+  const toggleCapability = async (key: keyof typeof capabilities) => {
+    const next = { ...capabilities, [key]: !capabilities[key] }
+    setCapabilities(next)
+    await fetch("/api/ai-arsenal/capabilities", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(next),
+    })
+  }
 
   // Load session messages
   const loadSession = useCallback(async (id: string) => {
@@ -135,7 +164,8 @@ export default function SquadChatPage({ params }: { params: Promise<{ id: string
   /* Init */
   useEffect(() => {
     loadSessions()
-  }, [loadSessions])
+    loadCapabilities()
+  }, [loadSessions, loadCapabilities])
 
   /* Send message */
   const handleSend = useCallback(async () => {
@@ -146,18 +176,42 @@ export default function SquadChatPage({ params }: { params: Promise<{ id: string
     let currentSessionId = activeSessionId
     if (!currentSessionId) {
       const sessionName = content.length > 30 ? content.slice(0, 30) + "…" : content
-      const res = await fetch("/api/ai-arsenal/sessions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ title: sessionName, agentId }),
-      })
-      if (!res.ok) return
-      const data = await res.json()
-      if (!data.session) return
-      currentSessionId = data.session.id
-      setSessions((prev) => [data.session, ...prev])
-      setActiveSessionId(data.session.id)
+      try {
+        const res = await fetch("/api/ai-arsenal/sessions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ title: sessionName, agentId }),
+        })
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}))
+          setMessages((prev) => [
+            ...prev,
+            { id: crypto.randomUUID(), role: "assistant", content: `❌ 创建对话失败：${errData.error || "未知错误"}`, createdAt: new Date().toISOString() },
+          ])
+          setLoading(false)
+          return
+        }
+        const data = await res.json()
+        if (!data.session) {
+          setMessages((prev) => [
+            ...prev,
+            { id: crypto.randomUUID(), role: "assistant", content: "❌ 创建对话失败，请重试", createdAt: new Date().toISOString() },
+          ])
+          setLoading(false)
+          return
+        }
+        currentSessionId = data.session.id
+        setSessions((prev) => [data.session, ...prev])
+        setActiveSessionId(data.session.id)
+      } catch {
+        setMessages((prev) => [
+          ...prev,
+          { id: crypto.randomUUID(), role: "assistant", content: "❌ 网络请求失败，创建对话出错", createdAt: new Date().toISOString() },
+        ])
+        setLoading(false)
+        return
+      }
     }
 
     const userMsg: ChatMessage = {
@@ -185,7 +239,7 @@ export default function SquadChatPage({ params }: { params: Promise<{ id: string
           message: fullMessage,
           sessionId: currentSessionId,
           model,
-          webSearch,
+          webSearch: capabilities.webSearch,
         }),
       })
 
@@ -270,7 +324,7 @@ export default function SquadChatPage({ params }: { params: Promise<{ id: string
     } finally {
       setLoading(false)
     }
-  }, [input, loading, activeSessionId, model, webSearch, fileContent, fileName, loadSessions, agentId])
+  }, [input, loading, activeSessionId, model, capabilities, fileContent, fileName, loadSessions, agentId])
 
   /* Scroll to bottom */
   useEffect(() => {
@@ -370,10 +424,54 @@ export default function SquadChatPage({ params }: { params: Promise<{ id: string
             <p className="text-xs text-gray-400">{agent.tagline}</p>
           </div>
           <div className="flex items-center gap-1.5 ml-auto">
-            <span className="text-[10px] px-2 py-1 rounded-md bg-[#fef3cd] text-[#856404]">知识库已连接</span>
-            <span className="text-[10px] px-2 py-1 rounded-md bg-[#f0fdf4] text-[#15803d]">长期记忆</span>
-            <span className="text-[10px] px-2 py-1 rounded-md bg-[#f0f9ff] text-[#0369a1]">可读文件</span>
-            <span className="text-[10px] px-2 py-1 rounded-md bg-[#fef3cd] text-[#856404]">可联网搜索</span>
+            <button
+              onClick={() => toggleCapability("knowledgeBase")}
+              className={cn(
+                "flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-medium transition-all",
+                capabilities.knowledgeBase
+                  ? "bg-amber-100 text-amber-700 border border-amber-200"
+                  : "bg-gray-100 text-gray-400 border border-gray-200"
+              )}
+            >
+              <BookOpen className="w-3 h-3" />
+              知识库已连接
+            </button>
+            <button
+              onClick={() => toggleCapability("longTermMemory")}
+              className={cn(
+                "flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-medium transition-all",
+                capabilities.longTermMemory
+                  ? "bg-green-100 text-green-700 border border-green-200"
+                  : "bg-gray-100 text-gray-400 border border-gray-200"
+              )}
+            >
+              <Brain className="w-3 h-3" />
+              长期记忆
+            </button>
+            <button
+              onClick={() => toggleCapability("fileUpload")}
+              className={cn(
+                "flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-medium transition-all",
+                capabilities.fileUpload
+                  ? "bg-blue-100 text-blue-700 border border-blue-200"
+                  : "bg-gray-100 text-gray-400 border border-gray-200"
+              )}
+            >
+              <FileText className="w-3 h-3" />
+              可读文件
+            </button>
+            <button
+              onClick={() => toggleCapability("webSearch")}
+              className={cn(
+                "flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-medium transition-all",
+                capabilities.webSearch
+                  ? "bg-amber-100 text-amber-700 border border-amber-200"
+                  : "bg-gray-100 text-gray-400 border border-gray-200"
+              )}
+            >
+              <Globe className="w-3 h-3" />
+              可联网搜索
+            </button>
           </div>
         </div>
 
@@ -393,25 +491,146 @@ export default function SquadChatPage({ params }: { params: Promise<{ id: string
                       <button
                         key={i}
                         onClick={async () => {
-                          setInput(prompt)
-                          if (!activeSessionId) {
-                            // Auto-create session and send
+                          if (loading) return
+                          // Step 1: create session if none exists
+                          let targetSessionId = activeSessionId
+                          if (!targetSessionId) {
                             const sessionName = prompt.length > 30 ? prompt.slice(0, 30) + "…" : prompt
-                            const res = await fetch("/api/ai-arsenal/sessions", {
-                              method: "POST",
-                              headers: { "Content-Type": "application/json" },
-                              credentials: "include",
-                              body: JSON.stringify({ title: sessionName, agentId }),
-                            })
-                            if (res.ok) {
+                            try {
+                              const res = await fetch("/api/ai-arsenal/sessions", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                credentials: "include",
+                                body: JSON.stringify({ title: sessionName, agentId }),
+                              })
+                              if (!res.ok) {
+                                const errData = await res.json().catch(() => ({}))
+                                setMessages((prev) => [
+                                  ...prev,
+                                  { id: crypto.randomUUID(), role: "assistant", content: `❌ 创建对话失败：${errData.error || "未知错误"}`, createdAt: new Date().toISOString() },
+                                ])
+                                return
+                              }
                               const data = await res.json()
                               if (data.session) {
                                 setSessions((prev) => [data.session, ...prev])
                                 setActiveSessionId(data.session.id)
+                                targetSessionId = data.session.id
                               }
+                            } catch {
+                              setMessages((prev) => [
+                                ...prev,
+                                { id: crypto.randomUUID(), role: "assistant", content: "❌ 网络请求失败，创建对话出错", createdAt: new Date().toISOString() },
+                              ])
+                              return
                             }
                           }
-                          setTimeout(() => handleSend(), 100)
+                          // Step 2: send message directly (no need to go through setInput + handleSend)
+                          if (!targetSessionId) return
+
+                          const userMsg: ChatMessage = {
+                            id: crypto.randomUUID(),
+                            role: "user",
+                            content: prompt,
+                            createdAt: new Date().toISOString(),
+                          }
+                          setMessages((prev) => [...prev, userMsg])
+                          setInput("")
+                          setLoading(true)
+                          setStreamingContent("")
+
+                          try {
+                            const res = await fetch("/api/ai-arsenal/squad/chat", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              credentials: "include",
+                              body: JSON.stringify({
+                                message: prompt,
+                                sessionId: targetSessionId,
+                                model,
+                                webSearch,
+                              }),
+                            })
+
+                            if (!res.ok) {
+                              const data = await res.json().catch(() => ({ error: "请求失败" }))
+                              setMessages((prev) => [
+                                ...prev,
+                                { id: crypto.randomUUID(), role: "assistant", content: `❌ ${data.error}`, createdAt: new Date().toISOString() },
+                              ])
+                              setLoading(false)
+                              return
+                            }
+
+                            const reader = res.body?.getReader()
+                            if (!reader) {
+                              setLoading(false)
+                              return
+                            }
+
+                            let fullContent = ""
+                            const decoder = new TextDecoder()
+                            let buffer = ""
+
+                            while (true) {
+                              const { done, value } = await reader.read()
+                              if (done) break
+
+                              buffer += decoder.decode(value, { stream: true })
+                              const lines = buffer.split("\n")
+                              buffer = lines.pop() || ""
+
+                              for (const line of lines) {
+                                const trimmed = line.trim()
+                                if (!trimmed || trimmed === "data: [DONE]" || !trimmed.startsWith("data:")) continue
+                                try {
+                                  const raw = trimmed.slice(5).trim()
+                                  if (!raw) continue
+                                  const parsed = JSON.parse(raw)
+                                  if (parsed.type === "chunk") {
+                                    fullContent += parsed.content
+                                    setStreamingContent(fullContent)
+                                  } else if (parsed.type === "done") {
+                                    if (fullContent) {
+                                      setMessages((prev) => [
+                                        ...prev,
+                                        { id: crypto.randomUUID(), role: "assistant", content: fullContent, createdAt: new Date().toISOString() },
+                                      ])
+                                    }
+                                    setStreamingContent("")
+                                    setLoading(false)
+                                    loadSessions()
+                                    return
+                                  } else if (parsed.type === "error") {
+                                    setMessages((prev) => [
+                                      ...prev,
+                                      { id: crypto.randomUUID(), role: "assistant", content: `❌ ${parsed.message}`, createdAt: new Date().toISOString() },
+                                    ])
+                                    setStreamingContent("")
+                                    setLoading(false)
+                                    return
+                                  }
+                                } catch {
+                                  // skip malformed SSE lines
+                                }
+                              }
+                            }
+
+                            if (fullContent) {
+                              setMessages((prev) => [
+                                ...prev,
+                                { id: crypto.randomUUID(), role: "assistant", content: fullContent, createdAt: new Date().toISOString() },
+                              ])
+                            }
+                            setStreamingContent("")
+                          } catch {
+                            setMessages((prev) => [
+                              ...prev,
+                              { id: crypto.randomUUID(), role: "assistant", content: "❌ 网络请求失败", createdAt: new Date().toISOString() },
+                            ])
+                          } finally {
+                            setLoading(false)
+                          }
                         }}
                         className="w-full text-left px-4 py-3 rounded-xl text-sm bg-white border border-gray-200 hover:border-gray-300 transition-colors text-gray-700"
                       >
@@ -455,7 +674,9 @@ export default function SquadChatPage({ params }: { params: Promise<{ id: string
                       {msg.role === "user" ? (
                         <div className="whitespace-pre-wrap">{msg.content}</div>
                       ) : (
-                        <ReactMarkdown className="chat-markdown" remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+                        <div className="chat-markdown">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+                        </div>
                       )}
                       </div>
                     </div>
@@ -465,7 +686,9 @@ export default function SquadChatPage({ params }: { params: Promise<{ id: string
                   {streamingContent && (
                     <div className="flex justify-start">
                       <div className="max-w-[85%] bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-4 py-3 text-sm leading-relaxed shadow-sm">
-                        <ReactMarkdown className="chat-markdown" remarkPlugins={[remarkGfm]}>{streamingContent}</ReactMarkdown>
+                        <div className="chat-markdown">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{streamingContent}</ReactMarkdown>
+                        </div>
                         <div className="flex items-center gap-1 mt-2">
                           <div className="animate-pulse w-1.5 h-1.5 rounded-full" style={{ backgroundColor: themeColor }} />
                           <div className="animate-pulse w-1.5 h-1.5 rounded-full" style={{ backgroundColor: themeColor, animationDelay: "0.15s" }} />
@@ -484,7 +707,7 @@ export default function SquadChatPage({ params }: { params: Promise<{ id: string
           {/* Input bar — always visible */}
           <div className="relative z-10 border-t border-gray-200 bg-white px-6 py-4 flex-shrink-0">
             {/* File indicator */}
-            {fileContent && (
+            {fileContent && capabilities.fileUpload && (
               <div className="mb-3 flex items-center gap-2 px-3 py-2 rounded-lg text-xs" style={{ backgroundColor: themeBg, color: themeColor }}>
                 <FileUp className="w-3.5 h-3.5 flex-shrink-0" />
                 <span className="truncate">{fileName}</span>
@@ -526,26 +749,30 @@ export default function SquadChatPage({ params }: { params: Promise<{ id: string
               </div>
 
               {/* File upload */}
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="p-2.5 border border-gray-200 rounded-xl text-gray-400 hover:text-amber-600 hover:border-amber-300 transition-colors bg-white"
-              >
-                <FileUp className="w-4 h-4" />
-              </button>
+              {capabilities.fileUpload && (
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="p-2.5 border border-gray-200 rounded-xl text-gray-400 hover:text-amber-600 hover:border-amber-300 transition-colors bg-white"
+                >
+                  <FileUp className="w-4 h-4" />
+                </button>
+              )}
 
               {/* Web search toggle */}
-              <button
-                onClick={() => setWebSearch(!webSearch)}
-                className={cn(
-                  "p-2.5 border rounded-xl transition-colors bg-white",
-                  webSearch
-                    ? "border-amber-300 text-amber-600 bg-amber-50"
-                    : "border-gray-200 text-gray-400 hover:text-amber-600 hover:border-amber-300"
-                )}
-                title={webSearch ? "已开启联网搜索" : "开启联网搜索"}
-              >
-                <Globe className="w-4 h-4" />
-              </button>
+              {capabilities.webSearch && (
+                <button
+                  onClick={() => toggleCapability("webSearch")}
+                  className={cn(
+                    "p-2.5 border rounded-xl transition-colors bg-white",
+                    capabilities.webSearch
+                      ? "border-amber-300 text-amber-600 bg-amber-50"
+                      : "border-gray-200 text-gray-400 hover:text-amber-600 hover:border-amber-300"
+                  )}
+                  title={capabilities.webSearch ? "已开启联网搜索" : "开启联网搜索"}
+                >
+                  <Globe className="w-4 h-4" />
+                </button>
+              )}
 
               <input
                 ref={fileInputRef}

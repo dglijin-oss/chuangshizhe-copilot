@@ -236,7 +236,16 @@ body {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* ===== Chat Markdown Styling ===== */
+/* Hide scrollbar for sidebar navigation */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Chat Markdown Styling ===== */
 .chat-markdown {
   line-height: 1.6;
 }

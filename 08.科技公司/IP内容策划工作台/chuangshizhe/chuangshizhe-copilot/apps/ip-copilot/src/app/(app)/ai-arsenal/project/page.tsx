@@ -44,7 +44,6 @@ interface Capabilities {
 
 const MODELS = [
   { value: "qwen3-max-2026-01-23", label: "Qwen3 Max" },
-  { value: "qwen-plus", label: "Qwen Plus" },
 ]
 
 /* ---- Main Page ---- */
@@ -580,7 +579,9 @@ export default function ProjectAssistantPage() {
                       {msg.role === "user" ? (
                         <div className="whitespace-pre-wrap">{msg.content}</div>
                       ) : (
-                        <ReactMarkdown className="chat-markdown" remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+                        <div className="chat-markdown">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+                        </div>
                       )}
                       </div>
                     </div>
@@ -590,7 +591,9 @@ export default function ProjectAssistantPage() {
                   {streamingContent && (
                     <div className="flex justify-start">
                       <div className="max-w-[85%] bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-4 py-3 text-sm leading-relaxed shadow-sm">
-                        <ReactMarkdown className="chat-markdown" remarkPlugins={[remarkGfm]}>{streamingContent}</ReactMarkdown>
+                        <div className="chat-markdown">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{streamingContent}</ReactMarkdown>
+                        </div>
                         <div className="flex items-center gap-1 mt-2">
                           <div className="animate-pulse w-1.5 h-1.5 bg-amber-500 rounded-full" />
                           <div className="animate-pulse w-1.5 h-1.5 bg-amber-500 rounded-full" style={{ animationDelay: "0.15s" }} />

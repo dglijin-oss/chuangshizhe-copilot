@@ -9,9 +9,10 @@ export async function POST(req: Request) {
   const user = await getSessionUser()
   if (!user) return NextResponse.json({ error: "未登录" }, { status: 401 })
 
-  const { message, sessionId, webSearch: doWebSearch } = (await req.json()) as {
+  const { message, sessionId, model, webSearch: doWebSearch } = (await req.json()) as {
     message: string
     sessionId: string
+    model?: string
     webSearch?: boolean
   }
 
@@ -33,9 +34,13 @@ export async function POST(req: Request) {
 
   // Web search
   if (doWebSearch) {
-    const searchResults = await webSearch(message, 3)
-    if (searchResults) {
-      systemPrompt += `\n\n## 联网搜索结果（参考用）\n${searchResults}`
+    try {
+      const searchResults = await webSearch(message, 3)
+      if (searchResults) {
+        systemPrompt += `\n\n## 联网搜索结果（参考用）\n${searchResults}`
+      }
+    } catch {
+      // silently ignore web search errors
     }
   }
 
@@ -64,19 +69,34 @@ export async function POST(req: Request) {
       let fullContent = ""
 
       try {
-        const stream = await client.messages.create({
-          model: "qwen3-max-2026-01-23",
+        const aiStream = await client.messages.create({
+          model: model || "qwen3-max-2026-01-23",
           system: systemPrompt,
           messages: anthropicMessages,
           max_tokens: 4000,
           stream: true,
         })
 
-        for await (const chunk of stream) {
+        for await (const chunk of aiStream) {
+          // DashScope Anthropic-compatible endpoint may use different chunk types
+          // Handle both Anthropic format and DashScope format
           if (chunk.type === "content_block_delta" && chunk.delta?.type === "text_delta") {
+            // Standard Anthropic format
             fullContent += chunk.delta.text
             controller.enqueue(
               encoder.encode(`data: ${JSON.stringify({ type: "chunk", content: chunk.delta.text })}\n\n`)
+            )
+          } else if (chunk.type === "delta" && chunk.text) {
+            // DashScope format: { type: "delta", text: "..." }
+            fullContent += chunk.text
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify({ type: "chunk", content: chunk.text })}\n\n`)
+            )
+          } else if (chunk.content && typeof chunk.content === "string") {
+            // Fallback: raw content field
+            fullContent += chunk.content
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify({ type: "chunk", content: chunk.content })}\n\n`)
             )
           }
         }
@@ -90,6 +110,7 @@ export async function POST(req: Request) {
 
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "done", content: fullContent })}\n\n`))
       } catch (err: any) {
+        console.error("[ai-arsenal/chat] Error:", err)
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "error", message: err.message || "请求失败" })}\n\n`))
       }
 

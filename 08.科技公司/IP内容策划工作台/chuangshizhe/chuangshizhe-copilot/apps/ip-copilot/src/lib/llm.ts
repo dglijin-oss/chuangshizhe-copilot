@@ -13,7 +13,7 @@ export async function chat(messages: Anthropic.MessageCreateParamsNonStreaming["
     messages,
     max_tokens: maxTokens,
   })
-  // Handle different response formats across models
+  // Handle different response formats across models and DashScope compatibility
   for (const block of res.content) {
     if (block.type === "text") return block.text
   }

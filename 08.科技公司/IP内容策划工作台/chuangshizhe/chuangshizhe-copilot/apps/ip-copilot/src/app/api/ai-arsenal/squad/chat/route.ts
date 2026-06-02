@@ -28,14 +28,19 @@ export async function POST(req: Request) {
 
   if (!session) return NextResponse.json({ error: "会话不存在" }, { status: 404 })
 
+  // Validate: this is a squad chat endpoint — session must belong to an agent
+  if (!session.agentId || !session.agent) {
+    return NextResponse.json({ error: "此对话属于项目助手，请在智能体对话中使用" }, { status: 400 })
+  }
+
   // Build system prompt
   let systemPrompt = "你是创世者 Copilot 的 AI 智能体助手。"
   if (session.agent?.systemPrompt) {
     systemPrompt = session.agent.systemPrompt
   }
 
-  // Inject knowledge context: AccountMemory + WikiPage
-  const knowledge = await fetchKnowledgeContext(user.id, session.agent?.ipId || null)
+  // Inject knowledge context: AccountMemory + WikiPage (account-level, no IP-specific)
+  const knowledge = await fetchKnowledgeContext(user.id, null)
   if (knowledge.memories && knowledge.memories !== "无") {
     systemPrompt += `\n\n## 账号记忆（必须严格遵守）\n${knowledge.memories}`
   }
@@ -45,9 +50,13 @@ export async function POST(req: Request) {
 
   // Web search: fetch results and inject into system prompt
   if (doWebSearch) {
-    const searchResults = await webSearch(message, 3)
-    if (searchResults) {
-      systemPrompt += `\n\n## 联网搜索结果（参考用，可能不完全相关）\n${searchResults}`
+    try {
+      const searchResults = await webSearch(message, 3)
+      if (searchResults) {
+        systemPrompt += `\n\n## 联网搜索结果（参考用，可能不完全相关）\n${searchResults}`
+      }
+    } catch {
+      // silently ignore web search errors
     }
   }
 
@@ -75,7 +84,7 @@ export async function POST(req: Request) {
       let fullContent = ""
 
       try {
-        const stream = await client.messages.create({
+        const aiStream = await client.messages.create({
           model: model || "qwen3-max-2026-01-23",
           system: systemPrompt,
           messages: anthropicMessages,
@@ -83,11 +92,22 @@ export async function POST(req: Request) {
           stream: true,
         })
 
-        for await (const chunk of stream) {
+        for await (const chunk of aiStream) {
+          // Handle multiple chunk formats for DashScope Anthropic-compatible endpoint
           if (chunk.type === "content_block_delta" && chunk.delta?.type === "text_delta") {
             fullContent += chunk.delta.text
             controller.enqueue(
               encoder.encode(`data: ${JSON.stringify({ type: "chunk", content: chunk.delta.text })}\n\n`)
+            )
+          } else if (chunk.type === "delta" && chunk.text) {
+            fullContent += chunk.text
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify({ type: "chunk", content: chunk.text })}\n\n`)
+            )
+          } else if (chunk.content && typeof chunk.content === "string") {
+            fullContent += chunk.content
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify({ type: "chunk", content: chunk.content })}\n\n`)
             )
           }
         }
@@ -100,6 +120,7 @@ export async function POST(req: Request) {
 
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "done", content: fullContent })}\n\n`))
       } catch (err: any) {
+        console.error("[ai-arsenal/squad/chat] Error:", err)
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "error", message: err.message || "请求失败" })}\n\n`))
       }
 

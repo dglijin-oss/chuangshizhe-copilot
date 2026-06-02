@@ -6,6 +6,7 @@ import Image from "next/image"
 import { Eye, EyeOff, RefreshCw } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
+import LoginCharacters from "@/components/login-characters"
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -16,8 +17,11 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const [captcha, setCaptcha] = useState<{ id: string; question: string } | null>(null)
   const [captchaAnswer, setCaptchaAnswer] = useState("")
+  const [focusField, setFocusField] = useState<"none" | "account" | "password">("none")
 
-  const canSubmit = form.name && form.phone && form.password && form.password2 && form.password === form.password2 && captchaAnswer
+  const isValidPhone = (p: string) => /^1[3-9]\d{9}$/.test(p)
+  const canSubmit = form.name && isValidPhone(form.phone) && form.password && form.password2 && form.password === form.password2 && captchaAnswer
+  const passwordVisible = showPw || showPw2
 
   const fetchCaptcha = async () => {
     try {
@@ -55,7 +59,6 @@ export default function RegisterPage() {
       const data = await res.json()
       if (!res.ok) {
         setError(data.error || "注册失败")
-        // If captcha error, refresh captcha
         if (data.error?.includes("验证码")) {
           fetchCaptcha()
         }
@@ -72,8 +75,10 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-background-subtle flex items-center justify-center">
       <div className="flex gap-12 items-start max-w-3xl w-full px-6">
-        <div className="flex-1 bg-primary-light rounded-2xl p-10 min-h-[400px] flex flex-col justify-between">
-          <div>
+        {/* Left panel */}
+        <div className="flex-1 bg-primary-light rounded-2xl overflow-hidden min-h-[480px] flex flex-col">
+          {/* Upper: branding */}
+          <div className="p-10 pb-0 relative z-10">
             <Image src="/logo.png" alt="创世者Copilot" width={180} height={38} className="mb-8" />
             <span className="text-xs text-primary font-medium">IP 内容工作台</span>
             <h1 className="text-2xl font-bold mt-3 leading-snug">
@@ -83,8 +88,17 @@ export default function RegisterPage() {
               注册即可获得 110 积分，立即开始使用 AI 生成服务。
             </p>
           </div>
+
+          {/* Lower: characters */}
+          <div className="flex-1 flex items-end justify-center pb-6 relative">
+            <LoginCharacters
+              passwordVisible={passwordVisible}
+              focusField={focusField}
+            />
+          </div>
         </div>
 
+        {/* Right: register form */}
         <form onSubmit={onSubmit} className="w-[340px] bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
           <h2 className="text-base font-bold mb-1">创建账号</h2>
           <p className="text-xs text-muted mb-5">注册后可使用 AI 生成服务，积分制计费。</p>
@@ -99,6 +113,8 @@ export default function RegisterPage() {
                 placeholder="请输入用户名"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
+                onFocus={() => setFocusField("account")}
+                onBlur={() => setFocusField("none")}
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
               />
             </div>
@@ -106,11 +122,22 @@ export default function RegisterPage() {
               <label className="text-xs font-medium text-muted mb-1 block">手机号</label>
               <input
                 type="tel"
-                placeholder="请输入手机号"
+                placeholder="请输入11位手机号"
+                maxLength={11}
                 value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
+                onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, "") })}
+                onFocus={() => setFocusField("account")}
+                onBlur={() => setFocusField("none")}
+                className={cn(
+                  "w-full border rounded-lg px-3 py-2 text-sm focus:outline-none transition-colors",
+                  form.phone && !isValidPhone(form.phone)
+                    ? "border-red-400 bg-red-50 focus:border-red-400"
+                    : "border-gray-200 focus:border-primary"
+                )}
               />
+              {form.phone && !isValidPhone(form.phone) && (
+                <p className="text-[11px] text-red-500 mt-1">请输入正确的11位手机号</p>
+              )}
             </div>
             <div>
               <label className="text-xs font-medium text-muted mb-1 block">密码</label>
@@ -120,6 +147,8 @@ export default function RegisterPage() {
                   placeholder="请设置密码（至少6位）"
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  onFocus={() => setFocusField("password")}
+                  onBlur={() => setFocusField("none")}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm pr-8 focus:outline-none focus:border-primary"
                 />
                 <button
@@ -139,6 +168,8 @@ export default function RegisterPage() {
                   placeholder="请再次输入密码"
                   value={form.password2}
                   onChange={(e) => setForm({ ...form, password2: e.target.value })}
+                  onFocus={() => setFocusField("password")}
+                  onBlur={() => setFocusField("none")}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm pr-8 focus:outline-none focus:border-primary"
                 />
                 <button

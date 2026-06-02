@@ -39,14 +39,18 @@ export async function POST(req: Request) {
         })
 
         for await (const chunk of res) {
-          if (chunk.type === "content_block_delta" && chunk.delta.type === "text_delta") {
+          // Handle multiple chunk formats for DashScope Anthropic-compatible endpoint
+          if (chunk.type === "content_block_delta" && chunk.delta?.type === "text_delta") {
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "chunk", content: chunk.delta.text })}\n\n`))
+          } else if (chunk.type === "delta" && chunk.text) {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "chunk", content: chunk.text })}\n\n`))
           }
         }
 
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "done" })}\n\n`))
         controller.close()
       } catch (err: unknown) {
+        console.error("[scrape/chat] Error:", err)
         const message = err instanceof Error ? err.message : "连接模型服务失败"
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "error", message })}\n\n`))
         controller.close()
