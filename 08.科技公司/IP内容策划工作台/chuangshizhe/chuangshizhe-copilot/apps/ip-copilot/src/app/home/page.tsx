@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { FileText, ArrowRight, LogOut, Brain, PenTool, BarChart3, BookOpen, Sparkles } from "lucide-react"
+import { FileText, ArrowRight, LogOut, Brain, PenTool, BarChart3, BookOpen, Sparkles, Sparkle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 
@@ -293,13 +293,27 @@ export default function ProductsPage() {
 
           <div className="animate-fade-in delay-700">
             {user ? (
-              <button
-                onClick={() => router.push("/")}
-                className="group inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white px-10 py-3.5 rounded-full text-sm font-medium hover:shadow-lg hover:shadow-blue-500/25 hover:-translate-y-0.5 transition-all duration-300"
-              >
-                进入工作台
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </button>
+              <div className="flex flex-col items-center gap-5">
+                <p className="text-sm text-white/50">选择要进入的产品</p>
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => router.push("/")}
+                    className="group inline-flex items-center gap-2 bg-linear-to-r from-blue-600 to-blue-500 text-white px-8 py-3.5 rounded-full text-sm font-medium hover:shadow-lg hover:shadow-blue-500/25 hover:-translate-y-0.5 transition-all duration-300"
+                  >
+                    <FileText className="w-4 h-4" />
+                    IP 内容工作台
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                  <button
+                    onClick={() => router.push("/xuanxue")}
+                    className="group inline-flex items-center gap-2 bg-linear-to-r from-purple-600 to-purple-500 text-white px-8 py-3.5 rounded-full text-sm font-medium hover:shadow-lg hover:shadow-purple-500/25 hover:-translate-y-0.5 transition-all duration-300"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    玄学工作室
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </div>
+              </div>
             ) : (
               <div className="flex flex-col items-center gap-4">
                 <div className="flex gap-4">
