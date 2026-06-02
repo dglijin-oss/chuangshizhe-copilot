@@ -16,7 +16,6 @@ model User {
   name        String?
   role        String   @default("user")
   points      Int      @default(110)
-  products    String[] @default([])  // 已开通的产品权限
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   deletedAt   DateTime?
@@ -41,7 +40,6 @@ model User {
   corpusFeeds     CorpusFeed[]
   hotwordMatrices HotwordMatrix[]
   videoScrapes    VideoScrape[]
-  divinationRecords DivinationRecord[]
 }
 
 model Ip {
@@ -397,20 +395,4 @@ model PaymentConfig {
   value       String?  // base64 data URL of QR code image
   updatedAt   DateTime @updatedAt
   createdAt   DateTime @default(now())
-}
-
-// 玄学模块 - 占卜记录表
-model DivinationRecord {
-  id         String   @id @default(cuid())
-  userId     String
-  user       User     @relation(fields: [userId], references: [id])
-  skillId    String   // bazi / liuyao / qimen / ziwei / liuren / taiyi / qizheng / fengshui / ze-ri / meihua
-  input      String   @db.Text  // 用户输入参数（JSON 格式）
-  output     String   @db.Text  // 技能返回结果（JSON 格式）
-  pointsCost Int      @default(10)
-  createdAt  DateTime @default(now())
-
-  @@index([userId])
-  @@index([skillId])
-  @@index([createdAt])
 }

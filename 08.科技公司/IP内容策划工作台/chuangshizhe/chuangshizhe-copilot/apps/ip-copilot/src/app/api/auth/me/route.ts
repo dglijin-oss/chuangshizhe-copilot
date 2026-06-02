@@ -20,7 +20,6 @@ export async function GET() {
       phone: user.phone,
       role: user.role,
       points: user.points,
-      products: user.products || [],
       hasQuestionnaire: !!questionnaire,
     },
   })

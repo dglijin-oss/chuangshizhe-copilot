@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { prismaCore } from '@/lib/prisma'
 
 export const SESSION_COOKIE = 'session-token'
 
@@ -10,7 +10,7 @@ export async function getUserFromRequest(req: NextRequest) {
   const token = req.cookies.get(SESSION_COOKIE)?.value
   if (!token) return null
 
-  const session = await prisma.session.findUnique({
+  const session = await prismaCore.session.findUnique({
     where: { token },
     include: { user: true },
   })
