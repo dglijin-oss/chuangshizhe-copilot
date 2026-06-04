@@ -110,6 +110,20 @@ fi
 echo "  Prisma 客户端已复制到 standalone"
 
 echo ""
+echo "  [复制静态资源到 standalone]"
+# Next.js standalone mode requires .next/static inside the app's standalone directory
+mkdir -p apps/ip-copilot/.next/standalone/apps/ip-copilot/.next
+mkdir -p apps/admin/.next/standalone/apps/admin/.next
+rm -rf apps/ip-copilot/.next/standalone/apps/ip-copilot/.next/static
+rm -rf apps/admin/.next/standalone/apps/admin/.next/static
+cp -r apps/ip-copilot/.next/static apps/ip-copilot/.next/standalone/apps/ip-copilot/.next/static
+cp -r apps/admin/.next/static apps/admin/.next/standalone/apps/admin/.next/static
+# Copy public assets (logo, favicon, etc.)
+cp -r apps/ip-copilot/public apps/ip-copilot/.next/standalone/apps/ip-copilot/public 2>/dev/null || true
+cp -r apps/admin/public apps/admin/.next/standalone/apps/admin/public 2>/dev/null || true
+echo "  静态资源已复制到 standalone"
+
+echo ""
 echo "  所有应用构建完成"
 REMOTE
 echo ""
