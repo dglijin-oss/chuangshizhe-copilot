@@ -94,10 +94,12 @@ cd apps/admin && pnpm build --webpack 2>&1 | tail -5 && cd ../..
 echo ""
 echo "  [复制 Prisma 客户端到 standalone]"
 # serverExternalPackages marks @chuangshizhe/database as external,
-# so we need to copy the generated clients into standalone node_modules
-STANDALONE="apps/ip-copilot/.next/standalone/node_modules/@chuangshizhe"
-mkdir -p "$STANDALONE"
-cp -r packages/database "$STANDALONE/database"
+# so we need to copy the generated clients into BOTH standalone node_modules
+for APP in ip-copilot admin; do
+  STANDALONE="apps/$APP/.next/standalone/node_modules/@chuangshizhe"
+  mkdir -p "$STANDALONE"
+  cp -r packages/database "$STANDALONE/database"
+done
 # Also need @prisma/adapter-pg for the standalone
 ADAPTER_TARGET="apps/ip-copilot/.next/standalone/node_modules/@prisma"
 mkdir -p "$ADAPTER_TARGET"
@@ -143,11 +145,13 @@ sleep 2
 
 echo "  [生成 ecosystem.config.js]"
 # Build ecosystem.config.js from .env so PORT and other vars are set correctly
-ALINYUN_KEY=$(grep '^ALIYUN_API_KEY=' .env | head -1 | cut -d= -f2- | tr -d '"')
+# Use sed to escape ! for JS string safety
+ALINYUN_KEY=$(grep '^ALIYUN_API_KEY=' .env | head -1 | cut -d= -f2- | tr -d '"' | sed 's/!/\\!/g')
 OPENCLAW_URL=$(grep '^OPENCLAW_API_URL=' .env | head -1 | cut -d= -f2- | tr -d '"')
 OPENCLAW_KEY=$(grep '^OPENCLAW_API_KEY=' .env | head -1 | cut -d= -f2- | tr -d '"')
 HERMES_URL=$(grep '^HERMES_API_URL=' .env | head -1 | cut -d= -f2- | tr -d '"')
-DB_URL=$(grep '^DATABASE_URL=' .env | head -1 | cut -d= -f2- | tr -d '"')
+# Use 127.0.0.1 instead of external IP (server connects to itself)
+DB_URL=$(grep '^DATABASE_URL=' .env | head -1 | cut -d= -f2- | tr -d '"' | sed 's/111.228.45.216/127.0.0.1/g' | sed 's/!/\\!/g')
 
 cat > ecosystem.config.js << JSEOF
 module.exports = {
