@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { runSkill } from '../../lib/executor'
 import { deductForSkill, checkBalance, getUserPoints } from '../../lib/billing'
-import { prisma } from '@/lib/prisma'
+import { prisma, prismaXuanxue } from '@/lib/prisma'
 import { getUserFromRequest, hasProductAccess } from '../../lib/auth-guard'
 import type { SkillId } from '../../lib/types'
 
@@ -59,7 +59,7 @@ export async function POST(
     })
 
     // 保存占卜记录
-    await prisma.divinationRecord.create({
+    await prismaXuanxue.divinationRecord.create({
       data: {
         userId: user.id,
         skillId: skillId,

@@ -32,8 +32,7 @@ model DivinationRecord {
 
 // 引用 public schema 的 User 表（用于关联）
 model User {
-  id    String @id @db.Uuid
-  phone String @unique
+  id    String @id
 
   divinationRecords DivinationRecord[]
 

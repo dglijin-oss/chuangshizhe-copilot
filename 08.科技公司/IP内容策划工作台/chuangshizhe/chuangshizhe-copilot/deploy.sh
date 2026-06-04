@@ -92,6 +92,24 @@ cd apps/ip-copilot && pnpm build --webpack 2>&1 | tail -5 && cd ../..
 cd apps/admin && pnpm build --webpack 2>&1 | tail -5 && cd ../..
 
 echo ""
+echo "  [复制 Prisma 客户端到 standalone]"
+# serverExternalPackages marks @chuangshizhe/database as external,
+# so we need to copy the generated clients into standalone node_modules
+STANDALONE="apps/ip-copilot/.next/standalone/node_modules/@chuangshizhe"
+mkdir -p "$STANDALONE"
+cp -r packages/database "$STANDALONE/database"
+# Also need @prisma/adapter-pg for the standalone
+ADAPTER_TARGET="apps/ip-copilot/.next/standalone/node_modules/@prisma"
+mkdir -p "$ADAPTER_TARGET"
+if [ -d "node_modules/.pnpm/@prisma+adapter-pg@7.8.0" ]; then
+  cp -r node_modules/.pnpm/@prisma+adapter-pg@7.8.0/node_modules/@prisma/adapter-pg "$ADAPTER_TARGET/" 2>/dev/null || true
+fi
+if [ -d "node_modules/.pnpm/@prisma+driver-adapter-utils@7.8.0" ]; then
+  cp -r node_modules/.pnpm/@prisma+driver-adapter-utils@7.8.0/node_modules/@prisma/driver-adapter-utils "$ADAPTER_TARGET/" 2>/dev/null || true
+fi
+echo "  Prisma 客户端已复制到 standalone"
+
+echo ""
 echo "  所有应用构建完成"
 REMOTE
 echo ""
