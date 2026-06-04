@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  turbopack: {},
   webpack: (config, { isServer }) => {
     if (isServer) {
       const prismaDir = path.resolve(__dirname, "../../packages/database");
