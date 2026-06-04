@@ -1,15 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
-import crypto from "crypto"
-import { captchaStore, generateCaptcha } from "@/lib/captcha"
+import { generateCaptcha, verifyCaptcha } from "@/lib/captcha"
 
 // GET: generate a new captcha
 export async function GET() {
-  const id = crypto.randomUUID()
-  const { question, answer } = generateCaptcha()
-
-  captchaStore.set(id, { question, answer, createdAt: Date.now() })
-
-  return NextResponse.json({ id, question })
+  const { question, token } = generateCaptcha()
+  return NextResponse.json({ id: token, question })
 }
 
 // POST: verify captcha answer
@@ -20,15 +15,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "验证码信息不完整" }, { status: 400 })
   }
 
-  const entry = captchaStore.get(id)
-  if (!entry) {
+  const result = verifyCaptcha(id, answer)
+  if (result.expired) {
     return NextResponse.json({ error: "验证码已过期，请重新获取" }, { status: 400 })
   }
-
-  captchaStore.delete(id)
-
-  const correct = Number(answer) === entry.answer
-  if (!correct) {
+  if (!result.valid) {
     return NextResponse.json({ error: "验证码错误", valid: false })
   }
 

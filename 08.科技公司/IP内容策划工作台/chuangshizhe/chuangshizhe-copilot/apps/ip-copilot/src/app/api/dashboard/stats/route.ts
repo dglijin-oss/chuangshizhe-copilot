@@ -76,16 +76,40 @@ export async function GET() {
     }
   })
 
-  // IP account list with counts
-  const ipList = ips.map((ip) => ({
-    id: ip.id,
-    name: ip.name,
-    industry: ip.industry || "未设置",
-    contentMix: `${ip.contentMixFlow}:${ip.contentMixPersona}:${ip.contentMixProduct}`,
-    articleCount: ip._count.geoArticles,
-    planCount: ip._count.weeklyPlans,
-    updatedAt: ip.updatedAt,
-  }))
+  // IP account list with counts + health score
+  const ipList = ips.map((ip) => {
+    // Health score: weighted based on content activity
+    const planScore = ip._count.weeklyPlans > 0 ? 40 : 0
+    const articleScore = Math.min(ip._count.geoArticles * 5, 40)
+    const kbScore = ip.knowledgeBase ? 10 : 0
+    const freshnessScore = Math.min(10, Math.max(0, 10 - Math.floor((Date.now() - ip.updatedAt.getTime()) / (7 * 24 * 60 * 60 * 1000))))
+    const health = planScore + articleScore + kbScore + freshnessScore
+
+    return {
+      id: ip.id,
+      name: ip.name,
+      industry: ip.industry || "未设置",
+      contentMix: `${ip.contentMixFlow}:${ip.contentMixPersona}:${ip.contentMixProduct}`,
+      articleCount: ip._count.geoArticles,
+      planCount: ip._count.weeklyPlans,
+      updatedAt: ip.updatedAt,
+      health: Math.min(health, 100),
+    }
+  })
+
+  // Daily tip: find the most needy IP and generate a tip
+  let dailyTip: string | null = null
+  const unhealthyIps = ipList.filter((ip) => ip.health < 60)
+  const noPlanIps = ipList.filter((ip) => ip.planCount === 0)
+
+  if (unhealthyIps.length > 0) {
+    const worst = unhealthyIps[0]
+    dailyTip = `「${worst.name}」的内容健康度偏低（${worst.health}%），建议今天生成 2 条新内容补充素材库。`
+  } else if (noPlanIps.length > 0) {
+    dailyTip = `「${noPlanIps[0].name}」还没有周策划，点击「生成周策划」为它制定本周内容计划。`
+  } else if (s?.articleRecent7d && s.articleRecent7d < 5) {
+    dailyTip = `本周内容产出较少（${s.articleRecent7d} 条），建议多利用 AI 军火库生成内容。`
+  }
 
   return NextResponse.json({
     articleTotal,
@@ -98,5 +122,6 @@ export async function GET() {
     generationLogRecent7d,
     trend,
     ipList,
+    dailyTip,
   })
 }

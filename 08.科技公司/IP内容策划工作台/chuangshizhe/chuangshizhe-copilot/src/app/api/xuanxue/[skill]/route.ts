@@ -1,23 +1,11 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { runSkill } from '@/modules/xuanxue/lib/executor'
 import { deductForSkill, checkBalance } from '@/modules/xuanxue/lib/billing'
-import { prisma } from '@/lib/prisma'
+import { prismaCore } from '@/lib/prisma'
+import { getUserFromRequest, hasProductAccess } from '@/modules/xuanxue/lib/auth-guard'
 import type { SkillId } from '@/modules/xuanxue/lib/types'
 
 export const dynamic = 'force-dynamic'
-
-async function getUserFromRequest(req: NextRequest) {
-  const token = req.cookies.get('session-token')?.value
-  if (!token) return null
-
-  const session = await prisma.session.findUnique({
-    where: { token },
-    include: { user: true },
-  })
-
-  if (!session || session.expiresAt < new Date()) return null
-  return session.user
-}
 
 export async function POST(
   req: NextRequest,
@@ -30,10 +18,14 @@ export async function POST(
       return NextResponse.json({ error: '未登录' }, { status: 401 })
     }
 
+    // TODO: 恢复权限检查（待 admin 给用户开通 xuanxue 产品后启用）
+    // if (!hasProductAccess(user, 'xuanxue')) {
+    //   return NextResponse.json({ error: '您尚未开通玄学模块' }, { status: 403 })
+    // }
+
     const skillId = skill as SkillId
     const input = await req.json()
 
-    // 检查余额
     const balanceCheck = await checkBalance(user.id, skillId)
     if (!balanceCheck.ok) {
       return NextResponse.json(
@@ -42,14 +34,24 @@ export async function POST(
       )
     }
 
-    // 执行技能
     const result = await runSkill(skillId, input)
 
-    // 扣费
     const deducted = await deductForSkill(user.id, skillId)
     if (!deducted) {
       return NextResponse.json({ error: '扣费失败，请重试' }, { status: 500 })
     }
+
+    await prismaCore.generationLog.create({
+      data: {
+        userId: user.id,
+        type: `xuanxue:${skillId}`,
+        status: 'success',
+        cost: balanceCheck.required,
+      },
+    })
+
+    // TODO: 写入 DivinationRecord（待数据库迁移）
+    // await prisma.divinationRecord.create({...})
 
     return NextResponse.json({
       success: true,

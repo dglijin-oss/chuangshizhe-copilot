@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { prismaCore } from "@/lib/prisma"
 import { hashPassword, createSession } from "@/lib/auth"
 import { parseBody, registerSchema } from "@/lib/validation"
-import { captchaStore } from "@/lib/captcha"
+import { verifyCaptcha } from "@/lib/captcha"
 
 export async function POST(req: NextRequest) {
   try {
@@ -21,13 +21,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "请完成图形验证码" }, { status: 400 })
     }
 
-    const entry = captchaStore.get(captchaId)
-    if (!entry) {
+    const result = verifyCaptcha(captchaId, captchaAnswer)
+    if (result.expired) {
       return NextResponse.json({ error: "验证码已过期，请重新获取" }, { status: 400 })
     }
-    captchaStore.delete(captchaId)
-
-    if (Number(captchaAnswer) !== entry.answer) {
+    if (!result.valid) {
       return NextResponse.json({ error: "验证码错误" }, { status: 400 })
     }
 

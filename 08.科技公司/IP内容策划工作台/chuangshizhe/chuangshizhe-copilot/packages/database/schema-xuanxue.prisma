@@ -1,0 +1,42 @@
+// 玄学模块数据库 Schema
+// 在 packages/database/ 目录下运行:
+// npx prisma migrate dev --schema=schema-xuanxue.prisma
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "client-xuanxue"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  schemas   = ["public", "xuanxue"]
+}
+
+// 玄学占卜记录表（所有技能共用）
+model DivinationRecord {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String
+  skillId     String   // bazi / liuyao / qimen / ziwei / liuren / taiyi / qizheng / fengshui / ze-ri / meihua
+  input       Json     // 用户输入参数（日期、时辰、问题等）
+  output      Json     // 技能返回结果
+  pointsCost  Int      @default(10)
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([skillId])
+  @@index([createdAt])
+  @@schema("xuanxue")
+}
+
+// 引用 public schema 的 User 表（用于关联）
+model User {
+  id    String @id @db.Uuid
+  phone String @unique
+
+  divinationRecords DivinationRecord[]
+
+  @@schema("public")
+}
