@@ -127,20 +127,77 @@ pm2 delete ip-copilot 2>/dev/null || true
 pm2 delete admin 2>/dev/null || true
 sleep 2
 
+echo "  [生成 ecosystem.config.js]"
+# Build ecosystem.config.js from .env so PORT and other vars are set correctly
+ALINYUN_KEY=$(grep '^ALIYUN_API_KEY=' .env | head -1 | cut -d= -f2-)
+OPENCLAW_URL=$(grep '^OPENCLAW_API_URL=' .env | head -1 | cut -d= -f2-)
+OPENCLAW_KEY=$(grep '^OPENCLAW_API_KEY=' .env | head -1 | cut -d= -f2-)
+HERMES_URL=$(grep '^HERMES_API_URL=' .env | head -1 | cut -d= -f2-)
+DB_URL=$(grep '^DATABASE_URL=' .env | head -1 | cut -d= -f2-)
+
+cat > ecosystem.config.js << JSEOF
+module.exports = {
+  apps: [
+    {
+      name: "ip-copilot",
+      script: "/opt/chuangshizhe-copilot/apps/ip-copilot/.next/standalone/apps/ip-copilot/server.js",
+      cwd: "/opt/chuangshizhe-copilot/apps/ip-copilot/.next/standalone",
+      instances: 1,
+      exec_mode: "cluster",
+      autorestart: true,
+      max_memory_restart: "1G",
+      env: {
+        NODE_ENV: "production",
+        PORT: "3000",
+        HOSTNAME: "0.0.0.0",
+        DATABASE_URL: "${DB_URL}",
+        ALIYUN_API_KEY: "${ALINYUN_KEY}",
+        OPENCLAW_API_URL: "${OPENCLAW_URL}",
+        OPENCLAW_API_KEY: "${OPENCLAW_KEY}",
+        HERMES_API_URL: "${HERMES_URL}",
+      },
+      error_file: "/var/log/pm2/ip-copilot-error.log",
+      out_file: "/var/log/pm2/ip-copilot-out.log",
+      merge_logs: true,
+    },
+    {
+      name: "admin",
+      script: "/opt/chuangshizhe-copilot/apps/admin/.next/standalone/apps/admin/server.js",
+      cwd: "/opt/chuangshizhe-copilot/apps/admin/.next/standalone",
+      instances: 1,
+      exec_mode: "cluster",
+      autorestart: true,
+      max_memory_restart: "1G",
+      env: {
+        NODE_ENV: "production",
+        PORT: "3002",
+        HOSTNAME: "0.0.0.0",
+        DATABASE_URL: "${DB_URL}",
+      },
+      error_file: "/var/log/pm2/admin-error.log",
+      out_file: "/var/log/pm2/admin-out.log",
+      merge_logs: true,
+    },
+  ],
+};
+JSEOF
+
 echo "  [启动新进程]"
-# Use standalone server.js (next start doesn't work with output: standalone)
-cd apps/ip-copilot/.next/standalone/apps/ip-copilot
-pm2 start server.js --name ip-copilot -i 1
-cd /opt/chuangshizhe-copilot
-cd apps/admin/.next/standalone/apps/admin
-pm2 start server.js --name admin -i 1
-cd /opt/chuangshizhe-copilot
+pm2 start ecosystem.config.js
 pm2 save
 
 sleep 3
 echo ""
 echo "  [状态]"
 pm2 list
+
+# Health check
+echo ""
+echo "  [健康检查]"
+IP_CODE=\$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000)
+ADMIN_CODE=\$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3002)
+echo "  ip-copilot (3000): \$IP_CODE"
+echo "  admin (3002):      \$ADMIN_CODE"
 REMOTE
 
 echo ""
