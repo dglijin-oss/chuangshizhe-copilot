@@ -129,11 +129,11 @@ sleep 2
 
 echo "  [生成 ecosystem.config.js]"
 # Build ecosystem.config.js from .env so PORT and other vars are set correctly
-ALINYUN_KEY=$(grep '^ALIYUN_API_KEY=' .env | head -1 | cut -d= -f2-)
-OPENCLAW_URL=$(grep '^OPENCLAW_API_URL=' .env | head -1 | cut -d= -f2-)
-OPENCLAW_KEY=$(grep '^OPENCLAW_API_KEY=' .env | head -1 | cut -d= -f2-)
-HERMES_URL=$(grep '^HERMES_API_URL=' .env | head -1 | cut -d= -f2-)
-DB_URL=$(grep '^DATABASE_URL=' .env | head -1 | cut -d= -f2-)
+ALINYUN_KEY=$(grep '^ALIYUN_API_KEY=' .env | head -1 | cut -d= -f2- | tr -d '"')
+OPENCLAW_URL=$(grep '^OPENCLAW_API_URL=' .env | head -1 | cut -d= -f2- | tr -d '"')
+OPENCLAW_KEY=$(grep '^OPENCLAW_API_KEY=' .env | head -1 | cut -d= -f2- | tr -d '"')
+HERMES_URL=$(grep '^HERMES_API_URL=' .env | head -1 | cut -d= -f2- | tr -d '"')
+DB_URL=$(grep '^DATABASE_URL=' .env | head -1 | cut -d= -f2- | tr -d '"')
 
 cat > ecosystem.config.js << JSEOF
 module.exports = {
