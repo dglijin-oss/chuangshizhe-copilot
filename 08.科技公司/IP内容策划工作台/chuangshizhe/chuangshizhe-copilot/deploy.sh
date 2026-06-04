@@ -82,6 +82,7 @@ export SKIP_ENV_VALIDATION=1
 cd packages/database
 npx prisma generate --schema=schema-core.prisma 2>&1 | tail -1
 npx prisma generate --schema=schema-ip.prisma 2>&1 | tail -1
+npx prisma generate --schema=schema-xuanxue.prisma 2>&1 | tail -1
 cd ../..
 
 echo ""
@@ -109,7 +110,13 @@ pm2 delete admin 2>/dev/null || true
 sleep 2
 
 echo "  [启动新进程]"
-pm2 start ecosystem.config.js
+# Use standalone server.js (next start doesn't work with output: standalone)
+cd apps/ip-copilot/.next/standalone/apps/ip-copilot
+pm2 start server.js --name ip-copilot -i 1
+cd /opt/chuangshizhe-copilot
+cd apps/admin/.next/standalone/apps/admin
+pm2 start server.js --name admin -i 1
+cd /opt/chuangshizhe-copilot
 pm2 save
 
 sleep 3
