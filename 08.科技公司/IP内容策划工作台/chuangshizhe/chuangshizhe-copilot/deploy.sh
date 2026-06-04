@@ -194,10 +194,10 @@ pm2 list
 # Health check
 echo ""
 echo "  [健康检查]"
-IP_CODE=\$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000)
-ADMIN_CODE=\$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3002)
-echo "  ip-copilot (3000): \$IP_CODE"
-echo "  admin (3002):      \$ADMIN_CODE"
+IP_CODE=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000)
+ADMIN_CODE=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3002)
+echo "  ip-copilot (3000): $IP_CODE"
+echo "  admin (3002):      $ADMIN_CODE"
 REMOTE
 
 echo ""
